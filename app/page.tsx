@@ -93,12 +93,13 @@ export default function Home() {
   const doResearch = async () => {
     if (!titles.length) { alert('Add at least one target title.'); return }
     setLoading(true); setError(''); setStep(2)
-    setLoadingMsg('Searching for real municipalities…')
+    setLoadingMsg('Searching for 100 real municipalities (4 batches of 25)…')
     try {
+      const excludeCompanies = tracking.map((t) => t.company)
       const res = await fetch('/api/research', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product, geo: getGeoString(), size: getSizeString(), pain }),
+        body: JSON.stringify({ product, geo: getGeoString(), size: getSizeString(), pain, excludeCompanies }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -110,12 +111,13 @@ export default function Home() {
 
   const doContacts = async () => {
     setLoading(true); setError(''); setStep(3)
-    setLoadingMsg('Searching municipal websites for staff directories…')
+    setLoadingMsg(`Searching ${companies.length} municipal websites for staff directories (batches of 5)…`)
     try {
+      const excludeEmails = tracking.map((t) => t.email)
       const res = await fetch('/api/contacts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ companies, titles }),
+        body: JSON.stringify({ companies, titles, excludeEmails }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -127,7 +129,8 @@ export default function Home() {
 
   const doCadence = async () => {
     setLoading(true); setError(''); setStep(4); setTrackingPushed(false)
-    setLoadingMsg('Writing personalized 3-touch sequences…')
+    const totalContacts = contacts.reduce((s, o) => s + o.contacts.length, 0)
+    setLoadingMsg(`Writing personalized 3-touch sequences for ${totalContacts} contacts (batches of 10)…`)
     try {
       const res = await fetch('/api/cadence', {
         method: 'POST',
@@ -282,7 +285,7 @@ export default function Home() {
             <div style={{ textAlign:'center', padding:'48px 20px', color:'var(--text-2)' }}>
               <div style={{ width:'26px', height:'26px', border:'2.5px solid var(--border-md)', borderTopColor:'var(--text)', borderRadius:'50%', animation:'spin 0.65s linear infinite', margin:'0 auto 13px' }} />
               <p style={{ fontSize:'14px' }}>{loadingMsg}</p>
-              <small style={{ fontSize:'12px', color:'var(--text-3)', marginTop:'4px', display:'block' }}>This may take 15–30 seconds</small>
+              <small style={{ fontSize:'12px', color:'var(--text-3)', marginTop:'4px', display:'block' }}>This may take a few minutes for large batches</small>
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
             </div>
           )}

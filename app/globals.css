@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #ffffff;
+  --bg-2: #f7f7f5;
+  --bg-3: #eeecea;
+  --border: rgba(0,0,0,0.09);
+  --border-md: rgba(0,0,0,0.16);
+  --text: #0f0f0f;
+  --text-2: #545454;
+  --text-3: #909090;
+  --accent: #1d4ed8;
+  --accent-bg: #eff6ff;
+  --accent-text: #1e40af;
+  --green-bg: #f0fdf4;
+  --green-text: #15803d;
+  --amber-bg: #fffbeb;
+  --amber-text: #b45309;
+  --red-bg: #fef2f2;
+  --red-text: #b91c1c;
+  --purple-bg: #f5f3ff;
+  --purple-text: #6d28d9;
+}
+
+* { box-sizing: border-box; }
+
+/* Range slider thumbs */
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 2px solid white;
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+input[type='range']::-moz-range-thumb {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 2px solid white;
+  cursor: pointer;
+  pointer-events: all;
+}

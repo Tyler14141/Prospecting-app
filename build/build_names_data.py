@@ -12,6 +12,7 @@ self-contained (no client-side fetch).
 
 import json
 import os
+import urllib.request
 
 import geonamescache
 
@@ -21,6 +22,17 @@ from data import BUCKETS, STATES
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_PATH = os.path.join(HERE, "names_data.json")
 ALL_CITIES_PATH = os.path.join(HERE, "all_cities.json")  # lutangar mirror
+ALL_CITIES_URL = ("https://raw.githubusercontent.com/lutangar/cities.json/"
+                   "master/cities.json")
+
+
+def ensure_all_cities():
+    """Fetch the lutangar US places mirror if not present locally."""
+    if os.path.exists(ALL_CITIES_PATH):
+        return
+    print(f"  fetching {ALL_CITIES_URL} (one-time, ~21MB)...")
+    urllib.request.urlretrieve(ALL_CITIES_URL, ALL_CITIES_PATH)
+    print(f"  saved to {ALL_CITIES_PATH}")
 
 SMALL_BUCKET = "small (<15K)"  # special bucket for sub-15K munis
 
@@ -78,6 +90,7 @@ def build():
         })
 
     # --- Smaller US places from lutangar mirror (no population) ---
+    ensure_all_cities()
     if os.path.exists(ALL_CITIES_PATH):
         with open(ALL_CITIES_PATH, "r", encoding="utf-8") as f:
             all_places = json.load(f)

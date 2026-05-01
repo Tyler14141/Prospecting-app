@@ -3,3 +3,6 @@ __pycache__/
 .DS_Store
 /tmp/
 *.lock
+
+# Cached data fetched on first build — don't track
+build/all_cities.json

@@ -1,0 +1,477 @@
+vendor,muni,state,type,bucket,product,since,source,evidence,confidence,pop,ip
+Tyler Technologies,Calera,AL,muni,small (<15K),Munis Self Service,,dns_strict,caleraal.munisselfservice.com,0.95,,98.88.154.228
+Tyler Technologies,Prattville,AL,muni,20K-50K,Munis Self Service,,dns_strict,prattvilleal.munisselfservice.com,0.95,35420,98.82.247.144
+Tyler Technologies,Glendale,AZ,muni,100K+,Munis Self Service,,dns_strict,glendaleaz.munisselfservice.com,0.95,240126,3.133.252.109
+Tyler Technologies,Maricopa,AZ,muni,20K-50K,Munis Self Service,,dns_strict,maricopaaz.munisselfservice.com,0.95,48602,3.133.252.109
+Tyler Technologies,Queen Creek,AZ,muni,20K-50K,Munis Self Service,,dns_strict,queencreekaz.munisselfservice.com,0.95,34614,54.146.243.192
+Tyler Technologies,Scottsdale,AZ,muni,100K+,Munis Self Service,,dns_strict,scottsdaleaz.munisselfservice.com,0.95,236839,52.206.229.65
+Tyler Technologies,Yuma,AZ,muni,50K-100K,Hosted services,,dns_strict,yumaaz.tylerhost.net,0.95,95548,98.86.192.21
+Tyler Technologies,Albany,CA,muni,10K-20K,Munis Self Service,,dns_strict,albanyca.munisselfservice.com,0.95,19735,3.133.252.109
+Tyler Technologies,Barstow,CA,muni,20K-50K,Munis Self Service,,dns_strict,barstowca.munisselfservice.com,0.95,23692,3.140.137.222
+Tyler Technologies,Benicia,CA,muni,20K-50K,Munis Self Service,,dns_strict,beniciaca.munisselfservice.com,0.95,28167,3.140.137.222
+Tyler Technologies,Coalinga,CA,muni,10K-20K,Munis Self Service,,dns_strict,coalingaca.munisselfservice.com,0.95,16564,3.133.252.109
+Tyler Technologies,Danville,CA,muni,20K-50K,Munis Self Service,,dns_strict,danvilleca.munisselfservice.com,0.95,44400,3.140.137.222
+Tyler Technologies,Dixon,CA,muni,10K-20K,Hosted services,,dns_strict,dixonca.tylerhost.net,0.95,19390,3.213.165.239
+Tyler Technologies,Fontana,CA,muni,100K+,Munis Self Service,,dns_strict,fontanaca.munisselfservice.com,0.95,212704,3.140.137.222
+Tyler Technologies,Indio,CA,muni,50K-100K,Munis Self Service,,dns_strict,indioca.munisselfservice.com,0.95,87533,3.133.252.109
+Tyler Technologies,La Quinta,CA,muni,20K-50K,Hosted services,,dns_strict,laquintaca.tylerhost.net,0.95,40476,52.22.245.154
+Tyler Technologies,Lodi,CA,muni,50K-100K,Munis Self Service,,dns_strict,lodica.munisselfservice.com,0.95,64596,3.133.252.109
+Tyler Technologies,Morgan Hill,CA,muni,20K-50K,Munis Self Service,,dns_strict,morganhillca.munisselfservice.com,0.95,42948,3.140.137.222
+Tyler Technologies,Portola Valley,CA,muni,small (<15K),Hosted services,,dns_strict,portolavalleyca.tylerhost.net,0.95,,3.213.165.239
+Tyler Technologies,Rancho Mirage,CA,muni,10K-20K,Munis Self Service,,dns_strict,ranchomirageca.munisselfservice.com,0.95,18083,98.89.152.67
+Tyler Technologies,Santee,CA,muni,50K-100K,Hosted services,,dns_strict,santeeca.tylerhost.net,0.95,57787,3.213.165.239
+Tyler Technologies,Seal Beach,CA,muni,20K-50K,Hosted services,,dns_strict,sealbeachca.tylerhost.net,0.95,24619,52.22.245.154
+Tyler Technologies,Shafter,CA,muni,10K-20K,Munis Self Service,,dns_strict,shafterca.munisselfservice.com,0.95,18336,3.140.137.222
+Tyler Technologies,Tracy,CA,muni,50K-100K,Munis Self Service,,dns_strict,tracyca.munisselfservice.com,0.95,87075,3.133.252.109
+Tyler Technologies,Vacaville,CA,muni,50K-100K,Munis Self Service,,dns_strict,vacavilleca.munisselfservice.com,0.95,96803,3.133.252.109
+Tyler Technologies,Bloomfield,CT,muni,20K-50K,Munis Self Service,,dns_strict,bloomfieldct.munisselfservice.com,0.95,21535,3.140.137.222
+Tyler Technologies,Branford,CT,muni,20K-50K,Munis Self Service,,dns_strict,branfordct.munisselfservice.com,0.95,29438,3.140.137.222
+Tyler Technologies,Bristol,CT,muni,50K-100K,Munis Self Service,,dns_strict,bristolct.munisselfservice.com,0.95,60452,208.64.237.123
+Tyler Technologies,East Haddam,CT,muni,small (<15K),Munis Self Service,,dns_strict,easthaddamct.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,East Haven,CT,muni,20K-50K,Munis Self Service,,dns_strict,easthavenct.munisselfservice.com,0.95,29257,3.140.137.222
+Tyler Technologies,East Windsor,CT,muni,small (<15K),Munis Self Service,,dns_strict,eastwindsorct.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Fairfield,CT,muni,50K-100K,Munis Self Service,,dns_strict,fairfieldct.munisselfservice.com,0.95,59052,3.140.137.222
+Tyler Technologies,Guilford,CT,muni,20K-50K,Munis Self Service,,dns_strict,guilfordct.munisselfservice.com,0.95,22498,3.140.137.222
+Tyler Technologies,Hartford,CT,muni,100K+,Munis Self Service,,dns_strict,hartfordct.munisselfservice.com,0.95,121054,3.133.252.109
+Tyler Technologies,Milford,CT,muni,50K-100K,Munis Self Service,,dns_strict,milfordct.munisselfservice.com,0.95,52759,3.140.137.222
+Tyler Technologies,Naugatuck,CT,muni,20K-50K,Munis Self Service,,dns_strict,naugatuckct.munisselfservice.com,0.95,31538,208.64.237.126
+Tyler Technologies,New Canaan,CT,muni,10K-20K,Munis Self Service,,dns_strict,newcanaanct.munisselfservice.com,0.95,19738,3.140.137.222
+Tyler Technologies,New Haven,CT,muni,100K+,Munis Self Service,,dns_strict,newhavenct.munisselfservice.com,0.95,130322,3.133.252.109
+Tyler Technologies,New London,CT,muni,20K-50K,Munis Self Service,,dns_strict,newlondonct.munisselfservice.com,0.95,27179,3.140.137.222
+Tyler Technologies,Norwalk,CT,muni,50K-100K,Munis Self Service,,dns_strict,norwalkct.munisselfservice.com,0.95,88485,52.200.58.203
+Tyler Technologies,Norwich,CT,muni,20K-50K,Munis Self Service,,dns_strict,norwichct.munisselfservice.com,0.95,39899,3.133.252.109
+Tyler Technologies,Orange,CT,muni,small (<15K),Munis Self Service,,dns_strict,orangect.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Stratford,CT,muni,50K-100K,Munis Self Service,,dns_strict,stratfordct.munisselfservice.com,0.95,51384,3.140.137.222
+Tyler Technologies,Westport,CT,muni,20K-50K,Munis Self Service,,dns_strict,westportct.munisselfservice.com,0.95,26391,3.133.252.109
+Tyler Technologies,Wethersfield,CT,muni,20K-50K,Munis Self Service,,dns_strict,wethersfieldct.munisselfservice.com,0.95,26668,3.133.252.109
+Tyler Technologies,New Castle,DE,muni,small (<15K),Munis Self Service,,dns_strict,newcastlede.munisselfservice.com,0.95,,208.64.237.155
+Tyler Technologies,Newark,DE,muni,20K-50K,Munis Self Service,,dns_strict,newarkde.munisselfservice.com,0.95,33817,208.64.237.126
+Tyler Technologies,Rehoboth Beach,DE,muni,small (<15K),Munis Self Service,,dns_strict,rehobothbeachde.munisselfservice.com,0.95,,208.64.237.123
+Tyler Technologies,Clermont,FL,muni,20K-50K,Munis Self Service,,dns_strict,clermontfl.munisselfservice.com,0.95,32390,3.140.137.222
+Tyler Technologies,Deltona,FL,muni,50K-100K,Munis Self Service,,dns_strict,deltonafl.munisselfservice.com,0.95,88474,54.167.196.3
+Tyler Technologies,Jupiter,FL,muni,50K-100K,Munis Self Service,,dns_strict,jupiterfl.munisselfservice.com,0.95,62707,3.140.137.222
+Tyler Technologies,Lynn Haven,FL,muni,20K-50K,Munis Self Service,,dns_strict,lynnhavenfl.munisselfservice.com,0.95,20156,3.140.137.222
+Tyler Technologies,Madeira Beach,FL,muni,small (<15K),Munis Self Service,,dns_strict,madeirabeachfl.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Maitland,FL,muni,10K-20K,Munis Self Service,,dns_strict,maitlandfl.munisselfservice.com,0.95,17463,3.140.137.222
+Tyler Technologies,Marco Island,FL,muni,10K-20K,Munis Self Service,,dns_strict,marcoislandfl.munisselfservice.com,0.95,17690,3.140.137.222
+Tyler Technologies,Neptune Beach,FL,muni,small (<15K),Hosted services,,dns_strict,neptunebeachfl.tylerhost.net,0.95,,44.216.62.191
+Tyler Technologies,New Smyrna Beach,FL,muni,20K-50K,Munis Self Service,,dns_strict,newsmyrnabeachfl.munisselfservice.com,0.95,24298,208.64.237.103
+Tyler Technologies,North Bay Village,FL,muni,small (<15K),Hosted services,,dns_strict,northbayvillagefl.tylerhost.net,0.95,,35.168.3.81
+Tyler Technologies,Pembroke Pines,FL,muni,100K+,Hosted services,,dns_strict,pembrokepinesfl.tylerhost.net,0.95,166611,207.245.141.7
+Tyler Technologies,Riviera Beach,FL,muni,20K-50K,Munis Self Service,,dns_strict,rivierabeachfl.munisselfservice.com,0.95,34005,208.64.237.29
+Tyler Technologies,Sanibel,FL,muni,small (<15K),Munis Self Service,,dns_strict,sanibelfl.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,South Pasadena,FL,muni,small (<15K),Hosted services,,dns_strict,southpasadenafl.tylerhost.net,0.95,,98.86.192.21
+Tyler Technologies,Umatilla,FL,muni,small (<15K),Hosted services,,dns_strict,umatillafl.tylerhost.net,0.95,,98.86.192.21
+Tyler Technologies,Wellington,FL,muni,50K-100K,Munis Self Service,,dns_strict,wellingtonfl.munisselfservice.com,0.95,62560,3.133.252.109
+Tyler Technologies,Weston,FL,muni,50K-100K,Munis Self Service,,dns_strict,westonfl.munisselfservice.com,0.95,69959,3.133.252.109
+Tyler Technologies,Albany,GA,muni,50K-100K,Munis Self Service,,dns_strict,albanyga.munisselfservice.com,0.95,74843,3.140.137.222
+Tyler Technologies,Fayetteville,GA,muni,10K-20K,Hosted services,,dns_strict,fayettevillega.tylerhost.net,0.95,16990,35.168.3.81
+Tyler Technologies,Lawrenceville,GA,muni,20K-50K,Munis Self Service,,dns_strict,lawrencevillega.munisselfservice.com,0.95,30493,3.224.96.249
+Tyler Technologies,Locust Grove,GA,muni,small (<15K),Hosted services,,dns_strict,locustgrovega.tylerhost.net,0.95,,35.168.3.81
+Tyler Technologies,Milton,GA,muni,20K-50K,Munis Self Service,,dns_strict,miltonga.munisselfservice.com,0.95,37547,3.212.234.56
+Tyler Technologies,Pooler,GA,muni,20K-50K,Munis Self Service,,dns_strict,poolerga.munisselfservice.com,0.95,23133,54.83.164.70
+Tyler Technologies,Rincon,GA,muni,small (<15K),Hosted services,,dns_strict,rinconga.tylerhost.net,0.95,,52.205.206.60
+Tyler Technologies,Statesboro,GA,muni,20K-50K,Hosted services,,dns_strict,statesboroga.tylerhost.net,0.95,30721,98.86.192.21
+Tyler Technologies,Lewiston,ID,muni,20K-50K,Munis Self Service,,dns_strict,lewistonid.munisselfservice.com,0.95,32544,3.133.252.109
+Tyler Technologies,Nampa,ID,muni,50K-100K,Munis Self Service,,dns_strict,nampaid.munisselfservice.com,0.95,89839,3.140.137.222
+Tyler Technologies,Columbia,IL,muni,small (<15K),Hosted services,,dns_strict,columbiail.tylerhost.net,0.95,,44.216.62.191
+Tyler Technologies,Edwardsville,IL,muni,20K-50K,Munis Self Service,,dns_strict,edwardsvilleil.munisselfservice.com,0.95,24992,3.140.137.222
+Tyler Technologies,Effingham,IL,muni,small (<15K),Munis Self Service,,dns_strict,effinghamil.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Naperville,IL,muni,100K+,Munis Self Service,,dns_strict,napervilleil.munisselfservice.com,0.95,147100,3.133.252.109
+Tyler Technologies,Oswego,IL,muni,20K-50K,Munis Self Service,,dns_strict,oswegoil.munisselfservice.com,0.95,33955,3.140.137.222
+Tyler Technologies,Park Ridge,IL,muni,20K-50K,Hosted services,,dns_strict,parkridgeil.tylerhost.net,0.95,37757,52.205.206.60
+Tyler Technologies,Peoria,IL,muni,100K+,Hosted services,,dns_strict,peoriail.tylerhost.net,0.95,115070,3.213.165.239
+Tyler Technologies,Woodridge,IL,muni,20K-50K,Munis Self Service,,dns_strict,woodridgeil.munisselfservice.com,0.95,33370,3.133.252.109
+Tyler Technologies,Fishers,IN,muni,50K-100K,Hosted services,,dns_strict,fishersin.tylerhost.net,0.95,76794,207.245.141.7
+Tyler Technologies,Frankfort,IN,muni,10K-20K,Munis Self Service,,dns_strict,frankfortin.munisselfservice.com,0.95,16060,3.133.252.109
+Tyler Technologies,Lawrence,KS,muni,50K-100K,Hosted services,,dns_strict,lawrenceks.tylerhost.net,0.95,93917,98.86.192.21
+Tyler Technologies,Rose Hill,KS,muni,small (<15K),Hosted services,,dns_strict,rosehillks.tylerhost.net,0.95,,52.205.206.60
+Tyler Technologies,Berea,KY,muni,small (<15K),Munis Self Service,,dns_strict,bereaky.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Crittenden,KY,muni,small (<15K),Munis Self Service,,dns_strict,crittendenky.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Erlanger,KY,muni,10K-20K,Munis Self Service,,dns_strict,erlangerky.munisselfservice.com,0.95,18797,3.140.137.222
+Tyler Technologies,Paducah,KY,muni,20K-50K,Munis Self Service,,dns_strict,paducahky.munisselfservice.com,0.95,24864,23.23.152.70
+Tyler Technologies,Kenner,LA,muni,50K-100K,Munis Self Service,,dns_strict,kennerla.munisselfservice.com,0.95,67091,3.140.137.222
+Tyler Technologies,Acton,MA,muni,20K-50K,Munis Self Service,,dns_strict,actonma.munisselfservice.com,0.95,20897,3.133.252.109
+Tyler Technologies,Belmont,MA,muni,20K-50K,Munis Self Service,,dns_strict,belmontma.munisselfservice.com,0.95,24729,3.133.252.109
+Tyler Technologies,Bridgewater,MA,muni,small (<15K),Munis Self Service,,dns_strict,bridgewaterma.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Chelsea,MA,muni,20K-50K,Munis Self Service,,dns_strict,chelseama.munisselfservice.com,0.95,39398,3.140.137.222
+Tyler Technologies,Chicopee,MA,muni,50K-100K,Munis Self Service,,dns_strict,chicopeema.munisselfservice.com,0.95,56741,3.130.248.76
+Tyler Technologies,Dedham,MA,muni,20K-50K,Munis Self Service,,dns_strict,dedhamma.munisselfservice.com,0.95,24729,3.133.252.109
+Tyler Technologies,Greenfield,MA,muni,10K-20K,Munis Self Service,,dns_strict,greenfieldma.munisselfservice.com,0.95,19753,3.133.252.109
+Tyler Technologies,Holden,MA,muni,10K-20K,Munis Self Service,,dns_strict,holdenma.munisselfservice.com,0.95,17016,208.64.237.123
+Tyler Technologies,Lynn,MA,muni,50K-100K,Munis Self Service,,dns_strict,lynnma.munisselfservice.com,0.95,92457,3.140.137.222
+Tyler Technologies,Lynnfield,MA,muni,small (<15K),Munis Self Service,,dns_strict,lynnfieldma.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Malden,MA,muni,50K-100K,Hosted services,,dns_strict,maldenma.tylerhost.net,0.95,61068,3.213.165.239
+Tyler Technologies,Mansfield,MA,muni,20K-50K,Munis Self Service,,dns_strict,mansfieldma.munisselfservice.com,0.95,23380,3.133.252.109
+Tyler Technologies,Marlborough,MA,muni,20K-50K,Munis Self Service,,dns_strict,marlboroughma.munisselfservice.com,0.95,39818,3.133.252.109
+Tyler Technologies,Natick,MA,muni,20K-50K,Munis Self Service,,dns_strict,natickma.munisselfservice.com,0.95,32276,208.64.237.123
+Tyler Technologies,North Andover,MA,muni,20K-50K,Munis Self Service,,dns_strict,northandoverma.munisselfservice.com,0.95,28222,3.133.252.109
+Tyler Technologies,Northampton,MA,muni,20K-50K,Munis Self Service,,dns_strict,northamptonma.munisselfservice.com,0.95,28540,3.133.252.109
+Tyler Technologies,Plymouth,MA,muni,small (<15K),Munis Self Service,,dns_strict,plymouthma.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Salem,MA,muni,20K-50K,Munis Self Service,,dns_strict,salemma.munisselfservice.com,0.95,42869,3.140.137.222
+Tyler Technologies,Saugus,MA,muni,20K-50K,Munis Self Service,,dns_strict,saugusma.munisselfservice.com,0.95,26628,3.133.252.109
+Tyler Technologies,Shrewsbury,MA,muni,20K-50K,Munis Self Service,,dns_strict,shrewsburyma.munisselfservice.com,0.95,33893,3.133.252.109
+Tyler Technologies,Somerville,MA,muni,50K-100K,Munis Self Service,,dns_strict,somervillema.munisselfservice.com,0.95,80318,3.133.252.109
+Tyler Technologies,Southbridge,MA,muni,10K-20K,Munis Self Service,,dns_strict,southbridgema.munisselfservice.com,0.95,19030,3.133.252.109
+Tyler Technologies,Swampscott,MA,muni,small (<15K),Munis Self Service,,dns_strict,swampscottma.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Wayland,MA,muni,small (<15K),Munis Self Service,,dns_strict,waylandma.munisselfservice.com,0.95,,208.64.237.155
+Tyler Technologies,Weston,MA,muni,small (<15K),Munis Self Service,,dns_strict,westonma.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Wilmington,MA,muni,20K-50K,Munis Self Service,,dns_strict,wilmingtonma.munisselfservice.com,0.95,22325,3.140.137.222
+Tyler Technologies,Winchester,MA,muni,20K-50K,Munis Self Service,,dns_strict,winchesterma.munisselfservice.com,0.95,21374,3.140.137.222
+Tyler Technologies,Pocomoke City,MD,muni,small (<15K),Hosted services,,dns_strict,pocomokecitymd.tylerhost.net,0.95,,52.205.206.60
+Tyler Technologies,Auburn,ME,muni,20K-50K,Munis Self Service,,dns_strict,auburnme.munisselfservice.com,0.95,22871,3.140.137.222
+Tyler Technologies,Falmouth,ME,muni,small (<15K),Munis Self Service,,dns_strict,falmouthme.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Lewiston,ME,muni,20K-50K,,,dns_strict,lewistonme.tylertech.com,0.95,36202,18.191.9.12
+Tyler Technologies,Lisbon,ME,muni,small (<15K),Munis Self Service,,dns_strict,lisbonme.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Saco,ME,muni,10K-20K,Munis Self Service,,dns_strict,sacome.munisselfservice.com,0.95,19078,3.140.137.222
+Tyler Technologies,Scarborough,ME,muni,small (<15K),Munis Self Service,,dns_strict,scarboroughme.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Topsham,ME,muni,small (<15K),Munis Self Service,,dns_strict,topshamme.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Westbrook,ME,muni,10K-20K,Munis Self Service,,dns_strict,westbrookme.munisselfservice.com,0.95,17978,3.140.137.222
+Tyler Technologies,Leslie,MI,muni,small (<15K),Munis Self Service,,dns_strict,lesliemi.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Shelby,MI,muni,50K-100K,Munis Self Service,,dns_strict,shelbymi.munisselfservice.com,0.95,74099,208.64.237.29
+Tyler Technologies,Waseca,MN,muni,small (<15K),Munis Self Service,,dns_strict,wasecamn.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Belton,MO,muni,20K-50K,Munis Self Service,,dns_strict,beltonmo.munisselfservice.com,0.95,23168,3.140.137.222
+Tyler Technologies,Cape Girardeau,MO,muni,20K-50K,Munis Self Service,,dns_strict,capegirardeaumo.munisselfservice.com,0.95,39462,3.140.137.222
+Tyler Technologies,Independence,MO,muni,100K+,Munis Self Service,,dns_strict,independencemo.munisselfservice.com,0.95,117255,3.133.252.109
+Tyler Technologies,Sikeston,MO,muni,10K-20K,Munis Self Service,,dns_strict,sikestonmo.munisselfservice.com,0.95,16436,3.133.252.109
+Tyler Technologies,Oxford,MS,muni,20K-50K,Hosted services,,dns_strict,oxfordms.tylerhost.net,0.95,22314,52.7.180.2
+Tyler Technologies,Tupelo,MS,muni,20K-50K,Munis Self Service,,dns_strict,tupeloms.munisselfservice.com,0.95,35680,34.224.206.181
+Tyler Technologies,Great Falls,MT,muni,50K-100K,Hosted services,,dns_strict,greatfallsmt.tylerhost.net,0.95,59638,207.245.141.147
+Tyler Technologies,Franklin,NC,muni,small (<15K),Munis Self Service,,dns_strict,franklinnc.munisselfservice.com,0.95,,32.196.53.79
+Tyler Technologies,Halifax,NC,muni,small (<15K),Munis Self Service,,dns_strict,halifaxnc.munisselfservice.com,0.95,,208.64.237.123
+Tyler Technologies,Mooresville,NC,muni,20K-50K,Munis Self Service,,dns_strict,mooresvillenc.munisselfservice.com,0.95,36009,208.64.237.123
+Tyler Technologies,Morehead City,NC,muni,small (<15K),Munis Self Service,,dns_strict,moreheadcitync.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Morrisville,NC,muni,20K-50K,Munis Self Service,,dns_strict,morrisvillenc.munisselfservice.com,0.95,23820,3.140.137.222
+Tyler Technologies,Rocky Mount,NC,muni,50K-100K,Munis Self Service,,dns_strict,rockymountnc.munisselfservice.com,0.95,55806,3.131.242.86
+Tyler Technologies,Waxhaw,NC,muni,small (<15K),Hosted services,,dns_strict,waxhawnc.tylerhost.net,0.95,,52.22.245.154
+Tyler Technologies,Wilmington,NC,muni,100K+,Munis Self Service,,dns_strict,wilmingtonnc.munisselfservice.com,0.95,115933,3.133.252.109
+Tyler Technologies,Bedford,NH,muni,20K-50K,Munis Self Service,,dns_strict,bedfordnh.munisselfservice.com,0.95,21188,3.140.137.222
+Tyler Technologies,Derry,NH,muni,20K-50K,Munis Self Service,,dns_strict,derrynh.munisselfservice.com,0.95,22015,3.140.137.222
+Tyler Technologies,Milford,NH,muni,small (<15K),Munis Self Service,,dns_strict,milfordnh.munisselfservice.com,0.95,,3.131.242.86
+Tyler Technologies,Newmarket,NH,muni,small (<15K),Munis Self Service,,dns_strict,newmarketnh.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Rochester,NH,muni,20K-50K,Munis Self Service,,dns_strict,rochesternh.munisselfservice.com,0.95,30038,3.130.248.76
+Tyler Technologies,Windham,NH,muni,small (<15K),Munis Self Service,,dns_strict,windhamnh.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Carlsbad,NM,muni,20K-50K,Munis Self Service,,dns_strict,carlsbadnm.munisselfservice.com,0.95,28957,3.140.137.222
+Tyler Technologies,Clovis,NM,muni,20K-50K,Munis Self Service,,dns_strict,clovisnm.munisselfservice.com,0.95,39480,3.133.252.109
+Tyler Technologies,Hobbs,NM,muni,20K-50K,Munis Self Service,,dns_strict,hobbsnm.munisselfservice.com,0.95,38416,54.165.126.113
+Tyler Technologies,Roswell,NM,muni,20K-50K,Munis Self Service,,dns_strict,roswellnm.munisselfservice.com,0.95,48544,3.133.252.109
+Tyler Technologies,Santa Fe,NM,muni,50K-100K,Munis Self Service,,dns_strict,santafenm.munisselfservice.com,0.95,87505,54.174.180.212
+Tyler Technologies,Cortland,NY,muni,10K-20K,Munis Self Service,,dns_strict,cortlandny.munisselfservice.com,0.95,18907,3.133.252.109
+Tyler Technologies,Glen Cove,NY,muni,20K-50K,Munis Self Service,,dns_strict,glencoveny.munisselfservice.com,0.95,27400,3.133.252.109
+Tyler Technologies,Kingston,NY,muni,20K-50K,Munis Self Service,,dns_strict,kingstonny.munisselfservice.com,0.95,23436,3.131.242.86
+Tyler Technologies,Long Beach,NY,muni,20K-50K,Munis Self Service,,dns_strict,longbeachny.munisselfservice.com,0.95,33550,3.140.137.222
+Tyler Technologies,Mount Vernon,NY,muni,50K-100K,Munis Self Service,,dns_strict,mountvernonny.munisselfservice.com,0.95,68628,208.64.237.126
+Tyler Technologies,Orchard Park,NY,muni,small (<15K),Munis Self Service,,dns_strict,orchardparkny.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Berea,OH,muni,10K-20K,Munis Self Service,,dns_strict,bereaoh.munisselfservice.com,0.95,18874,3.133.252.109
+Tyler Technologies,Gahanna,OH,muni,20K-50K,Munis Self Service,,dns_strict,gahannaoh.munisselfservice.com,0.95,34590,3.140.137.222
+Tyler Technologies,Independence,OH,muni,small (<15K),Munis Self Service,,dns_strict,independenceoh.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Marysville,OH,muni,20K-50K,Munis Self Service,,dns_strict,marysvilleoh.munisselfservice.com,0.95,22817,3.140.137.222
+Tyler Technologies,Mayfield,OH,muni,small (<15K),Munis Self Service,,dns_strict,mayfieldoh.munisselfservice.com,0.95,,208.64.237.29
+Tyler Technologies,Oregon,OH,muni,20K-50K,Munis Self Service,,dns_strict,oregonoh.munisselfservice.com,0.95,20102,3.140.137.222
+Tyler Technologies,Solon,OH,muni,20K-50K,Munis Self Service,,dns_strict,solonoh.munisselfservice.com,0.95,23043,3.140.137.222
+Tyler Technologies,Zanesville,OH,muni,20K-50K,Munis Self Service,,dns_strict,zanesvilleoh.munisselfservice.com,0.95,25498,23.23.222.217
+Tyler Technologies,Gresham,OR,muni,100K+,Munis Self Service,,dns_strict,greshamor.munisselfservice.com,0.95,110553,3.133.252.109
+Tyler Technologies,Lancaster,PA,muni,50K-100K,Munis Self Service,,dns_strict,lancasterpa.munisselfservice.com,0.95,59339,3.133.252.109
+Tyler Technologies,Philadelphia,PA,muni,100K+,Hosted services,,dns_strict,philadelphiapa.tylerhost.net,0.95,1573916,3.12.245.45
+Tyler Technologies,Narragansett,RI,muni,10K-20K,Munis Self Service,,dns_strict,narragansettri.munisselfservice.com,0.95,15868,3.133.252.109
+Tyler Technologies,Newport,RI,muni,20K-50K,Munis Self Service,,dns_strict,newportri.munisselfservice.com,0.95,24232,3.133.252.109
+Tyler Technologies,Pawtucket,RI,muni,50K-100K,Munis Self Service,,dns_strict,pawtucketri.munisselfservice.com,0.95,71591,3.133.252.109
+Tyler Technologies,Westerly,RI,muni,10K-20K,Munis Self Service,,dns_strict,westerlyri.munisselfservice.com,0.95,17936,3.140.137.222
+Tyler Technologies,Hilton Head Island,SC,muni,20K-50K,Hosted services,,dns_strict,hiltonheadislandsc.tylerhost.net,0.95,40512,3.213.165.239
+Tyler Technologies,Alcoa,TN,muni,small (<15K),Munis Self Service,,dns_strict,alcoatn.munisselfservice.com,0.95,,34.196.168.51
+Tyler Technologies,Bristol,TN,muni,20K-50K,Munis Self Service,,dns_strict,bristoltn.munisselfservice.com,0.95,26666,3.140.137.222
+Tyler Technologies,Murfreesboro,TN,muni,100K+,Hosted services,,dns_strict,murfreesborotn.tylerhost.net,0.95,165430,207.245.132.149
+Tyler Technologies,Pigeon Forge,TN,muni,small (<15K),Hosted services,,dns_strict,pigeonforgetn.tylerhost.net,0.95,,44.216.62.191
+Tyler Technologies,Union City,TN,muni,small (<15K),Munis Self Service,,dns_strict,unioncitytn.munisselfservice.com,0.95,,34.195.200.66
+Tyler Technologies,White House,TN,muni,small (<15K),Hosted services,,dns_strict,whitehousetn.tylerhost.net,0.95,,52.205.206.60
+Tyler Technologies,Burleson,TX,muni,20K-50K,Munis Self Service,,dns_strict,burlesontx.munisselfservice.com,0.95,43625,3.133.252.109
+Tyler Technologies,Granbury,TX,muni,small (<15K),Hosted services,,dns_strict,granburytx.tylerhost.net,0.95,,44.216.62.191
+Tyler Technologies,Humble,TX,muni,10K-20K,Munis Self Service,,dns_strict,humbletx.munisselfservice.com,0.95,15665,52.73.74.118
+Tyler Technologies,La Porte,TX,muni,20K-50K,Hosted services,,dns_strict,laportetx.tylerhost.net,0.95,35148,3.213.165.239
+Tyler Technologies,Lakeway,TX,muni,small (<15K),Hosted services,,dns_strict,lakewaytx.tylerhost.net,0.95,,35.168.3.81
+Tyler Technologies,Mansfield,TX,muni,50K-100K,Munis Self Service,,dns_strict,mansfieldtx.munisselfservice.com,0.95,64274,3.140.137.222
+Tyler Technologies,Missouri City,TX,muni,50K-100K,Munis Self Service,,dns_strict,missouricitytx.munisselfservice.com,0.95,74139,208.64.237.29
+Tyler Technologies,Leesburg,VA,muni,50K-100K,Munis Self Service,,dns_strict,leesburgva.munisselfservice.com,0.95,51209,3.133.252.109
+Tyler Technologies,New Kent,VA,muni,small (<15K),Munis Self Service,,dns_strict,newkentva.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Portsmouth,VA,muni,50K-100K,Munis Self Service,,dns_strict,portsmouthva.munisselfservice.com,0.95,96201,208.64.237.126
+Tyler Technologies,Rocky Mount,VA,muni,small (<15K),Munis Self Service,,dns_strict,rockymountva.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Smithfield,VA,muni,small (<15K),Munis Self Service,,dns_strict,smithfieldva.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Vienna,VA,muni,10K-20K,Munis Self Service,,dns_strict,viennava.munisselfservice.com,0.95,16522,208.64.237.29
+Tyler Technologies,Windsor,VA,muni,small (<15K),Munis Self Service,,dns_strict,windsorva.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Colchester,VT,muni,10K-20K,Munis Self Service,,dns_strict,colchestervt.munisselfservice.com,0.95,16986,3.131.242.86
+Tyler Technologies,Asotin,WA,muni,small (<15K),Munis Self Service,,dns_strict,asotinwa.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Bainbridge Island,WA,muni,20K-50K,Munis Self Service,,dns_strict,bainbridgeislandwa.munisselfservice.com,0.95,23840,23.22.84.10
+Tyler Technologies,Issaquah,WA,muni,20K-50K,Munis Self Service,,dns_strict,issaquahwa.munisselfservice.com,0.95,36081,208.64.237.126
+Tyler Technologies,Renton,WA,muni,100K+,Munis Self Service,,dns_strict,rentonwa.munisselfservice.com,0.95,100242,32.194.64.160
+Tyler Technologies,Shelton,WA,muni,small (<15K),Munis Self Service,,dns_strict,sheltonwa.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Walla Walla,WA,muni,20K-50K,Munis Self Service,,dns_strict,wallawallawa.munisselfservice.com,0.95,32237,3.140.137.222
+Tyler Technologies,Washougal,WA,muni,10K-20K,Hosted services,,dns_strict,washougalwa.tylerhost.net,0.95,15288,52.22.245.154
+Tyler Technologies,Woodinville,WA,muni,small (<15K),Munis Self Service,,dns_strict,woodinvillewa.munisselfservice.com,0.95,,3.140.137.222
+Tyler Technologies,Eau Claire,WI,muni,50K-100K,Munis Self Service,,dns_strict,eauclairewi.munisselfservice.com,0.95,67778,3.140.137.222
+Tyler Technologies,Monroe,WI,muni,small (<15K),Munis Self Service,,dns_strict,monroewi.munisselfservice.com,0.95,,3.133.252.109
+Tyler Technologies,Oshkosh,WI,muni,50K-100K,,,dns_strict,oshkoshwi.tylertech.com,0.95,66555,18.191.9.12
+Tyler Technologies,Perris,CA,muni,50K-100K,Munis Self Service,,dns_strict,cityofperris.munisselfservice.com,0.92,74971,3.140.137.222
+Tyler Technologies,Bradenton,FL,muni,50K-100K,Munis Self Service,,dns_strict,cityofbradenton.munisselfservice.com,0.92,54437,3.140.137.222
+Tyler Technologies,Starke,FL,muni,small (<15K),Munis Self Service,,dns_strict,cityofstarke.munisselfservice.com,0.92,,208.64.237.29
+Tyler Technologies,Zephyrhills,FL,muni,small (<15K),Munis Self Service,,dns_strict,cityofzephyrhills.munisselfservice.com,0.92,,3.133.252.109
+Tyler Technologies,Dalton,GA,muni,20K-50K,Munis Self Service,,dns_strict,cityofdalton.munisselfservice.com,0.92,33853,3.140.137.222
+Tyler Technologies,Anderson,IN,muni,50K-100K,Munis Self Service,,dns_strict,cityofanderson.munisselfservice.com,0.92,55305,208.64.237.123
+Tyler Technologies,Slidell,LA,muni,20K-50K,Munis Self Service,,dns_strict,cityofslidell.munisselfservice.com,0.92,27942,3.140.137.222
+Tyler Technologies,Chaska,MN,muni,20K-50K,Munis Self Service,,dns_strict,cityofchaska.munisselfservice.com,0.92,25199,3.133.252.109
+Tyler Technologies,Laurinburg,NC,muni,10K-20K,Munis Self Service,,dns_strict,cityoflaurinburg.munisselfservice.com,0.92,15507,3.133.252.109
+Tyler Technologies,Beacon,NY,muni,small (<15K),Munis Self Service,,dns_strict,cityofbeacon.munisselfservice.com,0.92,,3.130.248.76
+Tyler Technologies,Tulsa,OK,muni,100K+,Munis Self Service,,dns_strict,cityoftulsa.munisselfservice.com,0.92,413066,3.140.137.222
+Tyler Technologies,Bartlett,TN,muni,50K-100K,Munis Self Service,,dns_strict,cityofbartlett.munisselfservice.com,0.92,58579,208.64.237.123
+Tyler Technologies,Memphis,TN,muni,100K+,Munis Self Service,,dns_strict,cityofmemphis.munisselfservice.com,0.92,633104,3.140.137.222
+Tyler Technologies,Amarillo,TX,muni,100K+,Munis Self Service,,dns_strict,cityofamarillo.munisselfservice.com,0.92,198645,3.133.252.109
+gWorks,Seward,AK,muni,small (<15K),gWorks Suite,,dns_strict,cityofseward.gworks.com,0.92,,69.63.116.130
+gWorks,Alma,AR,muni,small (<15K),gWorks Suite,,dns_strict,cityofalma.gworks.com,0.92,,69.63.116.130
+gWorks,Atkins,AR,muni,small (<15K),gWorks Suite,,dns_strict,cityofatkins.gworks.com,0.92,,69.63.116.130
+gWorks,Ashland,CA,muni,20K-50K,gWorks Suite,,dns_strict,cityofashland.gworks.com,0.92,21925,69.63.116.130
+gWorks,Imperial,CA,muni,10K-20K,gWorks Suite,,dns_strict,cityofimperial.gworks.com,0.92,17095,69.63.116.130
+gWorks,Milford,CT,muni,50K-100K,gWorks Suite,,dns_strict,cityofmilford.gworks.com,0.92,52759,69.63.116.130
+gWorks,Gordon,GA,muni,small (<15K),gWorks Suite,,dns_strict,cityofgordon.gworks.com,0.92,,69.63.116.130
+gWorks,Avoca,IA,muni,small (<15K),gWorks Suite,,dns_strict,cityofavoca.gworks.com,0.92,,69.63.116.130
+gWorks,Carter Lake,IA,muni,small (<15K),gWorks Suite,,dns_strict,cityofcarterlake.gworks.com,0.92,,69.63.116.130
+gWorks,Hiawatha,IA,muni,small (<15K),gWorks Suite,,dns_strict,cityofhiawatha.gworks.com,0.92,,69.63.116.130
+gWorks,Mount Ayr,IA,muni,small (<15K),gWorks Suite,,dns_strict,cityofmountayr.gworks.com,0.92,,69.63.116.130
+gWorks,Palo,IA,muni,small (<15K),gWorks Suite,,dns_strict,cityofpalo.gworks.com,0.92,,69.63.116.130
+gWorks,Strawberry Point,IA,muni,small (<15K),gWorks Suite,,dns_strict,cityofstrawberrypoint.gworks.com,0.92,,69.63.116.130
+gWorks,Crete,IL,muni,small (<15K),gWorks Suite,,dns_strict,cityofcrete.gworks.com,0.92,,69.63.116.130
+gWorks,Elgin,IL,muni,100K+,gWorks Suite,,dns_strict,cityofelgin.gworks.com,0.92,112111,69.63.116.130
+gWorks,Leoti,KS,muni,small (<15K),gWorks Suite,,dns_strict,cityofleoti.gworks.com,0.92,,69.63.116.130
+gWorks,Wamego,KS,muni,small (<15K),gWorks Suite,,dns_strict,cityofwamego.gworks.com,0.92,,69.63.116.130
+gWorks,Park Hills,KY,muni,small (<15K),gWorks Suite,,dns_strict,cityofparkhills.gworks.com,0.92,,69.63.116.130
+gWorks,Shelby,MI,muni,50K-100K,gWorks Suite,,dns_strict,cityofshelby.gworks.com,0.92,74099,69.63.116.130
+gWorks,Tecumseh,MI,muni,small (<15K),gWorks Suite,,dns_strict,cityoftecumseh.gworks.com,0.92,,69.63.116.130
+gWorks,Grant,MN,muni,small (<15K),gWorks Suite,,dns_strict,cityofgrant.gworks.com,0.92,,69.63.116.130
+gWorks,Mound,MN,muni,small (<15K),gWorks Suite,,dns_strict,cityofmound.gworks.com,0.92,,69.63.116.130
+gWorks,Chadron,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityofchadron.gworks.com,0.92,,69.63.116.130
+gWorks,David City,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityofdavidcity.gworks.com,0.92,,69.63.116.130
+gWorks,Gibbon,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityofgibbon.gworks.com,0.92,,69.63.116.130
+gWorks,Loup City,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityofloupcity.gworks.com,0.92,,69.63.116.130
+gWorks,McCook,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityofmccook.gworks.com,0.92,,69.63.116.130
+gWorks,Ogallala,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityofogallala.gworks.com,0.92,,69.63.116.130
+gWorks,Red Cloud,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityofredcloud.gworks.com,0.92,,69.63.116.130
+gWorks,Tekamah,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityoftekamah.gworks.com,0.92,,69.63.116.130
+gWorks,Wahoo,NE,muni,small (<15K),gWorks Suite,,dns_strict,cityofwahoo.gworks.com,0.92,,69.63.116.130
+gWorks,Sidney,OH,muni,20K-50K,gWorks Suite,,dns_strict,cityofsidney.gworks.com,0.92,20858,69.63.116.130
+gWorks,Belle Fourche,SD,muni,small (<15K),gWorks Suite,,dns_strict,cityofbellefourche.gworks.com,0.92,,69.63.116.130
+gWorks,Garretson,SD,muni,small (<15K),gWorks Suite,,dns_strict,cityofgarretson.gworks.com,0.92,,69.63.116.130
+gWorks,Beloit,WI,muni,20K-50K,gWorks Suite,,dns_strict,cityofbeloit.gworks.com,0.92,36891,69.63.116.130
+gWorks,Greenfield,WI,muni,20K-50K,gWorks Suite,,dns_strict,cityofgreenfield.gworks.com,0.92,37349,69.63.116.130
+gWorks,Madison,WI,muni,100K+,gWorks Suite,,dns_strict,cityofmadison.gworks.com,0.92,280305,69.63.116.130
+Tyler Technologies,Darien,IL,muni,20K-50K,Munis Self Service,,dns_strict,townofdarien.munisselfservice.com,0.9,22256,3.131.242.86
+Tyler Technologies,Holliston,MA,muni,small (<15K),Munis Self Service,,dns_strict,townofholliston.munisselfservice.com,0.9,,3.133.252.109
+Tyler Technologies,Gateway,AK,muni,small (<15K),,,dns_strict,gateway.tylertech.com,0.8,,44.197.2.240
+Tyler Technologies,Anniston,AL,muni,20K-50K,Munis Self Service,,dns_strict,anniston.munisselfservice.com,0.8,22347,3.133.252.109
+Tyler Technologies,Fayette,AL,muni,small (<15K),Munis Self Service,,dns_strict,fayette.munisselfservice.com,0.8,,208.64.237.126
+Tyler Technologies,Montgomery,AL,muni,100K+,Munis Self Service,,dns_strict,montgomery.munisselfservice.com,0.8,195287,208.64.237.126
+Tyler Technologies,Tuscaloosa,AL,muni,100K+,Munis Self Service,,dns_strict,tuscaloosa.munisselfservice.com,0.8,111338,3.130.248.76
+Tyler Technologies,Ward,AR,muni,small (<15K),Hosted services,,dns_strict,ward.tylerhost.net,0.8,,52.15.112.234
+Tyler Technologies,Marana,AZ,muni,20K-50K,Munis Self Service,,dns_strict,marana.munisselfservice.com,0.8,41315,208.64.237.123
+Tyler Technologies,Concord,CA,muni,100K+,Munis Self Service,,dns_strict,concord.munisselfservice.com,0.8,128667,3.133.252.109
+Tyler Technologies,Covina,CA,muni,20K-50K,Munis Self Service,,dns_strict,covina.munisselfservice.com,0.8,48984,3.140.137.222
+Tyler Technologies,Martinez,CA,muni,20K-50K,Munis Self Service,,dns_strict,martinez.munisselfservice.com,0.8,38137,208.64.237.123
+Tyler Technologies,Monrovia,CA,muni,20K-50K,Munis Self Service,,dns_strict,monrovia.munisselfservice.com,0.8,37463,3.130.248.76
+Tyler Technologies,Montague,CA,muni,small (<15K),Munis Self Service,,dns_strict,montague.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Palm Springs,CA,muni,20K-50K,Munis Self Service,,dns_strict,palmsprings.munisselfservice.com,0.8,47371,3.140.137.222
+Tyler Technologies,Enfield,CT,muni,20K-50K,Munis Self Service,,dns_strict,enfield.munisselfservice.com,0.8,45212,3.140.137.222
+Tyler Technologies,Ledyard,CT,muni,10K-20K,Munis Self Service,,dns_strict,ledyard.munisselfservice.com,0.8,15212,3.140.137.222
+Tyler Technologies,North Haven,CT,muni,20K-50K,Munis Self Service,,dns_strict,northhaven.munisselfservice.com,0.8,24093,3.133.252.109
+Tyler Technologies,Putnam,CT,muni,small (<15K),Munis Self Service,,dns_strict,putnam.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Windsor,CT,muni,20K-50K,Munis Self Service,,dns_strict,windsor.munisselfservice.com,0.8,28778,3.130.248.76
+Tyler Technologies,Nassau,DE,muni,small (<15K),Munis Self Service,,dns_strict,nassau.munisselfservice.com,0.8,,208.64.237.126
+Tyler Technologies,Dunnellon,FL,muni,small (<15K),Munis Self Service,,dns_strict,dunnellon.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Fruitland Park,FL,muni,small (<15K),Munis Self Service,,dns_strict,fruitlandpark.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Hallandale Beach,FL,muni,20K-50K,Munis Self Service,,dns_strict,hallandalebeach.munisselfservice.com,0.8,39488,3.133.252.109
+Tyler Technologies,Melbourne,FL,muni,50K-100K,Munis Self Service,,dns_strict,melbourne.munisselfservice.com,0.8,84678,3.131.242.86
+Tyler Technologies,Oakland Park,FL,muni,20K-50K,Munis Self Service,,dns_strict,oaklandpark.munisselfservice.com,0.8,44319,3.133.252.109
+Tyler Technologies,Ormond Beach,FL,muni,20K-50K,Munis Self Service,,dns_strict,ormondbeach.munisselfservice.com,0.8,40970,3.140.137.222
+Tyler Technologies,Sanford,FL,muni,50K-100K,Munis Self Service,,dns_strict,sanford.munisselfservice.com,0.8,58111,3.140.137.222
+Tyler Technologies,South Daytona,FL,muni,small (<15K),Munis Self Service,,dns_strict,southdaytona.munisselfservice.com,0.8,,208.64.237.123
+Tyler Technologies,Athens,GA,muni,100K+,Munis Self Service,,dns_strict,athens.munisselfservice.com,0.8,127315,3.140.137.222
+Tyler Technologies,Brookhaven,GA,muni,50K-100K,Munis Self Service,,dns_strict,brookhaven.munisselfservice.com,0.8,51910,3.133.252.109
+Tyler Technologies,Colquitt,GA,muni,small (<15K),Munis Self Service,,dns_strict,colquitt.munisselfservice.com,0.8,,208.64.237.123
+Tyler Technologies,Nelson,GA,muni,small (<15K),Munis Self Service,,dns_strict,nelson.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Marion,IA,muni,20K-50K,Munis Self Service,,dns_strict,marion.munisselfservice.com,0.8,37330,3.133.252.109
+Tyler Technologies,Casey,IL,muni,small (<15K),Munis Self Service,,dns_strict,casey.munisselfservice.com,0.8,,208.64.237.29
+Tyler Technologies,DeKalb,IL,muni,20K-50K,Munis Self Service,,dns_strict,dekalb.munisselfservice.com,0.8,43211,3.140.137.222
+Tyler Technologies,Glen Ellyn,IL,muni,20K-50K,Munis Self Service,,dns_strict,glenellyn.munisselfservice.com,0.8,28201,3.130.248.76
+Tyler Technologies,Greenup,IL,muni,small (<15K),Munis Self Service,,dns_strict,greenup.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Hardin,IL,muni,small (<15K),Munis Self Service,,dns_strict,hardin.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Joliet,IL,muni,100K+,Munis Self Service,,dns_strict,joliet.munisselfservice.com,0.8,147861,3.140.137.222
+Tyler Technologies,Justice,IL,muni,small (<15K),Hosted services,,dns_strict,justice.tylerhost.net,0.8,,15.200.62.17
+Tyler Technologies,Macomb,IL,muni,10K-20K,Munis Self Service,,dns_strict,macomb.munisselfservice.com,0.8,18547,208.64.237.103
+Tyler Technologies,Orion,IL,muni,small (<15K),,,dns_strict,orion.tylertech.com,0.8,,207.182.213.32
+Tyler Technologies,Urbana,IL,muni,20K-50K,Munis Self Service,,dns_strict,urbana.munisselfservice.com,0.8,42311,3.140.137.222
+Tyler Technologies,Wheaton,IL,muni,50K-100K,Munis Self Service,,dns_strict,wheaton.munisselfservice.com,0.8,53715,3.140.137.222
+Tyler Technologies,Wilmette,IL,muni,20K-50K,Munis Self Service,,dns_strict,wilmette.munisselfservice.com,0.8,27413,3.131.242.86
+Tyler Technologies,Bourbon,IN,muni,small (<15K),Munis Self Service,,dns_strict,bourbon.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,East Chicago,IN,muni,20K-50K,Munis Self Service,,dns_strict,eastchicago.munisselfservice.com,0.8,28699,3.133.252.109
+Tyler Technologies,Holton,KS,muni,small (<15K),Munis Self Service,,dns_strict,holton.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Covington,KY,muni,20K-50K,Munis Self Service,,dns_strict,covington.munisselfservice.com,0.8,40997,3.133.252.109
+Tyler Technologies,Owensboro,KY,muni,50K-100K,Munis Self Service,,dns_strict,owensboro.munisselfservice.com,0.8,59042,208.64.237.155
+Tyler Technologies,Monroe,LA,muni,20K-50K,Munis Self Service,,dns_strict,monroe.munisselfservice.com,0.8,49598,3.133.252.109
+Tyler Technologies,Boston,MA,muni,100K+,Munis Self Service,,dns_strict,boston.munisselfservice.com,0.8,653833,208.64.237.126
+Tyler Technologies,Brockton,MA,muni,50K-100K,Munis Self Service,,dns_strict,brockton.munisselfservice.com,0.8,95314,3.130.248.76
+Tyler Technologies,Dennis,MA,muni,small (<15K),Munis Self Service,,dns_strict,dennis.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Edgartown,MA,muni,small (<15K),Munis Self Service,,dns_strict,edgartown.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Fitchburg,MA,muni,20K-50K,Munis Self Service,,dns_strict,fitchburg.munisselfservice.com,0.8,40545,3.140.137.222
+Tyler Technologies,Hopkinton,MA,muni,small (<15K),Munis Self Service,,dns_strict,hopkinton.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Tewksbury,MA,muni,20K-50K,Munis Self Service,,dns_strict,tewksbury.munisselfservice.com,0.8,29326,208.64.237.29
+Tyler Technologies,Westborough,MA,muni,small (<15K),Munis Self Service,,dns_strict,westborough.munisselfservice.com,0.8,,3.130.248.76
+Tyler Technologies,Weymouth,MA,muni,50K-100K,Munis Self Service,,dns_strict,weymouth.munisselfservice.com,0.8,54395,3.140.137.222
+Tyler Technologies,Yarmouth,MA,muni,20K-50K,Munis Self Service,,dns_strict,yarmouth.munisselfservice.com,0.8,25243,3.140.137.222
+Tyler Technologies,Bowie,MD,muni,50K-100K,Munis Self Service,,dns_strict,bowie.munisselfservice.com,0.8,58025,3.140.137.222
+Tyler Technologies,Bar Harbor,ME,muni,small (<15K),Munis Self Service,,dns_strict,barharbor.munisselfservice.com,0.8,,208.64.237.123
+Tyler Technologies,Allendale,MI,muni,10K-20K,Munis Self Service,,dns_strict,allendale.munisselfservice.com,0.8,17579,3.133.252.109
+Tyler Technologies,Cedar Springs,MI,muni,small (<15K),Munis Self Service,,dns_strict,cedarsprings.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Comstock Park,MI,muni,small (<15K),Munis Self Service,,dns_strict,comstockpark.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Coopersville,MI,muni,small (<15K),Munis Self Service,,dns_strict,coopersville.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Fruitport,MI,muni,small (<15K),Munis Self Service,,dns_strict,fruitport.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Grandville,MI,muni,10K-20K,Munis Self Service,,dns_strict,grandville.munisselfservice.com,0.8,15953,3.133.252.109
+Tyler Technologies,Grass Lake,MI,muni,small (<15K),Munis Self Service,,dns_strict,grasslake.munisselfservice.com,0.8,,208.64.237.126
+Tyler Technologies,Holland,MI,muni,20K-50K,Munis Self Service,,dns_strict,holland.munisselfservice.com,0.8,33742,3.133.252.109
+Tyler Technologies,Kent City,MI,muni,small (<15K),Munis Self Service,,dns_strict,kentcity.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Muskegon,MI,muni,20K-50K,Munis Self Service,,dns_strict,muskegon.munisselfservice.com,0.8,38401,3.140.137.222
+Tyler Technologies,Napoleon,MI,muni,small (<15K),Munis Self Service,,dns_strict,napoleon.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Okemos,MI,muni,20K-50K,Munis Self Service,,dns_strict,okemos.munisselfservice.com,0.8,21369,3.140.137.222
+Tyler Technologies,Ravenna,MI,muni,small (<15K),Munis Self Service,,dns_strict,ravenna.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Spring Lake,MI,muni,small (<15K),Munis Self Service,,dns_strict,springlake.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Standish,MI,muni,small (<15K),Munis Self Service,,dns_strict,standish.munisselfservice.com,0.8,,3.130.248.76
+Tyler Technologies,Sterling Heights,MI,muni,100K+,Munis Self Service,,dns_strict,sterling-heights.munisselfservice.com,0.8,132052,208.64.237.123
+Tyler Technologies,Vandercook Lake,MI,muni,small (<15K),Munis Self Service,,dns_strict,vandercooklake.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Warren,MI,muni,100K+,Munis Self Service,,dns_strict,warren.munisselfservice.com,0.8,134056,3.133.252.109
+Tyler Technologies,Waterford,MI,muni,50K-100K,Munis Self Service,,dns_strict,waterford.munisselfservice.com,0.8,75737,3.130.248.76
+Tyler Technologies,Waverly,MI,muni,20K-50K,Munis Self Service,,dns_strict,waverly.munisselfservice.com,0.8,23925,3.140.137.222
+Tyler Technologies,Webberville,MI,muni,small (<15K),Munis Self Service,,dns_strict,webberville.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Chesterfield,MO,muni,20K-50K,,,dns_strict,chesterfield.tylertech.com,0.8,47864,23.20.42.198
+Tyler Technologies,Liberty,MO,muni,20K-50K,Munis Self Service,,dns_strict,liberty.munisselfservice.com,0.8,30450,3.133.252.109
+Tyler Technologies,Springfield,MO,muni,100K+,Munis Self Service,,dns_strict,springfield.munisselfservice.com,0.8,170188,3.131.242.86
+Tyler Technologies,Waynesville,MO,muni,small (<15K),Munis Self Service,,dns_strict,waynesville.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Biloxi,MS,muni,20K-50K,Munis Self Service,,dns_strict,biloxi.munisselfservice.com,0.8,45637,3.131.242.86
+Tyler Technologies,Gulfport,MS,muni,50K-100K,Munis Self Service,,dns_strict,gulfport.munisselfservice.com,0.8,71856,3.131.242.86
+Tyler Technologies,Jackson,MS,muni,100K+,Munis Self Service,,dns_strict,jackson.munisselfservice.com,0.8,153701,3.140.137.222
+Tyler Technologies,Southaven,MS,muni,50K-100K,Munis Self Service,,dns_strict,southaven.munisselfservice.com,0.8,52589,3.133.252.109
+Tyler Technologies,Tylertown,MS,muni,small (<15K),Munis Self Service,,dns_strict,tylertown.munisselfservice.com,0.8,,208.64.237.29
+Tyler Technologies,Beaufort,NC,muni,small (<15K),Munis Self Service,,dns_strict,beaufort.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Boone,NC,muni,10K-20K,Munis Self Service,,dns_strict,boone.munisselfservice.com,0.8,18156,3.133.252.109
+Tyler Technologies,Currituck,NC,muni,small (<15K),Munis Self Service,,dns_strict,currituck.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Garner,NC,muni,20K-50K,Munis Self Service,,dns_strict,garner.munisselfservice.com,0.8,28053,3.140.137.222
+Tyler Technologies,Rockingham,NC,muni,small (<15K),Munis Self Service,,dns_strict,rockingham.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Salisbury,NC,muni,20K-50K,Munis Self Service,,dns_strict,salisbury.munisselfservice.com,0.8,34017,3.130.248.76
+Tyler Technologies,New Milford,NJ,muni,10K-20K,Munis Self Service,,dns_strict,newmilford.munisselfservice.com,0.8,16801,3.140.137.222
+Tyler Technologies,Plainfield,NJ,muni,50K-100K,Munis Self Service,,dns_strict,plainfield.munisselfservice.com,0.8,51217,208.64.237.123
+Tyler Technologies,Sparta,NJ,muni,10K-20K,Munis Self Service,,dns_strict,sparta.munisselfservice.com,0.8,19722,3.133.252.109
+Tyler Technologies,Boulder City,NV,muni,10K-20K,Munis Self Service,,dns_strict,bouldercity.munisselfservice.com,0.8,15551,3.133.252.109
+Tyler Technologies,Henderson,NV,muni,100K+,Munis Self Service,,dns_strict,henderson.munisselfservice.com,0.8,285667,3.140.137.222
+Tyler Technologies,Binghamton,NY,muni,20K-50K,Munis Self Service,,dns_strict,binghamton.munisselfservice.com,0.8,46032,3.130.248.76
+Tyler Technologies,Briarcliff Manor,NY,muni,small (<15K),Munis Self Service,,dns_strict,briarcliffmanor.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Dansville,NY,muni,small (<15K),Munis Self Service,,dns_strict,dansville.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Plattsburgh,NY,muni,10K-20K,Munis Self Service,,dns_strict,plattsburgh.munisselfservice.com,0.8,19806,3.140.137.222
+Tyler Technologies,Alliance,OH,muni,20K-50K,Hosted services,,dns_strict,alliance.tylerhost.net,0.8,22055,15.205.33.151
+Tyler Technologies,Brunswick,OH,muni,20K-50K,Munis Self Service,,dns_strict,brunswick.munisselfservice.com,0.8,34689,208.64.237.123
+Tyler Technologies,Columbus,OH,muni,100K+,Munis Self Service,,dns_strict,columbus.munisselfservice.com,0.8,913175,3.140.137.222
+Tyler Technologies,Kenton,OH,muni,small (<15K),Munis Self Service,,dns_strict,kenton.munisselfservice.com,0.8,,208.64.237.126
+Tyler Technologies,Mentor,OH,muni,20K-50K,Munis Self Service,,dns_strict,mentor.munisselfservice.com,0.8,46901,3.140.137.222
+Tyler Technologies,North Olmsted,OH,muni,20K-50K,Munis Self Service,,dns_strict,northolmsted.munisselfservice.com,0.8,32004,208.64.237.123
+Tyler Technologies,Paulding,OH,muni,small (<15K),Munis Self Service,,dns_strict,paulding.munisselfservice.com,0.8,,3.130.248.76
+Tyler Technologies,Catoosa,OK,muni,small (<15K),Munis Self Service,,dns_strict,catoosa.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Clackamas,OR,muni,small (<15K),Munis Self Service,,dns_strict,clackamas.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,Simpson,PA,muni,small (<15K),Munis Self Service,,dns_strict,simpson.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,North Kingstown,RI,muni,20K-50K,Munis Self Service,,dns_strict,northkingstown.munisselfservice.com,0.8,28042,3.140.137.222
+Tyler Technologies,Providence,RI,muni,100K+,,,dns_strict,providence.tylertech.com,0.8,190934,74.218.91.35
+Tyler Technologies,Franklin,TN,muni,50K-100K,Munis Self Service,,dns_strict,franklin.munisselfservice.com,0.8,72639,3.131.242.86
+Tyler Technologies,Gallatin,TN,muni,20K-50K,Munis Self Service,,dns_strict,gallatin.munisselfservice.com,0.8,34334,3.133.252.109
+Tyler Technologies,Hendersonville,TN,muni,50K-100K,Munis Self Service,,dns_strict,hendersonville.munisselfservice.com,0.8,56018,208.64.237.126
+Tyler Technologies,Morristown,TN,muni,20K-50K,Munis Self Service,,dns_strict,morristown.munisselfservice.com,0.8,29478,3.133.252.109
+Tyler Technologies,Oak Ridge,TN,muni,20K-50K,Munis Self Service,,dns_strict,oakridge.munisselfservice.com,0.8,29302,3.140.137.222
+Tyler Technologies,DeSoto,TX,muni,50K-100K,Munis Self Service,,dns_strict,desoto.munisselfservice.com,0.8,52486,3.133.252.109
+Tyler Technologies,Marshall,TX,muni,20K-50K,Munis Self Service,,dns_strict,marshall.munisselfservice.com,0.8,23820,3.133.252.109
+Tyler Technologies,Mesquite,TX,muni,100K+,Munis Self Service,,dns_strict,mesquite.munisselfservice.com,0.8,144788,3.130.248.76
+Tyler Technologies,Round Rock,TX,muni,100K+,Munis Self Service,,dns_strict,roundrock.munisselfservice.com,0.8,115997,208.64.237.29
+Tyler Technologies,Mona,UT,muni,small (<15K),Munis Self Service,,dns_strict,mona.munisselfservice.com,0.8,,3.133.252.109
+Tyler Technologies,East Hampton,VA,muni,100K+,Munis Self Service,,dns_strict,easthampton.munisselfservice.com,0.8,147993,3.140.137.222
+Tyler Technologies,Floyd,VA,muni,small (<15K),Munis Self Service,,dns_strict,floyd.munisselfservice.com,0.8,,3.140.137.222
+Tyler Technologies,Herndon,VA,muni,20K-50K,Munis Self Service,,dns_strict,herndon.munisselfservice.com,0.8,24568,3.133.252.109
+Tyler Technologies,Isle of Wight,VA,muni,small (<15K),Munis Self Service,,dns_strict,isleofwight.munisselfservice.com,0.8,,3.131.242.86
+Tyler Technologies,Manassas,VA,muni,20K-50K,Munis Self Service,,dns_strict,manassas.munisselfservice.com,0.8,41764,54.198.182.106
+Tyler Technologies,Richmond,VA,muni,100K+,Munis Self Service,,dns_strict,richmond.munisselfservice.com,0.8,226610,3.133.252.109
+Tyler Technologies,Suffolk,VA,muni,50K-100K,Munis Self Service,,dns_strict,suffolk.munisselfservice.com,0.8,88161,3.133.252.109
+Tyler Technologies,Marysville,WA,muni,50K-100K,Munis Self Service,,dns_strict,marysville.munisselfservice.com,0.8,66773,208.64.237.123
+Tyler Technologies,Madison,WI,muni,100K+,Munis Self Service,,dns_strict,madison.munisselfservice.com,0.8,280305,3.140.137.222
+Tyler Technologies,Milwaukee,WI,muni,100K+,Munis Self Service,,dns_strict,milwaukee.munisselfservice.com,0.8,563531,3.140.137.222
+Tyler Technologies,New Berlin,WI,muni,20K-50K,Munis Self Service,,dns_strict,newberlin.munisselfservice.com,0.8,39825,3.140.137.222
+gWorks,Butler,AL,muni,small (<15K),gWorks Suite,,dns_strict,butler.gworks.com,0.8,,44.196.219.136
+gWorks,Greeley,CO,muni,100K+,gWorks Suite,,dns_strict,greeley.gworks.com,0.8,108795,44.196.219.136
+gWorks,Washington,DC,muni,100K+,gWorks Suite,,dns_strict,washington.gworks.com,0.8,689545,44.196.219.136
+gWorks,Dawson,GA,muni,small (<15K),gWorks Suite,,dns_strict,dawson.gworks.com,0.8,,44.196.219.136
+gWorks,Arthur,IL,muni,small (<15K),gWorks Suite,,dns_strict,arthur.gworks.com,0.8,,69.63.116.130
+gWorks,Pawnee,IL,muni,small (<15K),gWorks Suite,,dns_strict,pawnee.gworks.com,0.8,,44.196.219.136
+gWorks,Harlan,IN,muni,small (<15K),gWorks Suite,,dns_strict,harlan.gworks.com,0.8,,44.196.219.136
+gWorks,Knox,IN,muni,small (<15K),gWorks Suite,,dns_strict,knox.gworks.com,0.8,,54.209.240.21
+gWorks,McPherson,KS,muni,small (<15K),gWorks Suite,,dns_strict,mcpherson.gworks.com,0.8,,54.209.240.21
+gWorks,Lexington,KY,muni,100K+,gWorks Suite,,dns_strict,lexington.gworks.com,0.8,320347,69.63.116.130
+gWorks,Burt,MI,muni,small (<15K),gWorks Suite,,dns_strict,burt.gworks.com,0.8,,54.209.240.21
+gWorks,Holt,MI,muni,20K-50K,gWorks Suite,,dns_strict,holt.gworks.com,0.8,23973,69.63.116.130
+gWorks,Saline,MI,muni,small (<15K),gWorks Suite,,dns_strict,saline.gworks.com,0.8,,54.209.240.21
+gWorks,Blaine,MN,muni,50K-100K,gWorks Suite,,dns_strict,blaine.gworks.com,0.8,62124,44.196.219.136
+gWorks,Golden Valley,MN,muni,20K-50K,gWorks Suite,,dns_strict,goldenvalley.gworks.com,0.8,21270,69.63.116.130
+gWorks,Boone,NC,muni,10K-20K,gWorks Suite,,dns_strict,boone.gworks.com,0.8,18156,54.209.240.21
+gWorks,Dunn,NC,muni,small (<15K),gWorks Suite,,dns_strict,dunn.gworks.com,0.8,,69.63.116.130
+gWorks,Dickinson,ND,muni,20K-50K,gWorks Suite,,dns_strict,dickinson.gworks.com,0.8,23765,69.63.116.130
+gWorks,Kearney,NE,muni,20K-50K,gWorks Suite,,dns_strict,kearney.gworks.com,0.8,33021,44.196.219.136
+gWorks,Kimball,NE,muni,small (<15K),gWorks Suite,,dns_strict,kimball.gworks.com,0.8,,54.209.240.21
+gWorks,Lincoln,NE,muni,100K+,gWorks Suite,,dns_strict,lincoln.gworks.com,0.8,294757,44.196.219.136
+gWorks,Garfield,NJ,muni,20K-50K,gWorks Suite,,dns_strict,garfield.gworks.com,0.8,31802,54.209.240.21
+gWorks,Wayne,NJ,muni,50K-100K,gWorks Suite,,dns_strict,wayne.gworks.com,0.8,57915,54.209.240.21
+gWorks,Clay,NY,muni,50K-100K,gWorks Suite,,dns_strict,clay.gworks.com,0.8,58206,44.196.219.136
+gWorks,Merrick,NY,muni,20K-50K,gWorks Suite,,dns_strict,merrick.gworks.com,0.8,22097,44.196.219.136
+gWorks,Phelps,NY,muni,small (<15K),gWorks Suite,,dns_strict,phelps.gworks.com,0.8,,44.196.219.136
+gWorks,Hamilton,OH,muni,50K-100K,gWorks Suite,,dns_strict,hamilton.gworks.com,0.8,62407,44.196.219.136
+gWorks,Hooker,OK,muni,small (<15K),gWorks Suite,,dns_strict,hooker.gworks.com,0.8,,54.209.240.21
+gWorks,Perkins,OK,muni,small (<15K),gWorks Suite,,dns_strict,perkins.gworks.com,0.8,,69.63.116.130
+gWorks,Thomas,OK,muni,small (<15K),gWorks Suite,,dns_strict,thomas.gworks.com,0.8,,44.196.219.136
+gWorks,Custer,SD,muni,small (<15K),gWorks Suite,,dns_strict,custer.gworks.com,0.8,,54.209.240.21
+gWorks,Franklin,TN,muni,50K-100K,gWorks Suite,,dns_strict,franklin.gworks.com,0.8,72639,54.209.240.21
+gWorks,McKenzie,TN,muni,small (<15K),gWorks Suite,,dns_strict,mckenzie.gworks.com,0.8,,69.63.116.130
+gWorks,Boyd,TX,muni,small (<15K),gWorks Suite,,dns_strict,boyd.gworks.com,0.8,,44.196.219.136
+gWorks,Hitchcock,TX,muni,small (<15K),gWorks Suite,,dns_strict,hitchcock.gworks.com,0.8,,54.209.240.21
+gWorks,Wheeler,TX,muni,small (<15K),gWorks Suite,,dns_strict,wheeler.gworks.com,0.8,,54.209.240.21
+gWorks,Cheyenne,WY,muni,50K-100K,gWorks Suite,,dns_strict,cheyenne.gworks.com,0.8,65132,54.209.240.21
+gWorks,Sheridan,WY,muni,10K-20K,gWorks Suite,,dns_strict,sheridan.gworks.com,0.8,17873,44.196.219.136
+Tyler Technologies,Grayson Valley,AL,muni,small (<15K),Munis Self Service,,dns_strict,grayson.munisselfservice.com,0.4,,3.140.137.222
+Tyler Technologies,Ben Lomond,CA,muni,small (<15K),Munis Self Service,,dns_strict,ben.munisselfservice.com,0.4,,208.64.237.123
+Tyler Technologies,Chula Vista,CA,muni,100K+,Munis Self Service,,dns_strict,chula.munisselfservice.com,0.4,265757,3.140.137.222
+Tyler Technologies,Communications Hill,CA,muni,small (<15K),,,dns_strict,communications.tylertech.com,0.4,,34.208.84.250
+Tyler Technologies,Discovery Bay,CA,muni,small (<15K),Hosted services,,dns_strict,discovery.tylerhost.net,0.4,,3.30.140.78
+Tyler Technologies,La Habra,CA,muni,50K-100K,Hosted services,,dns_strict,la.tylerhost.net,0.4,62131,207.97.231.229
+Tyler Technologies,Union City,CA,muni,50K-100K,Munis Self Service,,dns_strict,union.munisselfservice.com,0.4,74494,3.140.137.222
+Tyler Technologies,Security-Widefield,CO,muni,20K-50K,,,dns_strict,security.tylertech.com,0.4,32882,207.182.208.184
+Tyler Technologies,Kittery Point,ME,muni,small (<15K),Munis Self Service,,dns_strict,kittery.munisselfservice.com,0.4,,3.140.137.222
+Tyler Technologies,Webster Groves,MO,muni,20K-50K,Munis Self Service,,dns_strict,webster.munisselfservice.com,0.4,23177,208.64.237.126
+Tyler Technologies,Whitehall Township,PA,muni,20K-50K,Munis Self Service,,dns_strict,whitehall.munisselfservice.com,0.4,24896,3.140.137.222
+Tyler Technologies,Eagle Pass,TX,muni,20K-50K,,,dns_strict,eagle.tylertech.com,0.4,28765,3.141.75.10
+gWorks,Garden Grove,CA,muni,100K+,gWorks Suite,,dns_strict,garden.gworks.com,0.4,175393,69.63.116.130
+gWorks,Sherman Oaks,CA,muni,50K-100K,gWorks Suite,,dns_strict,sherman.gworks.com,0.4,52677,54.209.240.21
+gWorks,Valley Glen,CA,muni,50K-100K,gWorks Suite,,dns_strict,valley.gworks.com,0.4,60000,54.209.240.21
+gWorks,Grant-Valkaria,FL,muni,small (<15K),gWorks Suite,,dns_strict,grant.gworks.com,0.4,,54.209.240.21
+gWorks,Polk City,FL,muni,small (<15K),gWorks Suite,,dns_strict,polk.gworks.com,0.4,,44.196.219.136
+gWorks,Cedar Rapids,IA,muni,100K+,gWorks Suite,,dns_strict,cedar.gworks.com,0.4,130405,44.196.219.136
+gWorks,Dakota City,IA,muni,small (<15K),gWorks Suite,,dns_strict,dakota.gworks.com,0.4,,54.209.240.21
+gWorks,Gage Park,IL,muni,20K-50K,gWorks Suite,,dns_strict,gage.gworks.com,0.4,41202,54.209.240.21
+gWorks,Logan Square,IL,muni,50K-100K,gWorks Suite,,dns_strict,logan.gworks.com,0.4,73702,54.209.240.21
+gWorks,Dodge City,KS,muni,20K-50K,gWorks Suite,,dns_strict,dodge.gworks.com,0.4,27912,54.209.240.21
+gWorks,Brown City,MI,muni,small (<15K),gWorks Suite,,dns_strict,brown.gworks.com,0.4,,44.196.219.136
+gWorks,Jefferson City,MO,muni,20K-50K,gWorks Suite,,dns_strict,jefferson.gworks.com,0.4,42595,44.196.219.136
+gWorks,Pierce City,MO,muni,small (<15K),gWorks Suite,,dns_strict,pierce.gworks.com,0.4,,54.209.240.21
+gWorks,Platte City,MO,muni,small (<15K),gWorks Suite,,dns_strict,platte.gworks.com,0.4,,54.209.240.21
+gWorks,Webster Groves,MO,muni,20K-50K,gWorks Suite,,dns_strict,webster.gworks.com,0.4,23177,44.196.219.136
+gWorks,Banner Elk,NC,muni,small (<15K),gWorks Suite,,dns_strict,banner.gworks.com,0.4,,44.196.219.136
+gWorks,Hayes Center,NE,muni,small (<15K),gWorks Suite,,dns_strict,hayes.gworks.com,0.4,,54.209.240.21
+gWorks,Howard Beach,NY,muni,20K-50K,gWorks Suite,,dns_strict,howard.gworks.com,0.4,26148,44.196.219.136
+gWorks,Rock Hill,SC,muni,50K-100K,gWorks Suite,,dns_strict,rock.gworks.com,0.4,71548,54.209.240.21
+gWorks,Sioux Falls,SD,muni,100K+,gWorks Suite,,dns_strict,sioux.gworks.com,0.4,171544,54.209.240.21
+gWorks,Johnson City,TN,muni,50K-100K,gWorks Suite,,dns_strict,johnson.gworks.com,0.4,66027,54.209.240.21
+gWorks,Chase City,VA,muni,small (<15K),gWorks Suite,,dns_strict,chase.gworks.com,0.4,,54.209.240.21

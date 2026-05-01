@@ -120,6 +120,14 @@ table.heatmap td:first-child,table.matrix td:first-child{text-align:left;font-we
 canvas{max-height:280px}
 .note{color:var(--muted);font-size:11px;margin-top:8px}
 .spacer{height:18px}
+.small-multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.sm-card{background:#0b1220;border:1px solid var(--border);border-radius:6px;padding:10px}
+.sm-card .sm-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.sm-card .sm-name{font-size:12px;font-weight:600;color:var(--text)}
+.sm-card .sm-meta{font-size:10px;color:var(--muted)}
+.sm-card .tilemap{max-width:100%;grid-template-columns:repeat(11,minmax(20px,1fr));gap:2px}
+.sm-card .tile{font-size:8px;border-radius:2px;padding:0}
+.sm-card .tile .v{display:none}
 </style>
 </head>
 <body>
@@ -278,7 +286,21 @@ canvas{max-height:280px}
   <div class="spacer"></div>
 
   <div class="card">
-    <h3>Full vendor &times; state matrix</h3>
+    <h3>Per-vendor state heatmaps (small multiples)</h3>
+    <div class="controls" style="margin-bottom:8px">
+      <label>Color by:</label>
+      <button class="btn active" data-smallm="count">Customer count</button>
+      <button class="btn" data-smallm="penetration">Penetration %</button>
+      <span style="flex:1"></span>
+      <span class="note" style="margin:0">Each map auto-scales to its own vendor max (a vendor's HQ state is always darkest).</span>
+    </div>
+    <div id="smallMultiples" class="small-multiples"></div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="card">
+    <h3>Full vendor &times; state matrix (color = per-vendor percentile)</h3>
     <div class="scroll"><table class="matrix" id="matrix"></table></div>
   </div>
 </section>
@@ -304,6 +326,7 @@ const ui = {
   selectedBucket: "all",
   vendor: Object.keys(COMP.vendors)[0],
   vmap: "count",
+  smallm: "count",
 };
 
 // ===== Tabs =====
@@ -653,9 +676,31 @@ function renderVendorTopChart() {
                          y: { ticks: { color: "#e2e8f0" }, grid: { display: false } } } }
   });
 }
+function vendorCellColor(v, max) {
+  if (v <= 0 || max <= 0) return "rgba(15,23,42,0.4)";
+  const t = Math.pow(v / max, 0.55);
+  // purple ramp matching the per-vendor map
+  return `rgba(168,85,247,${0.15 + t * 0.85})`;
+}
+
 function renderMatrix() {
   const t = document.getElementById("matrix");
   const vendors = Object.keys(COMP.vendors);
+
+  // Per-vendor max for column-wise coloring
+  const vmax = {};
+  vendors.forEach(v => {
+    vmax[v] = Math.max.apply(null, STATES.map(st => COMP.vendors[v].by_state[st] || 0));
+  });
+  const combinedMax = Math.max.apply(null, STATES.map(st =>
+    vendors.reduce((s, v) => s + (COMP.vendors[v].by_state[st] || 0), 0)));
+  const penArr = STATES.map(st => {
+    const addr = COMP.addressable_by_state[st] || 1;
+    const c = vendors.reduce((s, v) => s + (COMP.vendors[v].by_state[st] || 0), 0);
+    return c / addr;
+  });
+  const penMax = Math.max.apply(null, penArr);
+
   let html = "<thead><tr><th>State</th>" +
     vendors.map(v => `<th>${v}</th>`).join("") +
     "<th>Combined</th><th>Pen %</th></tr></thead><tbody>";
@@ -664,11 +709,78 @@ function renderMatrix() {
     const combined = vendors.reduce((s, v) => s + (COMP.vendors[v].by_state[st] || 0), 0);
     const pen = combined / addr;
     html += "<tr><td>" + st + "</td>" +
-      vendors.map(v => `<td>${fmtInt(COMP.vendors[v].by_state[st] || 0)}</td>`).join("") +
-      `<td style="font-weight:600">${fmtInt(combined)}</td><td style="font-weight:600">${(pen * 100).toFixed(2)}%</td></tr>`;
+      vendors.map(v => {
+        const x = COMP.vendors[v].by_state[st] || 0;
+        const bg = vendorCellColor(x, vmax[v]);
+        const fg = x > vmax[v] * 0.5 ? "#fff" : "var(--text)";
+        return `<td style="background:${bg};color:${fg}">${fmtInt(x)}</td>`;
+      }).join("") +
+      `<td style="background:${vendorCellColor(combined, combinedMax)};color:${combined > combinedMax * 0.5 ? '#fff' : 'var(--text)'};font-weight:600">${fmtInt(combined)}</td>` +
+      `<td style="background:rgba(16,185,129,${0.15 + Math.pow(pen / (penMax || 1), 0.55) * 0.85});color:${pen > penMax * 0.5 ? '#fff' : 'var(--text)'};font-weight:600">${(pen * 100).toFixed(2)}%</td></tr>`;
   });
   html += "</tbody>";
   t.innerHTML = html;
+}
+
+function renderSmallMultiples() {
+  const container = document.getElementById("smallMultiples");
+  const mode = ui.smallm;  // "count" | "penetration"
+  const vendors = Object.entries(COMP.vendors);
+
+  let html = "";
+  vendors.forEach(([name, v]) => {
+    // Per-vendor values + max
+    const vals = {};
+    let max = 0;
+    STATES.forEach(st => {
+      const cnt = v.by_state[st] || 0;
+      const x = mode === "count"
+        ? cnt
+        : (cnt / (COMP.addressable_by_state[st] || 1));
+      vals[st] = x;
+      if (x > max) max = x;
+    });
+    if (max === 0) max = 1;
+
+    // Top state
+    const sorted = STATES.map(st => [st, v.by_state[st] || 0]).sort((a,b) => b[1] - a[1]);
+    const topSt = sorted[0];
+
+    // Tilemap HTML
+    let tmHtml = '<div class="tilemap">';
+    TILEMAP.forEach(row => {
+      row.forEach(st => {
+        if (st === "") {
+          tmHtml += '<div class="tile empty"></div>';
+        } else {
+          const x = vals[st] || 0;
+          const intensity = Math.pow(x / max, 0.55);
+          const bg = `rgba(168,85,247,${0.15 + intensity * 0.85})`;
+          const tip = mode === "count"
+            ? `${STATE_NAMES[st]}: ${fmtInt(x)} customers`
+            : `${STATE_NAMES[st]}: ${(x * 100).toFixed(2)}% of addressable`;
+          tmHtml += `<div class="tile" style="background:${bg};color:#fff" title="${tip}">${st}</div>`;
+        }
+      });
+    });
+    tmHtml += '</div>';
+
+    const subTitle = mode === "count"
+      ? `${fmtInt(v.allocated)} customers · top state ${topSt[0]} (${fmtInt(topSt[1])})`
+      : `peak ${(max * 100).toFixed(1)}% in ${
+          STATES.map(st => [st, vals[st]]).sort((a,b)=>b[1]-a[1])[0][0]
+        }`;
+
+    html += `<div class="sm-card">
+      <div class="sm-header">
+        <span class="sm-name">${name}</span>
+        <span class="sm-meta threat-${v.threat}">${v.threat.toUpperCase()}</span>
+      </div>
+      ${tmHtml}
+      <div class="sm-meta" style="margin-top:6px">${subTitle}</div>
+    </div>`;
+  });
+  container.innerHTML = html;
 }
 
 // ===== Wire up controls =====
@@ -688,6 +800,10 @@ document.querySelectorAll("[data-vmap]").forEach(b => b.addEventListener("click"
   document.querySelectorAll("[data-vmap]").forEach(x => x.classList.remove("active"));
   b.classList.add("active"); ui.vmap = b.dataset.vmap; renderVendorMap();
 }));
+document.querySelectorAll("[data-smallm]").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("[data-smallm]").forEach(x => x.classList.remove("active"));
+  b.classList.add("active"); ui.smallm = b.dataset.smallm; renderSmallMultiples();
+}));
 document.getElementById("nameSearch").addEventListener("input", renderLists);
 
 // ===== Initial render =====
@@ -699,6 +815,7 @@ renderVendorCards();
 renderVendorMap();
 renderVendorTopChart();
 renderMatrix();
+renderSmallMultiples();
 
 // Auto-select biggest state for names tab so it's not empty
 selectState(STATES.map(s => [s, TAM.states[s].total_entities]).sort((a,b) => b[1]-a[1])[0][0]);

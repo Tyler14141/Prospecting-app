@@ -6,3 +6,7 @@ __pycache__/
 
 # Cached data fetched on first build — don't track
 build/all_cities.json
+
+# customer_intel harvester outputs
+build/customer_intel_raw.csv
+build/customer_intel_merged.csv

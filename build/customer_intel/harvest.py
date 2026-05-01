@@ -1,0 +1,147 @@
+"""
+Run all customer-intel connectors, merge results, dedupe, write CSV.
+
+Usage
+-----
+    cd build
+    python -m customer_intel.harvest               # runs free connectors
+    python -m customer_intel.harvest --skip jobs   # skip a connector
+    python -m customer_intel.harvest --only crt_sh
+    python -m customer_intel.harvest --cafr-dir /path/to/pdfs
+    python -m customer_intel.harvest --max-probes 1000
+
+Outputs
+-------
+    customer_intel_raw.csv     — all raw finds (one row per source mention)
+    customer_intel_merged.csv  — deduped (one row per vendor+muni+state)
+"""
+
+import argparse
+import csv
+import os
+import sys
+
+from customer_intel.connectors import case_studies, crt_sh, dns_fingerprint, \
+                                       job_postings
+
+
+CONNECTORS = {
+    "crt_sh": ("Certificate Transparency log search",
+                lambda args: crt_sh.harvest()),
+    "case_studies": ("Vendor case-study page scraper",
+                      lambda args: case_studies.harvest()),
+    "dns_fingerprint": ("DNS / URL pattern fingerprint",
+                         lambda args: dns_fingerprint.harvest(
+                             max_probes=args.max_probes)),
+    "job_postings": ("Public job-board scraper (Indeed)",
+                      lambda args: job_postings.harvest()),
+}
+
+# CAFR PDF connector is opt-in (needs a PDF directory)
+def _run_cafr(args):
+    if not args.cafr_dir:
+        return []
+    from customer_intel.connectors import cafr_pdf
+    return cafr_pdf.harvest(args.cafr_dir)
+
+
+CONNECTORS["cafr_pdf"] = ("CAFR / ACFR PDF vendor mention extraction",
+                           _run_cafr)
+
+
+FIELDS = ["vendor", "muni", "state", "type", "bucket", "product",
+           "since", "source", "evidence", "confidence"]
+
+
+def merge_rows(rows: list) -> list:
+    """Dedupe by (vendor, muni, state). Higher-confidence row wins.
+    Concatenates `source` fields when multiple sources confirm same install."""
+    bucket = {}
+    for r in rows:
+        key = (r["vendor"], (r.get("muni") or "").lower(),
+                r.get("state") or "")
+        existing = bucket.get(key)
+        if existing is None:
+            bucket[key] = dict(r)
+            bucket[key]["sources"] = {r["source"]}
+            continue
+        existing["sources"].add(r["source"])
+        # Higher confidence wins for non-null fields
+        if r["confidence"] > existing["confidence"]:
+            for k in ("type", "bucket", "product", "since", "evidence"):
+                if r.get(k):
+                    existing[k] = r[k]
+            existing["confidence"] = r["confidence"]
+    out = []
+    for v in bucket.values():
+        v["source"] = ",".join(sorted(v.pop("sources")))
+        out.append(v)
+    out.sort(key=lambda r: (-r["confidence"], r["vendor"], r["state"] or "",
+                             r["muni"]))
+    return out
+
+
+def write_csv(path: str, rows: list, fields: list = FIELDS):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+        w.writeheader()
+        for r in rows:
+            w.writerow(r)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--only", nargs="*",
+                    help="run only these connectors (default: all free)")
+    ap.add_argument("--skip", nargs="*", default=[],
+                    help="skip these connectors")
+    ap.add_argument("--max-probes", type=int, default=500,
+                    help="DNS-fingerprint connector max probes")
+    ap.add_argument("--cafr-dir",
+                    help="directory of CAFR PDFs (enables cafr_pdf)")
+    ap.add_argument("--out", default="customer_intel_raw.csv")
+    ap.add_argument("--out-merged", default="customer_intel_merged.csv")
+    args = ap.parse_args()
+
+    selected = (args.only or [k for k in CONNECTORS if k != "cafr_pdf"])
+    selected = [c for c in selected if c not in args.skip]
+
+    print(f"Connectors selected: {selected}")
+    raw = []
+    for name in selected:
+        if name not in CONNECTORS:
+            print(f"  skipping unknown connector: {name}")
+            continue
+        desc, fn = CONNECTORS[name]
+        print(f"\n=== {name} — {desc} ===")
+        try:
+            rows = fn(args) or []
+        except Exception as e:
+            print(f"  ERROR: {name} failed: {e}")
+            rows = []
+        print(f"  -> {len(rows)} rows")
+        raw.extend(rows)
+
+    print(f"\n{len(raw)} total raw rows across {len(selected)} connectors")
+    write_csv(args.out, raw)
+    print(f"  wrote {args.out}")
+
+    merged = merge_rows(raw)
+    print(f"{len(merged)} unique (vendor, muni, state) combos after merge")
+    write_csv(args.out_merged, merged)
+    print(f"  wrote {args.out_merged}")
+
+    # Summary
+    by_v = {}
+    for r in merged:
+        by_v[r["vendor"]] = by_v.get(r["vendor"], 0) + 1
+    print("\nBy vendor:")
+    for v, n in sorted(by_v.items(), key=lambda x: -x[1]):
+        print(f"  {v:25s} {n:>5}")
+
+    print("\nNext step:  python -m customer_intel.merge "
+          + args.out_merged)
+
+
+if __name__ == "__main__":
+    main()

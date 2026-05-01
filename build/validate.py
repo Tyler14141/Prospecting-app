@@ -150,7 +150,37 @@ def main():
                      not re.search(r"\bfetch\s*\(", html))
     all_ok &= check("no unfilled placeholders",
                      not any(p in html for p in ("__TAM__", "__COMP__",
-                                                  "__NAMES__", "__TILEMAP__")))
+                                                  "__NAMES__", "__TILEMAP__",
+                                                  "__GEO__", "__SIGNALS__")))
+    all_ok &= check("d3 CDN reference present",
+                     "d3@7" in html.lower() or "d3.geojson" in html.lower()
+                     or "d3.geoalbers" in html.lower() or 'd3.min.js' in html)
+    all_ok &= check("choropleth container present",
+                     'id="choropleth"' in html)
+    all_ok &= check("named customers panel present",
+                     'id="namedCust"' in html)
+    all_ok &= check("muni size-tier filter present",
+                     'data-mshow=' in html)
+
+    # Named-customer dataset structural checks
+    import json as _json
+    with open(os.path.join(OUT_DIR, "competitors_data.json")) as _f:
+        comp_data = _json.load(_f)
+    vendors_with_customers = sum(
+        1 for v in comp_data["vendors"].values() if v.get("named_customers"))
+    all_ok &= check(f"every vendor has at least one named customer",
+                     vendors_with_customers == len(comp_data["vendors"]),
+                     f"{vendors_with_customers}/{len(comp_data['vendors'])} vendors with customers")
+
+    # Names data — confirm sub-15K munis present
+    with open(os.path.join(HERE, "names_data.json")) as _f:
+        names_data = _json.load(_f)
+    total_munis = sum(len(s["cities"]) for s in names_data.values())
+    small_munis = sum(1 for s in names_data.values() for c in s["cities"]
+                      if c["pop"] is None)
+    all_ok &= check(f"sub-15K muni coverage",
+                     small_munis > 5000,
+                     f"{small_munis} small munis of {total_munis} total")
 
     section("7. DOCX BRIEF")
     from docx import Document

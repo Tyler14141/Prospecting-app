@@ -16,6 +16,7 @@ TAM_JSON = os.path.join(OUT_DIR, "tam_data.json")
 COMP_JSON = os.path.join(OUT_DIR, "competitors_data.json")
 SIGNALS_JSON = os.path.join(OUT_DIR, "signals_data.json")
 NAMES_JSON = os.path.join(HERE, "names_data.json")
+GEOJSON_PATH = os.path.join(HERE, "us_states.geojson")
 HTML_PATH = os.path.join(OUT_DIR, "Local_Government_TAM_Dashboard.html")
 
 
@@ -28,18 +29,22 @@ def build():
         names = json.load(f)
     with open(SIGNALS_JSON) as f:
         sigs = json.load(f)
+    with open(GEOJSON_PATH) as f:
+        geo = json.load(f)
 
     # Stringify safely for inline embedding
     tam_s = json.dumps(tam, separators=(",", ":"))
     comp_s = json.dumps(comp, separators=(",", ":"))
     names_s = json.dumps(names, separators=(",", ":"))
     sigs_s = json.dumps(sigs, separators=(",", ":"))
+    geo_s = json.dumps(geo, separators=(",", ":"))
     tile_s = json.dumps(TILE_MAP)
 
     html = HTML_TEMPLATE.replace("__TAM__", tam_s)\
                         .replace("__COMP__", comp_s)\
                         .replace("__NAMES__", names_s)\
                         .replace("__SIGNALS__", sigs_s)\
+                        .replace("__GEO__", geo_s)\
                         .replace("__TILEMAP__", tile_s)
 
     with open(HTML_PATH, "w", encoding="utf-8") as f:
@@ -54,6 +59,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 <title>Local Government TAM &amp; Competitive Dashboard</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <style>
 :root{
   --bg:#0f172a; --card:#1e293b; --text:#e2e8f0; --accent:#38bdf8;
@@ -149,6 +155,17 @@ canvas{max-height:280px}
 .actnow .score{font-size:13px;color:var(--accent);font-weight:700}
 .actnow .count{font-size:10px;color:var(--muted)}
 .small-multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.choropleth{width:100%;background:#0b1220;border-radius:6px;border:1px solid var(--border);position:relative;overflow:hidden}
+.choropleth svg{width:100%;height:auto;display:block;background:#0b1220}
+.choropleth path.state{stroke:#475569;stroke-width:0.6;cursor:pointer;transition:.1s}
+.choropleth path.state:hover{stroke:#fff;stroke-width:1.4}
+.choropleth path.state.selected{stroke:var(--accent);stroke-width:2}
+.choro-tooltip{position:absolute;pointer-events:none;background:#0f172a;border:1px solid var(--accent);color:var(--text);padding:8px 12px;border-radius:6px;font-size:12px;z-index:10;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.5)}
+.choro-tooltip b{color:var(--accent)}
+select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%2394a3b8" d="M6 8L0 0h12z"/></svg>') no-repeat right 8px center;padding-right:24px}
+.list .item .pop{font-size:10px;color:var(--muted)}
+.list .item.unknown-pop{opacity:.7}
+.list .item.unknown-pop .pop{color:#64748b;font-style:italic}
 .sm-card{background:#0b1220;border:1px solid var(--border);border-radius:6px;padding:10px}
 .sm-card .sm-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
 .sm-card .sm-name{font-size:12px;font-weight:600;color:var(--text)}
@@ -231,21 +248,54 @@ canvas{max-height:280px}
 
 <!-- ===== TAB 2: HEATMAPS ===== -->
 <section class="tab" id="tab-heatmaps">
-  <div class="controls">
-    <label>Filter type:</label>
-    <button class="btn chip-htype active" data-type="all">All (excl. SD)</button>
-    <button class="btn chip-htype" data-type="munis">Municipalities</button>
-    <button class="btn chip-htype" data-type="counties">Counties</button>
-    <button class="btn chip-htype" data-type="townships">Townships</button>
+  <div class="card" style="margin-bottom:18px">
+    <h3>US Choropleth Heatmap</h3>
+    <div class="controls" style="margin-bottom:12px">
+      <label>Metric:</label>
+      <button class="btn chip-cmetric active" data-cmetric="spend">Spend</button>
+      <button class="btn chip-cmetric" data-cmetric="count">Count</button>
+      <button class="btn chip-cmetric" data-cmetric="competitor">Competitor</button>
+      <button class="btn chip-cmetric" data-cmetric="penetration">Pen %</button>
+      <span style="width:14px"></span>
+      <label>Type:</label>
+      <select class="search" id="cType" style="max-width:160px">
+        <option value="all">All entity types</option>
+        <option value="munis">Municipalities</option>
+        <option value="counties">Counties</option>
+        <option value="townships">Townships</option>
+        <option value="special_districts">Special Districts</option>
+      </select>
+      <label>Size:</label>
+      <select class="search" id="cBucket" style="max-width:140px">
+        <option value="all">All sizes</option>
+      </select>
+      <label>Competitor:</label>
+      <select class="search" id="cVendor" style="max-width:170px">
+        <option value="all">All / none</option>
+      </select>
+      <input class="search" id="cSearch" placeholder="Search state name&hellip;" style="max-width:180px">
+    </div>
+    <div id="choropleth" class="choropleth"></div>
+    <div class="legend" id="choroLegend"></div>
+    <div class="note" id="choroNote"></div>
   </div>
+
   <div class="grid row2">
     <div class="card">
-      <h3>Entity Count Heatmap</h3>
+      <h3>Entity Count Heatmap (state &times; bucket)</h3>
+      <div class="controls" style="margin-bottom:8px">
+        <label>Type:</label>
+        <button class="btn chip-htype active" data-type="all">All (excl. SD)</button>
+        <button class="btn chip-htype" data-type="munis">Munis</button>
+        <button class="btn chip-htype" data-type="counties">Counties</button>
+        <button class="btn chip-htype" data-type="townships">Townships</button>
+      </div>
       <div class="scroll"><table class="heatmap" id="heatmapCount"></table></div>
       <div class="note">Cells colored per-column on a log-scaled percentile.</div>
     </div>
     <div class="card">
-      <h3>Estimated Annual Spend Heatmap</h3>
+      <h3>Estimated Annual Spend Heatmap (state &times; bucket)</h3>
+      <div style="height:30px"></div>
       <div class="scroll"><table class="heatmap" id="heatmapSpend"></table></div>
       <div class="note">$ in millions; per-column log-scaled percentile.</div>
     </div>
@@ -258,23 +308,31 @@ canvas{max-height:280px}
     <div class="card">
       <h3>Pick a state</h3>
       <div id="tileNames"></div>
-      <div class="note">Click any state tile to load its counties and cities.</div>
+      <div class="note">Click any state tile to load its counties and municipalities.</div>
     </div>
     <div class="card">
       <h3 id="namesHeader">No state selected</h3>
       <div class="controls" style="margin-bottom:8px">
-        <input class="search" id="nameSearch" placeholder="Search counties or cities&hellip;">
+        <input class="search" id="nameSearch" placeholder="Search counties or munis&hellip;">
       </div>
       <div class="controls" id="bucketChips" style="margin-top:0">
-        <label>Bucket:</label>
+        <label>Filter:</label>
+      </div>
+      <div class="controls" style="margin-top:6px">
+        <label>Show:</label>
+        <button class="btn chip-mshow active" data-mshow="all">All munis</button>
+        <button class="btn chip-mshow" data-mshow="known">Known pop only (&ge;15K)</button>
+        <button class="btn chip-mshow" data-mshow="small">Small (&lt;15K)</button>
+        <span style="flex:1"></span>
+        <button class="btn" id="namesExport">Export to CSV</button>
       </div>
       <div class="grid row2">
         <div>
-          <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 6px">Counties</h4>
+          <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 6px" id="countyHeader">Counties</h4>
           <div class="list" id="countyList"></div>
         </div>
         <div>
-          <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 6px">Cities (&ge;15K pop)</h4>
+          <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 6px" id="cityHeader">Municipalities</h4>
           <div class="list" id="cityList"></div>
         </div>
       </div>
@@ -310,6 +368,20 @@ canvas{max-height:280px}
       <h3>Top 15 States for selected vendor</h3>
       <canvas id="vendorTopChart"></canvas>
     </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <h3 id="namedCustHeader">Named customers — seed dataset</h3>
+      <button class="btn" id="namedCustExport">Export to CSV</button>
+    </div>
+    <div class="controls" style="margin-bottom:8px">
+      <input class="search" id="namedCustSearch" placeholder="Search muni, state, or product&hellip;" style="max-width:280px">
+      <span class="note" id="namedCustNote" style="margin:0"></span>
+    </div>
+    <div class="scroll" style="max-height:380px"><table class="matrix" id="namedCust"></table></div>
   </div>
 
   <div class="spacer"></div>
@@ -394,7 +466,12 @@ const TAM = __TAM__;
 const COMP = __COMP__;
 const NAMES = __NAMES__;
 const SIGNALS = __SIGNALS__;
+const GEO = __GEO__;
 const TILEMAP = __TILEMAP__;
+
+// state name -> abbrev
+const NAME_TO_ABBR = {};
+Object.entries(COMP.state_names).forEach(([abbr, name]) => NAME_TO_ABBR[name] = abbr);
 
 const STATES = Object.keys(TAM.states);
 const BUCKETS = TAM.buckets;
@@ -415,6 +492,17 @@ const ui = {
   sigStateFilter: null,
   sigSearch: "",
   sigFocusKey: null,
+  // choropleth filters
+  cMetric: "spend",     // spend | count | competitor | penetration
+  cType: "all",
+  cBucket: "all",
+  cVendor: "all",
+  cSearch: "",
+  cSelectedState: null,
+  // names tab extras
+  mShow: "all",         // all | known | small
+  // named customers
+  ncSearch: "",
 };
 
 // ===== Tabs =====
@@ -424,6 +512,9 @@ document.querySelectorAll("nav.tabs button").forEach(b => {
     b.classList.add("active");
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.getElementById("tab-" + b.dataset.tab).classList.add("active");
+    // Re-render the choropleth when entering Heatmaps (svg sizes off the
+    // container width, which is 0 while hidden)
+    if (b.dataset.tab === "heatmaps") setTimeout(renderChoropleth, 10);
   });
 });
 
@@ -667,9 +758,8 @@ function selectState(st) {
 }
 function renderBucketChips() {
   const c = document.getElementById("bucketChips");
-  // Keep label, replace chips
   c.innerHTML = '<label>Bucket:</label>';
-  ["all", ...BUCKETS].forEach(b => {
+  ["all", ...BUCKETS, "small (<15K)"].forEach(b => {
     const btn = document.createElement("button");
     btn.className = "chip" + (ui.selectedBucket === b ? " active" : "");
     btn.textContent = b === "all" ? "All" : b;
@@ -694,25 +784,71 @@ function renderNamesPanel() {
   renderBucketChips();
   renderLists();
 }
+function namesFilteredCities() {
+  if (!ui.selectedState) return [];
+  const st = ui.selectedState;
+  const data = NAMES[st] || { counties: [], cities: [] };
+  const q = (document.getElementById("nameSearch").value || "").toLowerCase();
+  let cities = data.cities;
+  if (ui.mShow === "known") cities = cities.filter(c => c.pop !== null);
+  else if (ui.mShow === "small") cities = cities.filter(c => c.pop === null);
+  if (ui.selectedBucket !== "all") cities = cities.filter(c => c.bucket === ui.selectedBucket);
+  if (q) cities = cities.filter(c => c.name.toLowerCase().includes(q));
+  return cities;
+}
+
 function renderLists() {
   if (!ui.selectedState) return;
   const st = ui.selectedState;
   const data = NAMES[st] || { counties: [], cities: [] };
   const q = (document.getElementById("nameSearch").value || "").toLowerCase();
 
+  // Counties
+  const filteredCounties = data.counties.filter(c => !q || c.name.toLowerCase().includes(q));
   const cl = document.getElementById("countyList");
-  cl.innerHTML = data.counties
-    .filter(c => !q || c.name.toLowerCase().includes(q))
+  cl.innerHTML = filteredCounties
     .map(c => `<div class="item"><span class="name">${c.name}</span><span class="meta">${c.fips || ""}</span></div>`)
     .join("") || '<div class="item"><span class="name">No counties</span></div>';
+  document.getElementById("countyHeader").textContent = `Counties (${filteredCounties.length})`;
 
+  // Munis
+  const cities = namesFilteredCities();
   const cityList = document.getElementById("cityList");
-  let cities = data.cities;
-  if (ui.selectedBucket !== "all") cities = cities.filter(c => c.bucket === ui.selectedBucket);
-  if (q) cities = cities.filter(c => c.name.toLowerCase().includes(q));
   cityList.innerHTML = cities
-    .map(c => `<div class="item"><span class="name">${c.name}</span><span class="meta">${fmtInt(c.pop)} &middot; ${c.bucket}</span></div>`)
-    .join("") || '<div class="item"><span class="name">No cities &ge;15K</span></div>';
+    .map(c => {
+      const popStr = c.pop !== null ? fmtInt(c.pop) : "<15K (unknown)";
+      const cls = c.pop === null ? " unknown-pop" : "";
+      return `<div class="item${cls}"><span class="name">${c.name}</span>`
+        + `<span class="meta"><span class="pop">${popStr}</span> &middot; ${c.bucket}</span></div>`;
+    })
+    .join("") || '<div class="item"><span class="name">No munis match filter</span></div>';
+  // Pull total counts for the header
+  const totalKnown = data.cities.filter(c => c.pop !== null).length;
+  const totalSmall = data.cities.length - totalKnown;
+  document.getElementById("cityHeader").textContent =
+    `Municipalities (${cities.length}/${data.cities.length}) · ${totalKnown} known + ${totalSmall} small`;
+}
+
+function exportNamesCsv() {
+  if (!ui.selectedState) return;
+  const st = ui.selectedState;
+  const cities = namesFilteredCities();
+  const header = "name,state,population,bucket,latitude,longitude";
+  const rows = cities.map(c => [
+    JSON.stringify(c.name).slice(1, -1),
+    st,
+    c.pop !== null ? c.pop : "",
+    c.bucket,
+    c.lat !== null ? c.lat : "",
+    c.lon !== null ? c.lon : "",
+  ].join(","));
+  const csv = [header, ...rows].join("\n");
+  const blob = new Blob([csv], {type: "text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `munis_${st}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ===== Competitive =====
@@ -731,6 +867,7 @@ function renderVendorCards() {
       renderVendorCards();
       renderVendorMap();
       renderVendorTopChart();
+      renderNamedCustomers();
     });
   });
 }
@@ -870,6 +1007,245 @@ function renderSmallMultiples() {
     </div>`;
   });
   container.innerHTML = html;
+}
+
+// ===== Choropleth (Heatmaps tab) =====
+function choroplethValue(st) {
+  // Returns the metric value for one state given current cMetric/cType/cBucket/cVendor
+  const types = ui.cType === "all"
+    ? ["munis", "counties", "townships"]
+    : (ui.cType === "special_districts" ? [] : [ui.cType]);
+  const buckets = ui.cBucket === "all"
+    ? BUCKETS.map((_, i) => i)
+    : [BUCKETS.indexOf(ui.cBucket)].filter(i => i >= 0);
+
+  if (ui.cMetric === "competitor") {
+    if (ui.cVendor === "all") {
+      return Object.values(COMP.vendors).reduce((s, v) => s + (v.by_state[st] || 0), 0);
+    }
+    return COMP.vendors[ui.cVendor]?.by_state[st] || 0;
+  }
+  if (ui.cMetric === "penetration") {
+    const addr = COMP.addressable_by_state[st] || 1;
+    const cust = ui.cVendor === "all"
+      ? Object.values(COMP.vendors).reduce((s, v) => s + (v.by_state[st] || 0), 0)
+      : (COMP.vendors[ui.cVendor]?.by_state[st] || 0);
+    return cust / addr;
+  }
+  // Spend or Count over filtered type+bucket
+  let sum = 0;
+  if (ui.cType === "special_districts" || (ui.cType === "all" && ui.cBucket === "all")) {
+    if (ui.cMetric === "spend") {
+      sum += TAM.states[st].special_districts_spend;
+    } else {
+      sum += TAM.states[st].counts.special_districts;
+    }
+  }
+  types.forEach(t => {
+    buckets.forEach(i => {
+      if (ui.cMetric === "spend") sum += TAM.states[st].spend_by_bucket[t][i];
+      else sum += TAM.states[st].by_bucket[t][i];
+    });
+  });
+  return sum;
+}
+
+function choroplethLabelForMetric() {
+  if (ui.cMetric === "competitor") {
+    return ui.cVendor === "all" ? "Combined customers" : `${ui.cVendor} customers`;
+  }
+  if (ui.cMetric === "penetration") {
+    return ui.cVendor === "all" ? "Combined penetration % of addressable" : `${ui.cVendor} pen %`;
+  }
+  const t = ui.cType === "all" ? "All entities" : ui.cType.replace("_", " ");
+  const b = ui.cBucket === "all" ? "" : ` · ${ui.cBucket}`;
+  return `${ui.cMetric === "spend" ? "Spend" : "Count"} · ${t}${b}`;
+}
+
+function fmtChoroVal(v) {
+  if (ui.cMetric === "spend") return fmtUsd(v);
+  if (ui.cMetric === "penetration") return (v * 100).toFixed(2) + "%";
+  return fmtInt(v);
+}
+
+function fillChoroSelectors() {
+  const t = document.getElementById("cType");
+  if (t.dataset.filled !== "1") {
+    t.dataset.filled = "1";
+    t.value = ui.cType;
+    t.addEventListener("change", () => { ui.cType = t.value; renderChoropleth(); });
+  }
+  const b = document.getElementById("cBucket");
+  if (b.dataset.filled !== "1") {
+    BUCKETS.forEach(bk => {
+      const o = document.createElement("option");
+      o.value = bk; o.textContent = bk;
+      b.appendChild(o);
+    });
+    b.dataset.filled = "1";
+    b.addEventListener("change", () => { ui.cBucket = b.value; renderChoropleth(); });
+  }
+  const vSel = document.getElementById("cVendor");
+  if (vSel.dataset.filled !== "1") {
+    Object.keys(COMP.vendors).forEach(v => {
+      const o = document.createElement("option");
+      o.value = v; o.textContent = v;
+      vSel.appendChild(o);
+    });
+    vSel.dataset.filled = "1";
+    vSel.addEventListener("change", () => { ui.cVendor = vSel.value; renderChoropleth(); });
+  }
+  const s = document.getElementById("cSearch");
+  if (s.dataset.filled !== "1") {
+    s.dataset.filled = "1";
+    s.addEventListener("input", () => { ui.cSearch = s.value.toLowerCase(); renderChoropleth(); });
+  }
+}
+
+function renderChoropleth() {
+  fillChoroSelectors();
+  const container = document.getElementById("choropleth");
+  container.innerHTML = "";
+
+  // Compute per-state values; respect search filter (greys out non-matches)
+  const vals = {};
+  STATES.forEach(st => vals[st] = choroplethValue(st));
+  const max = Math.max.apply(null, Object.values(vals));
+  const min = 0;
+
+  // Pick color ramp by metric
+  const ramp = ui.cMetric === "spend" ? [255, 100, 0]
+            : ui.cMetric === "competitor" ? [168, 85, 247]
+            : ui.cMetric === "penetration" ? [16, 185, 129]
+            : [56, 189, 248];
+
+  // Build SVG via d3.geoAlbersUsa
+  const w = Math.min(container.clientWidth || 900, 1100);
+  const h = Math.round(w * 0.6);
+  const svg = d3.create("svg")
+    .attr("viewBox", `0 0 ${w} ${h}`)
+    .attr("xmlns", "http://www.w3.org/2000/svg");
+  const projection = d3.geoAlbersUsa().scale(w * 1.2).translate([w / 2, h / 2]);
+  const path = d3.geoPath(projection);
+
+  // Tooltip
+  const tip = document.createElement("div");
+  tip.className = "choro-tooltip";
+  container.appendChild(tip);
+
+  GEO.features.forEach(f => {
+    const stateName = f.properties.name;
+    const abbr = NAME_TO_ABBR[stateName];
+    if (!abbr) return;
+    const v = vals[abbr] || 0;
+    let intensity = max > 0 ? Math.pow(v / max, 0.55) : 0;
+    let bg = `rgba(${ramp[0]},${ramp[1]},${ramp[2]},${0.1 + intensity * 0.85})`;
+
+    // Search filter — non-matches go grey
+    if (ui.cSearch && !stateName.toLowerCase().includes(ui.cSearch) && !abbr.toLowerCase().includes(ui.cSearch)) {
+      bg = "rgba(100,116,139,0.1)";
+    }
+
+    const p = svg.append("path")
+      .attr("class", "state" + (ui.cSelectedState === abbr ? " selected" : ""))
+      .attr("d", path(f))
+      .attr("fill", bg)
+      .attr("data-state", abbr);
+
+    p.on("mousemove", function(ev) {
+      tip.style.display = "block";
+      const r = container.getBoundingClientRect();
+      tip.style.left = (ev.clientX - r.left + 12) + "px";
+      tip.style.top = (ev.clientY - r.top + 12) + "px";
+      tip.innerHTML = `<b>${stateName}</b> (${abbr})<br>${choroplethLabelForMetric()}: ${fmtChoroVal(v)}`;
+    });
+    p.on("mouseleave", () => { tip.style.display = "none"; });
+    p.on("click", () => {
+      ui.cSelectedState = (ui.cSelectedState === abbr) ? null : abbr;
+      renderChoropleth();
+    });
+
+    // State abbrev label centered on the projection
+    const c = path.centroid(f);
+    if (!isNaN(c[0])) {
+      svg.append("text")
+        .attr("x", c[0]).attr("y", c[1])
+        .attr("text-anchor", "middle").attr("dy", "0.35em")
+        .attr("fill", intensity > 0.6 ? "#fff" : "#cbd5e1")
+        .attr("font-size", "10")
+        .attr("font-weight", "600")
+        .attr("pointer-events", "none")
+        .text(abbr);
+    }
+  });
+
+  container.appendChild(svg.node());
+
+  // Legend + note
+  document.getElementById("choroLegend").innerHTML =
+    `<span>0</span>` +
+    [0.15, 0.35, 0.55, 0.8, 1.0].map(i =>
+      `<span class="swatch" style="background:rgba(${ramp[0]},${ramp[1]},${ramp[2]},${i})"></span>`).join("") +
+    `<span>${fmtChoroVal(max)}</span>`;
+  document.getElementById("choroNote").textContent =
+    `Showing: ${choroplethLabelForMetric()}.` +
+    (ui.cSelectedState ? ` Selected: ${ui.cSelectedState}.` : " Click a state to select; click again to clear.");
+}
+
+// ===== Named customers (Competitive tab) =====
+function renderNamedCustomers() {
+  const v = COMP.vendors[ui.vendor];
+  const list = (v.named_customers || []).slice();
+  const q = ui.ncSearch.toLowerCase();
+  const filt = list.filter(c =>
+    !q || c.muni.toLowerCase().includes(q)
+       || c.state.toLowerCase().includes(q)
+       || (c.product || "").toLowerCase().includes(q)
+  );
+  document.getElementById("namedCustHeader").textContent =
+    `Named customers — ${ui.vendor} (${filt.length}/${list.length} shown)`;
+  document.getElementById("namedCustNote").innerHTML =
+    `<span style="color:#fbbf24">Demo dataset.</span> Replace with real case-study scrapes (see competitor_customers.py).`;
+  const t = document.getElementById("namedCust");
+  if (filt.length === 0) {
+    t.innerHTML = "<thead><tr><th>—</th></tr></thead><tbody><tr><td>No customers seeded for this vendor or filter.</td></tr></tbody>";
+    return;
+  }
+  let html = "<thead><tr><th>Customer</th><th>State</th><th>Type</th><th>Bucket</th><th>Product</th><th>Since</th><th>Source</th></tr></thead><tbody>";
+  filt.forEach(c => {
+    html += `<tr>
+      <td>${c.muni}</td>
+      <td>${c.state}</td>
+      <td>${c.type}</td>
+      <td>${c.bucket || "—"}</td>
+      <td>${c.product || "—"}</td>
+      <td>${c.since || "—"}</td>
+      <td><span class="meta" style="color:var(--muted);font-size:10px">${c.source || ""}</span></td>
+    </tr>`;
+  });
+  html += "</tbody>";
+  t.innerHTML = html;
+}
+
+function exportNamedCustomersCsv() {
+  const v = COMP.vendors[ui.vendor];
+  const list = (v.named_customers || []);
+  if (!list.length) return;
+  const cols = ["vendor", "muni", "state", "type", "bucket", "product", "since", "source", "demo"];
+  const escape = x => {
+    if (x === null || x === undefined) return "";
+    const s = String(x).replace(/"/g, '""');
+    return /[",\n]/.test(s) ? '"' + s + '"' : s;
+  };
+  const csv = [cols.join(",")]
+    .concat(list.map(c => cols.map(k => escape(c[k] !== undefined ? c[k] : ui.vendor)).join(",")))
+    .join("\n");
+  const blob = new Blob([csv], {type: "text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `customers_${ui.vendor.replace(/[^a-z0-9]/gi, '_')}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ===== Buying Signals =====
@@ -1115,6 +1491,20 @@ document.querySelectorAll("[data-smallm]").forEach(b => b.addEventListener("clic
   document.querySelectorAll("[data-smallm]").forEach(x => x.classList.remove("active"));
   b.classList.add("active"); ui.smallm = b.dataset.smallm; renderSmallMultiples();
 }));
+document.querySelectorAll(".chip-cmetric").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".chip-cmetric").forEach(x => x.classList.remove("active"));
+  b.classList.add("active"); ui.cMetric = b.dataset.cmetric; renderChoropleth();
+}));
+document.querySelectorAll(".chip-mshow").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".chip-mshow").forEach(x => x.classList.remove("active"));
+  b.classList.add("active"); ui.mShow = b.dataset.mshow; renderLists();
+}));
+document.getElementById("namesExport").addEventListener("click", exportNamesCsv);
+document.getElementById("namedCustExport").addEventListener("click", exportNamedCustomersCsv);
+document.getElementById("namedCustSearch").addEventListener("input", e => {
+  ui.ncSearch = e.target.value;
+  renderNamedCustomers();
+});
 document.getElementById("nameSearch").addEventListener("input", renderLists);
 
 document.querySelectorAll(".chip-sev").forEach(b => b.addEventListener("click", () => {
@@ -1137,6 +1527,8 @@ renderVendorMap();
 renderVendorTopChart();
 renderMatrix();
 renderSmallMultiples();
+renderNamedCustomers();
+renderChoropleth();
 renderSignalsBanner();
 renderSignalsTab();
 

@@ -12,6 +12,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.formatting.rule import ColorScaleRule
 
 from competitors import COMPETITORS, STATE_PENETRATION, vendor_state_total
+from competitor_customers import CUSTOMERS, by_vendor as customers_by_vendor
 from data import STATE_COUNTS, STATE_NAMES, STATES
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -181,13 +182,17 @@ def build_competitors_json():
         "vendors": {},
         "states": STATES,
     }
+    customers = customers_by_vendor()
     for v, meta in COMPETITORS.items():
+        cust_list = customers.get(v, [])
         payload["vendors"][v] = {
             **{k: meta[k] for k in ("total", "hq", "hq_state_full", "focus",
                                      "size_target", "notes", "acquired",
                                      "strengths", "weaknesses", "threat")},
             "allocated": vendor_state_total(v),
             "by_state": STATE_PENETRATION[v],
+            "named_customers": cust_list,
+            "named_customers_count": len(cust_list),
         }
     # Combined per-state
     combined = {st: 0 for st in STATES}
@@ -200,6 +205,11 @@ def build_competitors_json():
         for st in STATES
     }
     payload["state_names"] = STATE_NAMES
+    payload["_demo_customers_note"] = (
+        "named_customers list is seeded demo data — illustrative only. "
+        "Replace by scraping each vendor's case-study page; see "
+        "competitor_customers.py for source hints."
+    )
 
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(payload, f, separators=(",", ":"))

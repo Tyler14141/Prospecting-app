@@ -17,6 +17,7 @@ from openpyxl import load_workbook
 from competitors import COMPETITORS, calibration_check
 from data import (NATIONAL_ANCHORS, STATE_COUNTS, STATES,
                   state_bucket_counts, total_state_spend)
+from signals import SIGNALS, SIGNAL_TYPES, SEVERITY_FACTOR, signal_score
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.normpath(os.path.join(HERE, "..", "TAM"))
@@ -134,13 +135,15 @@ def main():
                      f"{os.path.getsize(HTML)/1024:.1f} KB")
     all_ok &= check("Chart.js CDN reference present",
                      "chart.js" in html.lower())
-    all_ok &= check("all four tab sections present",
+    all_ok &= check("all five tab sections present",
                      all(s in html for s in
                          ('id="tab-overview"', 'id="tab-heatmaps"',
-                          'id="tab-names"', 'id="tab-competitive"')))
+                          'id="tab-names"', 'id="tab-competitive"',
+                          'id="tab-signals"')))
     all_ok &= check("embedded JSON data present",
                      "TAM = " in html and "COMP = " in html
-                     and "NAMES = " in html and "TILEMAP = " in html)
+                     and "NAMES = " in html and "TILEMAP = " in html
+                     and "SIGNALS = " in html)
     all_ok &= check("no localStorage / sessionStorage",
                      "localStorage" not in html and "sessionStorage" not in html)
     all_ok &= check("no fetch() calls",
@@ -164,6 +167,28 @@ def main():
     all_ok &= check("uses smart quote (’)",
                      any("’" in p.text for p in doc.paragraphs))
 
+    section("8. BUYING SIGNALS")
+    all_ok &= check("at least one signal of every type",
+                     all(any(s["type"] == t for s in SIGNALS) for t in SIGNAL_TYPES),
+                     f"have {set(s['type'] for s in SIGNALS)}")
+    bad_sev = [s["id"] for s in SIGNALS if s["severity"] not in SEVERITY_FACTOR]
+    all_ok &= check("severity values valid",
+                     not bad_sev,
+                     f"{len(bad_sev)} bad" if bad_sev else "")
+    bad_state = [s["id"] for s in SIGNALS
+                  if s["state"] != "ALL" and s["state"] not in STATES]
+    all_ok &= check("all signal states valid",
+                     not bad_state,
+                     f"{len(bad_state)} bad" if bad_state else "")
+    ids = [s["id"] for s in SIGNALS]
+    all_ok &= check("signal ids unique",
+                     len(ids) == len(set(ids)),
+                     f"{len(ids) - len(set(ids))} dupes" if len(ids) != len(set(ids)) else "")
+    nonzero = [s for s in SIGNALS if signal_score(s) > 0]
+    all_ok &= check("at least 80% of seeded signals are within dropoff window",
+                     len(nonzero) >= 0.8 * len(SIGNALS),
+                     f"{len(nonzero)}/{len(SIGNALS)} active")
+
     section("DELIVERABLES SUMMARY")
     total_entities = sum(STATE_COUNTS[s][0] + STATE_COUNTS[s][1]
                          + STATE_COUNTS[s][2] + STATE_COUNTS[s][3]
@@ -177,6 +202,7 @@ def main():
     for st in sorted_states:
         print(f"    {st} ({total_state_spend(st)/1e9:.1f}B)")
     print(f"  Tracked competitor customers:   {total_customers:,}")
+    print(f"  Active buying signals:          {len(nonzero):,}")
     print()
     print(f"  Files:")
     for path in (XLSX, HTML, DOCX):

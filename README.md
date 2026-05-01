@@ -12,7 +12,7 @@ All three live in `TAM/`:
 | File | Purpose |
 | --- | --- |
 | `Local_Government_TAM.xlsx` | Source of truth. Summary tab (state × bucket grid for both count and $), 51 per-state tabs, Methodology, Competitor Summary, Competitor Penetration. |
-| `Local_Government_TAM_Dashboard.html` | Single-file interactive dashboard. Four tabs: TAM Overview, Heatmaps, State & Names overlay, Competitive Penetration. Works at `file://`, no fetch, embedded JSON. |
+| `Local_Government_TAM_Dashboard.html` | Single-file interactive dashboard. Five tabs: TAM Overview, Heatmaps, State & Names overlay, Competitive Penetration, Buying Signals. Works at `file://`, no fetch, embedded JSON. |
 | `Competitive_Landscape_Brief.docx` | Narrative brief: vendor profiles, threat assessment, heat-zone analysis, refinement suggestions. |
 
 ## How the pieces fit
@@ -38,11 +38,29 @@ cd build
 python3 build_workbook.py
 python3 add_competitor_tab.py
 python3 build_names_data.py     # pre-bakes counties/cities
+python3 build_signals_data.py   # pre-bakes buying signals
 python3 build_dashboard_v2.py
 python3 build_brief.py
 python3 recalc.py               # caches formula values into the workbook
-python3 validate.py             # 24-check end-to-end validation
+python3 validate.py             # end-to-end validation
 ```
+
+## Buying signals layer
+
+The dashboard's **Buying Signals** tab surfaces near-term buying intent from
+seven source types: active RFPs, vendor EOL/M&A, cyber incidents, leadership
+changes, compliance deadlines, audit findings, and bond issuances.
+
+- **Scoring**: `weight × recency_decay × severity`. Half-life is 60 days;
+  signals older than 180 days drop off entirely.
+- **Demo dataset**: `signals.py` ships with 44 seeded examples covering all
+  seven types. Replace by wiring connectors in `signals_pipeline.py` — each
+  function has a `SOURCE_HINTS` docstring with the endpoint, auth model,
+  recommended cadence, and parsing skeleton.
+- **Act Now leaderboard**: ranks munis by aggregate signal score, surfaces
+  incumbent vendor when known.
+- **CSV export**: filtered signal feed exports to CSV for direct ingestion
+  into your existing prospecting app's contact/cadence APIs.
 
 ## Key design decisions
 

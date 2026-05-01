@@ -14,6 +14,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.normpath(os.path.join(HERE, "..", "TAM"))
 TAM_JSON = os.path.join(OUT_DIR, "tam_data.json")
 COMP_JSON = os.path.join(OUT_DIR, "competitors_data.json")
+SIGNALS_JSON = os.path.join(OUT_DIR, "signals_data.json")
 NAMES_JSON = os.path.join(HERE, "names_data.json")
 HTML_PATH = os.path.join(OUT_DIR, "Local_Government_TAM_Dashboard.html")
 
@@ -25,16 +26,20 @@ def build():
         comp = json.load(f)
     with open(NAMES_JSON) as f:
         names = json.load(f)
+    with open(SIGNALS_JSON) as f:
+        sigs = json.load(f)
 
     # Stringify safely for inline embedding
     tam_s = json.dumps(tam, separators=(",", ":"))
     comp_s = json.dumps(comp, separators=(",", ":"))
     names_s = json.dumps(names, separators=(",", ":"))
+    sigs_s = json.dumps(sigs, separators=(",", ":"))
     tile_s = json.dumps(TILE_MAP)
 
     html = HTML_TEMPLATE.replace("__TAM__", tam_s)\
                         .replace("__COMP__", comp_s)\
                         .replace("__NAMES__", names_s)\
+                        .replace("__SIGNALS__", sigs_s)\
                         .replace("__TILEMAP__", tile_s)
 
     with open(HTML_PATH, "w", encoding="utf-8") as f:
@@ -120,6 +125,29 @@ table.heatmap td:first-child,table.matrix td:first-child{text-align:left;font-we
 canvas{max-height:280px}
 .note{color:var(--muted);font-size:11px;margin-top:8px}
 .spacer{height:18px}
+.demo-banner{background:rgba(245,158,11,.1);border:1px solid #f59e0b;color:#fbbf24;padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:14px}
+.demo-banner b{color:#fde68a}
+.chip-row{display:inline-flex;gap:6px;flex-wrap:wrap}
+.sig-feed{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto}
+.sig-card{background:#0b1220;border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start}
+.sig-card .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#fff}
+.sig-card .meta-line{font-size:11px;color:var(--muted);margin-top:3px}
+.sig-card .headline{font-size:13px;font-weight:600;color:var(--text)}
+.sig-card .details{font-size:11px;color:var(--muted);margin-top:3px}
+.sig-card .right{font-size:10px;color:var(--muted);text-align:right;white-space:nowrap}
+.sig-card .right .score{display:block;font-size:14px;color:var(--accent);font-weight:700}
+.sig-sev-high{border-left-color:#ef4444}
+.sig-sev-medium{border-left-color:#f59e0b}
+.sig-sev-low{border-left-color:#64748b}
+.actnow{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+.actnow .act-row{display:grid;grid-template-columns:30px 1fr auto auto;gap:10px;padding:7px 10px;border-radius:5px;background:#0b1220;border:1px solid var(--border);align-items:center;cursor:pointer}
+.actnow .act-row:hover{border-color:var(--accent)}
+.actnow .act-row.focused{border-color:var(--accent);background:#0f1830}
+.actnow .rank{color:var(--muted);font-weight:700;font-size:11px;text-align:center}
+.actnow .name{font-size:12px;font-weight:600}
+.actnow .sub{font-size:10px;color:var(--muted)}
+.actnow .score{font-size:13px;color:var(--accent);font-weight:700}
+.actnow .count{font-size:10px;color:var(--muted)}
 .small-multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 .sm-card{background:#0b1220;border:1px solid var(--border);border-radius:6px;padding:10px}
 .sm-card .sm-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
@@ -145,6 +173,7 @@ canvas{max-height:280px}
   <button data-tab="heatmaps">Heatmaps</button>
   <button data-tab="names">State &amp; Names</button>
   <button data-tab="competitive">Competitive Penetration</button>
+  <button data-tab="signals">Buying Signals</button>
 </nav>
 
 <main>
@@ -305,12 +334,66 @@ canvas{max-height:280px}
   </div>
 </section>
 
+<!-- ===== TAB 5: BUYING SIGNALS ===== -->
+<section class="tab" id="tab-signals">
+  <div id="sigDemoBanner" class="demo-banner"></div>
+
+  <div class="grid kpis" id="sigKpis"></div>
+  <div class="spacer"></div>
+
+  <div class="controls">
+    <label>Type:</label>
+    <span id="sigTypeChips" class="chip-row"></span>
+    <span style="width:18px"></span>
+    <label>Severity:</label>
+    <button class="btn chip-sev active" data-sev="all">All</button>
+    <button class="btn chip-sev" data-sev="high">High</button>
+    <button class="btn chip-sev" data-sev="medium">Medium</button>
+    <button class="btn chip-sev" data-sev="low">Low</button>
+    <span style="flex:1"></span>
+    <input class="search" id="sigSearch" placeholder="Search muni or headline&hellip;" style="max-width:260px">
+  </div>
+
+  <div class="grid row2">
+    <div class="card">
+      <h3 id="sigMapTitle">Signal density by state</h3>
+      <div id="tileSignals"></div>
+      <div class="legend">
+        <span>cold</span>
+        <span class="swatch" style="background:#ef4444;opacity:.15"></span>
+        <span class="swatch" style="background:#ef4444;opacity:.35"></span>
+        <span class="swatch" style="background:#ef4444;opacity:.55"></span>
+        <span class="swatch" style="background:#ef4444;opacity:.8"></span>
+        <span class="swatch" style="background:#ef4444"></span>
+        <span>hot</span>
+      </div>
+      <div class="note">Score = signal weight × recency decay × severity. Click a state to filter the feed.</div>
+    </div>
+    <div class="card">
+      <h3>Act Now leaderboard</h3>
+      <div id="actNow" class="actnow"></div>
+      <div class="note">Top accounts by composite score. Click a row to focus.</div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <h3 id="sigFeedTitle">Signal feed</h3>
+      <button class="btn" id="sigExport">Export filtered to CSV</button>
+    </div>
+    <div id="sigFeed" class="sig-feed"></div>
+  </div>
+</section>
+
 </main>
 
 <script>
 const TAM = __TAM__;
 const COMP = __COMP__;
 const NAMES = __NAMES__;
+const SIGNALS = __SIGNALS__;
 const TILEMAP = __TILEMAP__;
 
 const STATES = Object.keys(TAM.states);
@@ -327,6 +410,11 @@ const ui = {
   vendor: Object.keys(COMP.vendors)[0],
   vmap: "count",
   smallm: "count",
+  sigType: "all",
+  sigSev: "all",
+  sigStateFilter: null,
+  sigSearch: "",
+  sigFocusKey: null,
 };
 
 // ===== Tabs =====
@@ -376,7 +464,8 @@ function updateHeaderSummary() {
   document.getElementById("hdrSummary").innerHTML =
     "TAM " + fmtUsd(totalSpend) + " &middot; "
     + fmtInt(totalEntities) + " entities &middot; "
-    + fmtInt(totalCustomers) + " tracked customers";
+    + fmtInt(totalCustomers) + " tracked customers &middot; "
+    + fmtInt(SIGNALS.signals.length) + " active signals";
 }
 
 // ===== KPIs =====
@@ -783,6 +872,228 @@ function renderSmallMultiples() {
   container.innerHTML = html;
 }
 
+// ===== Buying Signals =====
+function renderSignalsBanner() {
+  const b = document.getElementById("sigDemoBanner");
+  if (SIGNALS._demo) {
+    b.innerHTML = `<b>Demo dataset.</b> ${SIGNALS._demo_note || ""} `
+      + `Today is anchored to ${SIGNALS.today}; signals decay with a `
+      + `${SIGNALS.halflife_days}-day half-life and drop off after `
+      + `${SIGNALS.dropoff_days} days.`;
+  } else {
+    b.style.display = "none";
+  }
+}
+
+function filteredSignals() {
+  const q = ui.sigSearch.toLowerCase();
+  return SIGNALS.signals.filter(s => {
+    if (ui.sigType !== "all" && s.type !== ui.sigType) return false;
+    if (ui.sigSev !== "all" && s.severity !== ui.sigSev) return false;
+    if (ui.sigStateFilter && s.state !== ui.sigStateFilter && s.state !== "ALL") return false;
+    if (q && !(s.muni.toLowerCase().includes(q) || s.headline.toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function renderSigKpis() {
+  const all = SIGNALS.signals;
+  const filt = filteredSignals();
+  const high = filt.filter(s => s.severity === "high").length;
+  const totalScore = filt.reduce((a, s) => a + s.score, 0);
+  // hottest state
+  const stScore = {};
+  all.forEach(s => {
+    if (s.state === "ALL") return;
+    stScore[s.state] = (stScore[s.state] || 0) + s.score;
+  });
+  let hot = ["—", 0];
+  Object.entries(stScore).forEach(([k, v]) => { if (v > hot[1]) hot = [k, v]; });
+
+  const kpis = [
+    {label: "Active signals", value: fmtInt(filt.length), sub: `of ${fmtInt(all.length)} total`},
+    {label: "High severity", value: fmtInt(high), sub: "filtered"},
+    {label: "Aggregate score", value: totalScore.toFixed(1), sub: "weighted by recency"},
+    {label: "Hottest state", value: hot[0], sub: STATE_NAMES[hot[0]] || ""},
+  ];
+  document.getElementById("sigKpis").innerHTML =
+    kpis.map(k => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join("");
+}
+
+function renderSigTypeChips() {
+  const c = document.getElementById("sigTypeChips");
+  const types = SIGNALS.types;
+  let html = `<button class="btn chip-stype${ui.sigType === 'all' ? ' active' : ''}" data-stype="all">All</button>`;
+  Object.entries(types).forEach(([k, v]) => {
+    const active = ui.sigType === k ? " active" : "";
+    html += `<button class="btn chip-stype${active}" data-stype="${k}" style="border-color:${v.color}${ui.sigType === k ? '' : '40'}">${v.label}</button>`;
+  });
+  c.innerHTML = html;
+  c.querySelectorAll(".chip-stype").forEach(b => b.addEventListener("click", () => {
+    ui.sigType = b.dataset.stype;
+    renderSignalsTab();
+  }));
+}
+
+function renderSignalsTile() {
+  // Sum filtered scores per state
+  const stScore = {};
+  STATES.forEach(s => stScore[s] = 0);
+  filteredSignals().forEach(s => {
+    if (s.state === "ALL") {
+      // statewide signal — distribute thinly across all states
+      STATES.forEach(st => stScore[st] += s.score / STATES.length);
+    } else if (stScore[s.state] !== undefined) {
+      stScore[s.state] += s.score;
+    }
+  });
+  let max = 0;
+  STATES.forEach(s => { if (stScore[s] > max) max = stScore[s]; });
+  if (max === 0) max = 1;
+
+  const c = document.getElementById("tileSignals");
+  c.innerHTML = "";
+  const grid = document.createElement("div");
+  grid.className = "tilemap";
+  TILEMAP.forEach(row => row.forEach(st => {
+    const tile = document.createElement("div");
+    tile.className = "tile" + (st === "" ? " empty" : "");
+    if (st !== "") {
+      const v = stScore[st] || 0;
+      const t = Math.pow(v / max, 0.55);
+      tile.style.background = `rgba(239,68,68,${0.15 + t * 0.85})`;
+      tile.style.color = "#fff";
+      tile.innerHTML = `<div>${st}</div><div class="v">${v > 0.5 ? v.toFixed(1) : ""}</div>`;
+      tile.title = `${STATE_NAMES[st]}: score ${v.toFixed(2)}`;
+      if (ui.sigStateFilter === st) tile.classList.add("selected");
+      tile.addEventListener("click", () => {
+        ui.sigStateFilter = (ui.sigStateFilter === st) ? null : st;
+        renderSignalsTab();
+      });
+    }
+    grid.appendChild(tile);
+  }));
+  c.appendChild(grid);
+
+  document.getElementById("sigMapTitle").textContent =
+    "Signal density by state" + (ui.sigStateFilter ? ` — filtered to ${ui.sigStateFilter}` : "");
+}
+
+function renderActNow() {
+  const c = document.getElementById("actNow");
+  // Use top_acts but re-rank against current filter
+  const filt = new Set(filteredSignals().map(s => s.id));
+  const acts = SIGNALS.top_acts
+    .map(a => {
+      const matched = a.signals.filter(id => filt.has(id));
+      const sum = matched.reduce((s, id) => s + (SIGNALS.signals.find(x => x.id === id)?.score || 0), 0);
+      return {...a, matched, sum};
+    })
+    .filter(a => a.matched.length > 0)
+    .sort((a, b) => b.sum - a.sum)
+    .slice(0, 25);
+
+  if (acts.length === 0) {
+    c.innerHTML = '<div class="note">No accounts match current filters.</div>';
+    return;
+  }
+  c.innerHTML = acts.map((a, i) => {
+    const focusKey = a.muni + "|" + a.state;
+    const focused = ui.sigFocusKey === focusKey ? " focused" : "";
+    return `<div class="act-row${focused}" data-key="${focusKey}">
+      <div class="rank">${i + 1}</div>
+      <div>
+        <div class="name">${a.muni}, ${a.state}</div>
+        <div class="sub">${a.bucket}${a.population ? ' · ' + fmtInt(a.population) + ' pop' : ''}${a.incumbent ? ' · incumbent: ' + a.incumbent : ''}</div>
+      </div>
+      <div class="score">${a.sum.toFixed(2)}</div>
+      <div class="count">${a.matched.length} signal${a.matched.length === 1 ? '' : 's'}</div>
+    </div>`;
+  }).join("");
+  c.querySelectorAll(".act-row").forEach(el => {
+    el.addEventListener("click", () => {
+      ui.sigFocusKey = (ui.sigFocusKey === el.dataset.key) ? null : el.dataset.key;
+      renderActNow();
+      renderSignalsFeed();
+    });
+  });
+}
+
+function renderSignalsFeed() {
+  let signals = filteredSignals();
+  if (ui.sigFocusKey) {
+    const [m, s] = ui.sigFocusKey.split("|");
+    signals = signals.filter(x => x.muni === m && x.state === s);
+  }
+  signals.sort((a, b) => b.score - a.score);
+
+  const c = document.getElementById("sigFeed");
+  if (signals.length === 0) {
+    c.innerHTML = '<div class="note">No signals match the current filter.</div>';
+  } else {
+    c.innerHTML = signals.map(s => {
+      const meta = SIGNALS.types[s.type];
+      const expires = s.expires ? ` · expires ${s.expires}` : '';
+      return `<div class="sig-card sig-sev-${s.severity}">
+        <div>
+          <span class="badge" style="background:${meta.color}">${meta.label}</span>
+        </div>
+        <div>
+          <div class="headline">${s.headline}</div>
+          <div class="meta-line">
+            <strong>${s.muni}, ${s.state}</strong>
+            ${s.population ? ' · ' + fmtInt(s.population) + ' pop' : ''}
+            ${s.bucket && s.population ? ' · ' + s.bucket : ''}
+            ${s.incumbent ? ' · incumbent: <strong>' + s.incumbent + '</strong>' : ''}
+          </div>
+          <div class="details">${s.details}</div>
+          <div class="meta-line">
+            ${s.source}${expires} · detected ${s.detected} · severity ${s.severity}
+          </div>
+        </div>
+        <div class="right">
+          <span class="score">${s.score.toFixed(2)}</span>
+          score
+        </div>
+      </div>`;
+    }).join("");
+  }
+  document.getElementById("sigFeedTitle").textContent =
+    `Signal feed (${signals.length})` + (ui.sigFocusKey ? ` — focused on ${ui.sigFocusKey.replace('|', ', ')}` : '');
+}
+
+function exportSignalsCsv() {
+  const sigs = filteredSignals();
+  const cols = ["id", "muni", "state", "population", "bucket", "type",
+                "severity", "detected", "expires", "headline", "details",
+                "source", "url", "incumbent", "score"];
+  const escape = v => {
+    if (v === null || v === undefined) return "";
+    const s = String(v).replace(/"/g, '""');
+    return /[",\n]/.test(s) ? '"' + s + '"' : s;
+  };
+  const csv = [cols.join(",")]
+    .concat(sigs.map(s => cols.map(c => escape(s[c])).join(",")))
+    .join("\n");
+  const blob = new Blob([csv], {type: "text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `buying_signals_${SIGNALS.today}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderSignalsTab() {
+  renderSigKpis();
+  renderSigTypeChips();
+  renderSignalsTile();
+  renderActNow();
+  renderSignalsFeed();
+}
+
 // ===== Wire up controls =====
 document.querySelectorAll("[data-metric]").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll("[data-metric]").forEach(x => x.classList.remove("active"));
@@ -806,6 +1117,16 @@ document.querySelectorAll("[data-smallm]").forEach(b => b.addEventListener("clic
 }));
 document.getElementById("nameSearch").addEventListener("input", renderLists);
 
+document.querySelectorAll(".chip-sev").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".chip-sev").forEach(x => x.classList.remove("active"));
+  b.classList.add("active"); ui.sigSev = b.dataset.sev; renderSignalsTab();
+}));
+document.getElementById("sigSearch").addEventListener("input", e => {
+  ui.sigSearch = e.target.value;
+  renderSignalsTab();
+});
+document.getElementById("sigExport").addEventListener("click", exportSignalsCsv);
+
 // ===== Initial render =====
 updateHeaderSummary();
 renderOverview();
@@ -816,6 +1137,8 @@ renderVendorMap();
 renderVendorTopChart();
 renderMatrix();
 renderSmallMultiples();
+renderSignalsBanner();
+renderSignalsTab();
 
 // Auto-select biggest state for names tab so it's not empty
 selectState(STATES.map(s => [s, TAM.states[s].total_entities]).sort((a,b) => b[1]-a[1])[0][0]);

@@ -18,6 +18,7 @@ from collections import Counter
 
 from greenfield import build_indices, score_muni
 from personas import PERSONAS_BY_BUCKET
+from pricing import acv_for
 from renewals import TODAY
 
 
@@ -61,6 +62,7 @@ def build():
     compact = []
     for r in top:
         rw = r.get("renewal")
+        acv = r.get("acv") or {}
         compact.append({
             "muni": r["muni"], "state": r["state"], "pop": r["pop"],
             "bucket": r["bucket"], "type": r.get("entity_type", "muni"),
@@ -79,6 +81,10 @@ def build():
             "next_renewal_max": rw["next_renewal_max"] if rw else None,
             "personas": [t for t, _ in r["personas"][:3]],
             "signals_n": len(r.get("signals", [])),
+            "acv_low":  acv.get("low"),
+            "acv_mid":  acv.get("mid"),
+            "acv_high": acv.get("high"),
+            "acv_impl": acv.get("impl_oneoff"),
         })
         # Stash directory hints once per state
         if r["state"] not in state_dirhints:

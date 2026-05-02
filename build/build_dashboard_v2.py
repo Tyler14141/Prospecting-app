@@ -228,7 +228,8 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
 <section class="tab active" id="tab-overview">
   <div class="controls">
     <label>Metric:</label>
-    <button class="btn active" data-metric="spend">Spend ($)</button>
+    <button class="btn active" data-metric="spend">Gov Spend ($)</button>
+    <button class="btn" data-metric="acv">Software TAM (ACV)</button>
     <button class="btn" data-metric="count">Entity Count</button>
     <span style="width:18px"></span>
     <label>Type:</label>
@@ -617,8 +618,16 @@ function spendVal(st, type) {
   if (type === "special_districts") return s.special_districts_spend;
   return s.spend_by_bucket[type].reduce((a,b)=>a+b,0);
 }
+function acvVal(st, type) {
+  const s = TAM.states[st];
+  if (type === "all") return s.total_acv;
+  if (type === "special_districts") return s.special_districts_acv;
+  return (s.acv_by_bucket && s.acv_by_bucket[type]) ? s.acv_by_bucket[type].reduce((a,b)=>a+b,0) : 0;
+}
 function metricVal(st) {
-  return ui.metric === "spend" ? spendVal(st, ui.type) : entityCount(st, ui.type);
+  if (ui.metric === "spend") return spendVal(st, ui.type);
+  if (ui.metric === "acv")   return acvVal(st, ui.type);
+  return entityCount(st, ui.type);
 }
 
 // ===== Header summary =====
@@ -634,19 +643,30 @@ function updateHeaderSummary() {
 }
 
 // ===== KPIs =====
+function isDollarMetric() { return ui.metric === "spend" || ui.metric === "acv"; }
+function metricLabel() {
+  return ui.metric === "spend" ? "operating spend"
+       : ui.metric === "acv"   ? "software ACV"
+       : "entities";
+}
+
 function renderKpis() {
-  const totalSpend = STATES.reduce((s, st) => s + spendVal(st, ui.type), 0);
-  const totalCount = STATES.reduce((s, st) => s + entityCount(st, ui.type), 0);
+  const totalGovSpend = STATES.reduce((s, st) => s + spendVal(st, ui.type), 0);
+  const totalAcv      = STATES.reduce((s, st) => s + acvVal(st, ui.type), 0);
+  const totalCount    = STATES.reduce((s, st) => s + entityCount(st, ui.type), 0);
   const sorted = STATES.map(st => [st, metricVal(st)]).sort((a,b) => b[1]-a[1]);
   const top1 = sorted[0];
   const top5Share = sorted.slice(0, 5).reduce((s,x) => s + x[1], 0) /
                     sorted.reduce((s,x) => s + x[1], 0);
 
   const kpis = [
-    {label: "Total TAM (operating spend)", value: fmtUsd(totalSpend), sub: "annual, 2022 baseline"},
+    {label: "Total Gov Spend (TAM)", value: fmtUsd(totalGovSpend), sub: "annual operating, 2022 baseline"},
+    {label: "Total Software ACV", value: fmtUsd(totalAcv), sub: "addressable software revenue"},
     {label: "Total entities", value: fmtInt(totalCount), sub: ui.type === "all" ? "all types" : "selected type"},
-    {label: "Largest state",   value: top1[0] + " &middot; " + (ui.metric === "spend" ? fmtUsd(top1[1]) : fmtInt(top1[1])), sub: STATE_NAMES[top1[0]]},
-    {label: "Top-5 state share", value: fmtPct(top5Share), sub: "of " + (ui.metric === "spend" ? "spend" : "entities")},
+    {label: "Largest state (" + metricLabel() + ")",
+     value: top1[0] + " &middot; " + (isDollarMetric() ? fmtUsd(top1[1]) : fmtInt(top1[1])),
+     sub: STATE_NAMES[top1[0]]},
+    {label: "Top-5 share", value: fmtPct(top5Share), sub: "of " + metricLabel()},
   ];
   document.getElementById("kpis").innerHTML =
     kpis.map(k => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join("");
@@ -698,6 +718,7 @@ function renderTopStates() {
   destroyChart("topStates");
   const sorted = STATES.map(st => [st, metricVal(st)]).sort((a,b) => b[1]-a[1]).slice(0, 15);
   const ctx = document.getElementById("topStatesChart").getContext("2d");
+  const fmt = isDollarMetric() ? fmtUsd : fmtInt;
   charts.topStates = new Chart(ctx, {
     type: "bar",
     data: { labels: sorted.map(x => x[0]),
@@ -705,8 +726,8 @@ function renderTopStates() {
                          backgroundColor: "#38bdf8" }] },
     options: { indexAxis: "y", responsive: true, maintainAspectRatio: false,
                plugins: { legend: { display: false },
-                          tooltip: { callbacks: { label: (c) => ui.metric === "spend" ? fmtUsd(c.parsed.x) : fmtInt(c.parsed.x) } } },
-               scales: { x: { ticks: { color: "#94a3b8", callback: v => ui.metric === "spend" ? fmtUsd(v) : fmtInt(v) }, grid: { color: "#334155" } },
+                          tooltip: { callbacks: { label: (c) => fmt(c.parsed.x) } } },
+               scales: { x: { ticks: { color: "#94a3b8", callback: v => fmt(v) }, grid: { color: "#334155" } },
                          y: { ticks: { color: "#e2e8f0" }, grid: { display: false } } } }
   });
 }
@@ -715,14 +736,16 @@ function renderEntityTypeChart() {
   destroyChart("entityType");
   const types = ["counties", "munis", "townships", "special_districts"];
   const labels = ["Counties", "Munis", "Townships", "Special Districts"];
-  const values = types.map(t => STATES.reduce((s, st) => s + (ui.metric === "spend" ? spendVal(st, t) : entityCount(st, t)), 0));
+  const fn = ui.metric === "spend" ? spendVal : ui.metric === "acv" ? acvVal : (st, t) => entityCount(st, t);
+  const fmt = isDollarMetric() ? fmtUsd : fmtInt;
+  const values = types.map(t => STATES.reduce((s, st) => s + fn(st, t), 0));
   const ctx = document.getElementById("entityTypeChart").getContext("2d");
   charts.entityType = new Chart(ctx, {
     type: "doughnut",
     data: { labels, datasets: [{ data: values, backgroundColor: ["#38bdf8", "#a855f7", "#10b981", "#f59e0b"], borderColor: "#1e293b", borderWidth: 2 }] },
     options: { responsive: true, maintainAspectRatio: false,
                plugins: { legend: { position: "bottom", labels: { color: "#e2e8f0", font: { size: 11 } } },
-                          tooltip: { callbacks: { label: (c) => c.label + ": " + (ui.metric === "spend" ? fmtUsd(c.parsed) : fmtInt(c.parsed)) } } } }
+                          tooltip: { callbacks: { label: (c) => c.label + ": " + fmt(c.parsed) } } } }
   });
 }
 
@@ -735,29 +758,32 @@ function renderBucketChart() {
     STATES.forEach(st => {
       types.forEach(t => {
         if (ui.metric === "spend") total += TAM.states[st].spend_by_bucket[t][i];
+        else if (ui.metric === "acv") total += (TAM.states[st].acv_by_bucket && TAM.states[st].acv_by_bucket[t] ? TAM.states[st].acv_by_bucket[t][i] : 0);
         else total += TAM.states[st].by_bucket[t][i];
       });
     });
     return total;
   });
   const ctx = document.getElementById("bucketChart").getContext("2d");
+  const fmt = isDollarMetric() ? fmtUsd : fmtInt;
   charts.bucket = new Chart(ctx, {
     type: "bar",
     data: { labels: BUCKETS, datasets: [{ data: values, backgroundColor: "#a855f7" }] },
     options: { responsive: true, maintainAspectRatio: false,
                plugins: { legend: { display: false },
-                          tooltip: { callbacks: { label: (c) => ui.metric === "spend" ? fmtUsd(c.parsed.y) : fmtInt(c.parsed.y) } } },
+                          tooltip: { callbacks: { label: (c) => fmt(c.parsed.y) } } },
                scales: { x: { ticks: { color: "#e2e8f0" }, grid: { display: false } },
-                         y: { ticks: { color: "#94a3b8", callback: v => ui.metric === "spend" ? fmtUsd(v) : fmtInt(v) }, grid: { color: "#334155" } } } }
+                         y: { ticks: { color: "#94a3b8", callback: v => fmt(v) }, grid: { color: "#334155" } } } }
   });
 }
 
 function renderOverview() {
   renderKpis();
+  const fmt = isDollarMetric() ? fmtUsd : fmtInt;
   renderTileMap("tileOverview", metricVal, {
     color: "30,58,138",
-    label: v => ui.metric === "spend" ? fmtUsd(v) : fmtInt(v),
-    tip: v => ui.metric === "spend" ? fmtUsd(v) : fmtInt(v),
+    label: v => fmt(v),
+    tip: v => fmt(v),
   });
   renderTopStates();
   renderEntityTypeChart();
@@ -1287,10 +1313,13 @@ function renderNamedCustomers() {
     t.innerHTML = "<thead><tr><th>—</th></tr></thead><tbody><tr><td>No customers seeded for this vendor or filter.</td></tr></tbody>";
     return;
   }
-  let html = "<thead><tr><th>Customer</th><th>State</th><th>Bucket</th><th>Product</th><th>Since</th><th>Renewal</th><th>Primary Buyer</th><th>Source</th></tr></thead><tbody>";
+  let html = "<thead><tr><th>Customer</th><th>State</th><th>Bucket</th><th>Product</th><th>Since</th><th>Renewal</th><th>Est. ACV</th><th>Primary Buyer</th><th>Source</th></tr></thead><tbody>";
   filt.forEach(c => {
     const status = c.renewal_status || "unknown";
     const statusBadge = `<span class="${gfStatusClass(status)}" title="${c.renewal_label || ''}">${status}</span>`;
+    const acvStr = c.acv_mid
+      ? `${fmtUsd(c.acv_mid)}<div style="font-size:9px;color:var(--muted)">${fmtUsd(c.acv_low)}–${fmtUsd(c.acv_high)}</div>`
+      : "—";
     html += `<tr>
       <td>${c.muni}</td>
       <td>${c.state}</td>
@@ -1298,6 +1327,7 @@ function renderNamedCustomers() {
       <td>${c.product || "—"}</td>
       <td>${c.since || "—"}</td>
       <td>${statusBadge}</td>
+      <td>${acvStr}</td>
       <td>${c.primary_buyer || "—"}</td>
       <td><span class="meta" style="color:var(--muted);font-size:10px">${c.source || ""}</span></td>
     </tr>`;
@@ -1560,9 +1590,11 @@ function renderGfKpis() {
   const inWindow = filt.filter(p => p.renewal_status === "in-window" || p.renewal_status === "imminent").length;
   const greenfield = filt.filter(p => p.renewal_status === "greenfield").length;
 
+  const totalAcv = filt.reduce((a, p) => a + (p.acv_mid || 0), 0);
   const kpis = [
     {label: "Top prospects shown", value: fmtInt(filt.length), sub: `of ${fmtInt(all.length)} cap (top ${fmtInt(GREENFIELD.total_scored)} scored)`},
     {label: "Top score", value: top ? top.score : "—", sub: top ? `${top.muni}, ${top.state}` : ""},
+    {label: "Filtered ACV pool", value: fmtUsd(totalAcv), sub: "annual SaaS / maintenance"},
     {label: "In renewal window", value: fmtInt(inWindow), sub: "filtered subset"},
     {label: "Pure greenfield", value: fmtInt(greenfield), sub: "no incumbent on record"},
   ];
@@ -1624,10 +1656,11 @@ function renderGfList() {
     t.innerHTML = "<thead><tr><th>—</th></tr></thead><tbody><tr><td>No prospects match the filter.</td></tr></tbody>";
     return;
   }
-  let html = '<thead><tr><th>#</th><th>Score</th><th>Muni</th><th>State</th><th>Bucket</th><th>Incumbent</th><th>Renewal</th><th>Top buyer</th></tr></thead><tbody>';
+  let html = '<thead><tr><th>#</th><th>Score</th><th>Muni</th><th>State</th><th>Bucket</th><th>Incumbent</th><th>Renewal</th><th>Est. ACV</th><th>Top buyer</th></tr></thead><tbody>';
   filt.slice(0, 500).forEach((p, i) => {
     const inc = p.incumbent ? `${p.incumbent.vendor}${p.incumbent.product ? ' · ' + p.incumbent.product : ''}` : '<span style="color:#34d399">GREENFIELD</span>';
     const buyer = (p.personas && p.personas[0]) || "—";
+    const acvStr = p.acv_mid ? `${fmtUsd(p.acv_mid)}<div style="font-size:9px;color:var(--muted)">${fmtUsd(p.acv_low)}–${fmtUsd(p.acv_high)}</div>` : "—";
     const key = p.muni + "|" + p.state;
     const focused = ui.gfFocusKey === key ? " focused" : "";
     html += `<tr class="gf-row${focused}" data-key="${key}">
@@ -1638,11 +1671,12 @@ function renderGfList() {
       <td>${p.bucket || "—"}</td>
       <td>${inc}</td>
       <td><span class="${gfStatusClass(p.renewal_status)}">${p.renewal_status}</span></td>
+      <td>${acvStr}</td>
       <td>${buyer}</td>
     </tr>`;
   });
   if (filt.length > 500) {
-    html += `<tr><td colspan="8" style="text-align:center;color:var(--muted);font-size:11px">... ${filt.length - 500} more (use filters or CSV export)</td></tr>`;
+    html += `<tr><td colspan="9" style="text-align:center;color:var(--muted);font-size:11px">... ${filt.length - 500} more (use filters or CSV export)</td></tr>`;
   }
   html += "</tbody>";
   t.innerHTML = html;
@@ -1702,12 +1736,23 @@ function renderGfDetail() {
     ? dirHints.map(d => `<div class="gf-persona"><a href="${d.url}" target="_blank" rel="noopener">${d.label}</a></div>`).join("")
     : '<div class="note">no directory links</div>';
 
+  const acvBlock = p.acv_mid ? `
+    <div class="gf-detail-section">
+      <h4>Estimated ACV (annual)</h4>
+      <div style="display:flex;gap:14px;align-items:baseline">
+        <span style="font-size:18px;font-weight:700;color:var(--accent)">${fmtUsd(p.acv_mid)}</span>
+        <span style="color:var(--muted);font-size:11px">${fmtUsd(p.acv_low)} – ${fmtUsd(p.acv_high)}</span>
+      </div>
+      <div class="note" style="margin-top:4px">+ ${fmtUsd(p.acv_impl)} typical implementation (one-off)</div>
+    </div>` : "";
+
   c.innerHTML = `
     <div class="gf-detail-section">
       <h4>Incumbent</h4>
       ${inc}
     </div>
     ${renewalBlock}
+    ${acvBlock}
     <div class="gf-detail-section">
       <h4>Score breakdown (${p.score}/100)</h4>
       ${compRow("ICP fit", "icp")}
@@ -1732,6 +1777,7 @@ function exportGfCsv() {
   const cols = ["score", "muni", "state", "pop", "bucket", "incumbent_vendor",
                  "incumbent_product", "incumbent_since", "renewal_status",
                  "renewal_label", "next_renewal_min", "next_renewal_max",
+                 "acv_low", "acv_mid", "acv_high", "acv_impl",
                  "primary_buyer", "secondary_buyer", "tertiary_buyer",
                  "icp", "displace", "signal", "white_space", "renewal_boost"];
   const escape = v => {
@@ -1749,6 +1795,7 @@ function exportGfCsv() {
       inc.vendor, inc.product, inc.since,
       p.renewal_status, p.renewal_label,
       p.next_renewal_min, p.next_renewal_max,
+      p.acv_low, p.acv_mid, p.acv_high, p.acv_impl,
       personas[0], personas[1], personas[2],
       c.icp, c.displace, c.signal, c.white_space, c.renewal,
     ].map(escape).join(","));

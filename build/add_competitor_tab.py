@@ -14,6 +14,7 @@ from openpyxl.formatting.rule import ColorScaleRule
 from competitors import COMPETITORS, STATE_PENETRATION, vendor_state_total
 from competitor_customers import CUSTOMERS, by_vendor as customers_by_vendor
 from data import STATE_COUNTS, STATE_NAMES, STATES
+from pricing import acv_for
 from renewals import renewal_window
 from personas import personas_for
 
@@ -191,6 +192,7 @@ def build_competitors_json():
             rw = renewal_window(v, c.get("since"), c.get("product"))
             personas = personas_for(c.get("type") or "muni",
                                       c.get("bucket"), c.get("product"))
+            acv = acv_for(c.get("bucket"), v, c.get("product"))
             cust_list.append({
                 **c,
                 "renewal_status": rw["status"],
@@ -198,6 +200,10 @@ def build_competitors_json():
                 "next_renewal_min": rw["next_renewal_min"],
                 "next_renewal_max": rw["next_renewal_max"],
                 "primary_buyer":   personas[0][0] if personas else None,
+                "acv_low":         acv["low"],
+                "acv_mid":         acv["mid"],
+                "acv_high":        acv["high"],
+                "acv_impl":        acv["impl_oneoff"],
             })
         payload["vendors"][v] = {
             **{k: meta[k] for k in ("total", "hq", "hq_state_full", "focus",

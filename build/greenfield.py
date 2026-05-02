@@ -22,6 +22,7 @@ from collections import defaultdict
 from competitor_customers import CUSTOMERS
 from competitors import STATE_PENETRATION
 from data import STATE_COUNTS, STATES
+from pricing import acv_for
 from renewals import renewal_window
 from signals import SIGNALS, signal_score
 from personas import personas_for, directory_links_for
@@ -183,6 +184,9 @@ def score_muni(name: str, state: str, pop, bucket: str,
 
     total = min(100, icp + disp + ws + si + rb)
     primary_personas = personas_for(entity_type, bucket, inc_product)[:3]
+    # ACV estimate — uses incumbent vendor if known, vendor-agnostic
+    # baseline otherwise.
+    acv = acv_for(bucket, inc_vendor, inc_product)
     return {
         "muni": name,
         "state": state,
@@ -202,6 +206,7 @@ def score_muni(name: str, state: str, pop, bucket: str,
         "personas": primary_personas,
         "directory_hints": directory_links_for(state),
         "signals": [s["id"] for s in muni_idx.get((name, state), [])],
+        "acv": acv,
     }
 
 

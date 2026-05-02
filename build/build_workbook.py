@@ -20,6 +20,7 @@ from data import (BUCKETS, BUCKET_AVG_POP, BUCKET_LABELS, NATIONAL_ANCHORS,
                   STATE_NAMES, STATES, state_bucket_counts,
                   state_distribution, state_spend_by_bucket,
                   state_special_district_spend, total_state_spend)
+from pricing import ACV_BY_BUCKET_DEFAULT
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.normpath(os.path.join(HERE, "..", "TAM"))
@@ -406,6 +407,11 @@ def build_state_tab(wb, st):
 def build_json():
     """Pre-bake JSON for the dashboard. The HTML embeds this — no fetch."""
     states_payload = {}
+    # Pre-compute per-bucket ACV mid (vendor-agnostic baseline) — software
+    # TAM = sum(entity_count[bucket] x acv_mid[bucket]) across all munis +
+    # counties + townships.
+    acv_mid_by_bucket = {b: ACV_BY_BUCKET_DEFAULT[b]["mid"]
+                          for b in BUCKET_LABELS}
     for st in STATES:
         c, m, t, sd = STATE_COUNTS[st]
         munis_b   = state_bucket_counts("munis", st)
@@ -415,6 +421,16 @@ def build_json():
         spend_counties = state_spend_by_bucket("counties", st)
         spend_townships = state_spend_by_bucket("townships", st)
         sd_spend = state_special_district_spend(st)
+
+        # ACV-based software TAM per state
+        acv_munis = [munis_b[i] * acv_mid_by_bucket[BUCKET_LABELS[i]]
+                     for i in range(len(BUCKET_LABELS))]
+        acv_counties = [counties_b[i] * acv_mid_by_bucket[BUCKET_LABELS[i]] * 1.6
+                        for i in range(len(BUCKET_LABELS))]  # counties pay more
+        acv_townships = [townships_b[i] * acv_mid_by_bucket[BUCKET_LABELS[i]] * 0.4
+                         for i in range(len(BUCKET_LABELS))]  # townships less
+        # Special districts: estimate $25K-$80K per SD avg
+        sd_acv = sd * 45_000
 
         states_payload[st] = {
             "name": STATE_NAMES[st],
@@ -432,8 +448,15 @@ def build_json():
                 "counties":  spend_counties,
                 "townships": spend_townships,
             },
+            "acv_by_bucket": {
+                "munis":     acv_munis,
+                "counties":  acv_counties,
+                "townships": acv_townships,
+            },
             "special_districts_spend": sd_spend,
+            "special_districts_acv":   sd_acv,
             "total_spend": total_state_spend(st),
+            "total_acv":   sum(acv_munis) + sum(acv_counties) + sum(acv_townships) + sd_acv,
             "total_entities": c + m + t + sd,
         }
 

@@ -23,7 +23,7 @@ import sys
 
 from customer_intel.connectors import (case_studies, crt_sh, dns_fingerprint,
                                          dns_strict, job_postings,
-                                         muni_website)
+                                         meeting_minutes, muni_website)
 
 
 CONNECTORS = {
@@ -47,7 +47,33 @@ CONNECTORS = {
                           top_n=args.muni_top,
                           top_prospects=args.muni_top_prospects,
                           concurrency=args.muni_concurrency)),
+    "meeting_minutes": ("Council/board meeting-minute PDF extraction (highest precision)",
+                         lambda args: _run_meeting_minutes(args)),
 }
+
+
+def _run_meeting_minutes(args):
+    """meeting_minutes returns (customers, signals); customers go to the
+    raw CSV, signals are saved separately for review (not auto-merged
+    because they need a richer schema than the harvest CSV)."""
+    customers, sigs = meeting_minutes.harvest(
+        states=args.states,
+        top_n=args.minutes_top,
+        top_prospects=args.minutes_top_prospects,
+        threads=args.minutes_threads,
+        max_pdfs=args.minutes_max_pdfs,
+    )
+    if sigs:
+        import csv as _csv
+        out_sigs = "meeting_minutes_signals.csv"
+        with open(out_sigs, "w", newline="", encoding="utf-8") as f:
+            w = _csv.DictWriter(f, fieldnames=list(sigs[0].keys()),
+                                  extrasaction="ignore")
+            w.writeheader()
+            for s in sigs:
+                w.writerow(s)
+        print(f"  meeting_minutes: {len(sigs)} buying signals saved to {out_sigs}")
+    return customers
 
 # CAFR PDF connector is opt-in (needs a PDF directory)
 def _run_cafr(args):
@@ -107,6 +133,9 @@ def main():
                     help="run only these connectors (default: all free)")
     ap.add_argument("--skip", nargs="*", default=[],
                     help="skip these connectors")
+    ap.add_argument("--states", nargs="*",
+                    help="filter to specific states (used by dns_strict, "
+                          "muni_website, meeting_minutes)")
     ap.add_argument("--max-probes", type=int, default=500,
                     help="DNS-fingerprint connector max probes")
     ap.add_argument("--dns-threads", type=int, default=200,
@@ -119,6 +148,14 @@ def main():
                     help="muni_website: only scan greenfield prospects")
     ap.add_argument("--muni-concurrency", type=int, default=12,
                     help="muni_website concurrent connections (be polite)")
+    ap.add_argument("--minutes-top", type=int, default=None,
+                    help="meeting_minutes: limit to top-N munis")
+    ap.add_argument("--minutes-top-prospects", action="store_true",
+                    help="meeting_minutes: scan greenfield prospects only")
+    ap.add_argument("--minutes-threads", type=int, default=10,
+                    help="meeting_minutes thread count (slow per muni)")
+    ap.add_argument("--minutes-max-pdfs", type=int, default=12,
+                    help="meeting_minutes: max PDFs to download per muni")
     ap.add_argument("--cafr-dir",
                     help="directory of CAFR PDFs (enables cafr_pdf)")
     ap.add_argument("--out", default="customer_intel_raw.csv")
@@ -126,10 +163,12 @@ def main():
     args = ap.parse_args()
 
     # Default selection: free connectors, exclude cafr_pdf (needs PDFs).
-    # Also exclude dns_fingerprint by default (deprecated — dns_strict is
-    # the better successor).
+    # Also exclude:
+    #   - dns_fingerprint (deprecated — dns_strict is the better successor)
+    #   - meeting_minutes (slow; opt-in via --only meeting_minutes)
     selected = (args.only or [k for k in CONNECTORS
-                              if k not in ("cafr_pdf", "dns_fingerprint")])
+                              if k not in ("cafr_pdf", "dns_fingerprint",
+                                             "meeting_minutes")])
     selected = [c for c in selected if c not in args.skip]
 
     print(f"Connectors selected: {selected}")

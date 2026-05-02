@@ -29,6 +29,7 @@ That sequence will:
 | `case_studies` | Scrapes each vendor's "Customers" / "Case Studies" page. Lower coverage, very high precision. | ~10-20% | free | ~10s/vendor |
 | `dns_strict` | Strict-DNS probe of vendor domains (per-customer subdomains that only resolve when a customer exists). Bypasses HTTP firewalls. | ~30-40% | free | ~6 min full US |
 | `muni_website` | Probes each muni's `.gov` site for vendor URL/text fingerprints across homepage + key paths. Best for filling in incumbents on greenfield prospects. | ~40-60% | free | ~30 min full US |
+| `meeting_minutes` | Walks the muni's clerk/agendas page, downloads recent meeting-minute PDFs, extracts vendor approvals + dollar amounts + dates verbatim. Highest precision; also emits buying signals. | ~30-50% | free | ~3-4 hr per 1000 munis at 20 threads |
 | `job_postings` | Scrapes Indeed for job descriptions requiring vendor-specific skills (e.g. "Tyler Munis required"). | ~30% on ERP | free | ~1 min/vendor |
 | `cafr_pdf` | Extracts vendor mentions from CAFR / ACFR PDFs. Best coverage but you have to gather PDFs. | ~70% if PDFs sourced | free | depends on # of PDFs |
 | `dns_fingerprint` | Deprecated — superseded by `dns_strict` and `muni_website`. Left for back-compat. | ~30-40% | free | scales with `--max-probes` |
@@ -125,6 +126,46 @@ python -m customer_intel.connectors.muni_website --top 1000
 Politeness: 1.5s delay between requests to the same host, 12 concurrent
 munis by default. Tune `--muni-concurrency` if you have a tight runtime
 budget but watch for the host blocking you.
+
+### `meeting_minutes` — council/board meeting-minute PDFs
+
+**Highest-precision free source.** Walks the muni's clerk / agendas
+index, downloads recent meeting-minute PDFs (last ~12 by default),
+extracts text via `pdfplumber` / `pypdf` / `pdftotext`, then
+pattern-matches:
+
+- **Vendor approvals**: "Motion to approve a 5-year agreement with
+  Tyler Technologies for financial management software in the amount
+  of $185,000 annually." → emits a customer record with vendor,
+  product, ACV, and start year.
+- **Buying signals**: RFP committee formation, vendor EOL discussion,
+  cyber-incident reports, audit findings, leadership changes → saved
+  to `meeting_minutes_signals.csv` for review (richer schema than the
+  customer harvest, so not auto-merged into competitor_customers).
+
+Slower than other connectors because each muni requires
+discovery + minutes-index page + ~12 PDF downloads + text
+extraction. Budget **~3-4 hours per 1000 munis at 20 threads**.
+
+```bash
+# Best ROI: top-1000 prospects (already filtered to actionable)
+python -m customer_intel.connectors.meeting_minutes --top-prospects \
+    --threads 20 --max-pdfs 8
+
+# Single state, deeper PDF crawl
+python -m customer_intel.connectors.meeting_minutes --states IA \
+    --threads 15 --max-pdfs 18
+
+# Or via the harvester (saves to standard CSVs)
+python -m customer_intel.harvest --only meeting_minutes \
+    --minutes-top-prospects --minutes-threads 20
+```
+
+The dollar-amount extraction is sentence-window aware: it looks for
+the `$XXX` pattern within ~600 chars of an approval phrase and the
+vendor mention. False positives are rare — typical false positive
+is when a single meeting approves multiple unrelated contracts and
+the wrong dollar gets attached.
 
 ### `cafr_pdf` — CAFR / ACFR vendor mention extraction
 

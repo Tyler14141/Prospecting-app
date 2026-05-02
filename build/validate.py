@@ -135,15 +135,15 @@ def main():
                      f"{os.path.getsize(HTML)/1024:.1f} KB")
     all_ok &= check("Chart.js CDN reference present",
                      "chart.js" in html.lower())
-    all_ok &= check("all five tab sections present",
+    all_ok &= check("all six tab sections present",
                      all(s in html for s in
                          ('id="tab-overview"', 'id="tab-heatmaps"',
                           'id="tab-names"', 'id="tab-competitive"',
-                          'id="tab-signals"')))
+                          'id="tab-signals"', 'id="tab-prospects"')))
     all_ok &= check("embedded JSON data present",
                      "TAM = " in html and "COMP = " in html
                      and "NAMES = " in html and "TILEMAP = " in html
-                     and "SIGNALS = " in html)
+                     and "SIGNALS = " in html and "GREENFIELD = " in html)
     all_ok &= check("no localStorage / sessionStorage",
                      "localStorage" not in html and "sessionStorage" not in html)
     all_ok &= check("no fetch() calls",
@@ -151,7 +151,8 @@ def main():
     all_ok &= check("no unfilled placeholders",
                      not any(p in html for p in ("__TAM__", "__COMP__",
                                                   "__NAMES__", "__TILEMAP__",
-                                                  "__GEO__", "__SIGNALS__")))
+                                                  "__GEO__", "__SIGNALS__",
+                                                  "__GREENFIELD__")))
     all_ok &= check("d3 CDN reference present",
                      "d3@7" in html.lower() or "d3.geojson" in html.lower()
                      or "d3.geoalbers" in html.lower() or 'd3.min.js' in html)
@@ -218,6 +219,36 @@ def main():
     all_ok &= check("at least 80% of seeded signals are within dropoff window",
                      len(nonzero) >= 0.8 * len(SIGNALS),
                      f"{len(nonzero)}/{len(SIGNALS)} active")
+
+    section("9. GREENFIELD / PERSONA / RENEWAL")
+    with open(os.path.join(OUT_DIR, "greenfield_data.json")) as _f:
+        gf_data = _json.load(_f)
+    all_ok &= check(f"top_prospects populated",
+                     len(gf_data.get("top_prospects", [])) >= 100,
+                     f"{len(gf_data.get('top_prospects', []))} rows")
+    all_ok &= check("each prospect has score components",
+                     all("components" in r for r in gf_data["top_prospects"]),
+                     "")
+    all_ok &= check("each prospect has personas",
+                     all(len(r.get("personas") or []) >= 1
+                         for r in gf_data["top_prospects"]),
+                     "")
+    statuses = {r["renewal_status"] for r in gf_data["top_prospects"]}
+    in_cycle = bool(statuses.intersection({"in-window", "imminent",
+                                             "warming", "past-due"}))
+    all_ok &= check("renewal statuses include greenfield + at least one in-cycle",
+                     "greenfield" in statuses and in_cycle,
+                     f"have {statuses}")
+    # Personas module sanity
+    from personas import personas_for
+    all_ok &= check("personas_for(muni, 1K-5K, ERP) returns >= 3 titles",
+                     len(personas_for("muni", "1K-5K", "Munis ERP")) >= 3)
+    # Renewals sanity
+    from renewals import renewal_window
+    rw = renewal_window("Tyler Technologies", 2024, "Munis ERP")
+    all_ok &= check("renewal_window for 2024 Tyler Munis returns active/warming",
+                     rw["status"] in ("active", "warming"),
+                     f"got {rw['status']}")
 
     section("DELIVERABLES SUMMARY")
     total_entities = sum(STATE_COUNTS[s][0] + STATE_COUNTS[s][1]

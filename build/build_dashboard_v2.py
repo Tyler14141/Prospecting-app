@@ -15,6 +15,7 @@ OUT_DIR = os.path.normpath(os.path.join(HERE, "..", "TAM"))
 TAM_JSON = os.path.join(OUT_DIR, "tam_data.json")
 COMP_JSON = os.path.join(OUT_DIR, "competitors_data.json")
 SIGNALS_JSON = os.path.join(OUT_DIR, "signals_data.json")
+GREENFIELD_JSON = os.path.join(OUT_DIR, "greenfield_data.json")
 NAMES_JSON = os.path.join(HERE, "names_data.json")
 GEOJSON_PATH = os.path.join(HERE, "us_states.geojson")
 HTML_PATH = os.path.join(OUT_DIR, "Local_Government_TAM_Dashboard.html")
@@ -29,6 +30,8 @@ def build():
         names = json.load(f)
     with open(SIGNALS_JSON) as f:
         sigs = json.load(f)
+    with open(GREENFIELD_JSON) as f:
+        gf = json.load(f)
     with open(GEOJSON_PATH) as f:
         geo = json.load(f)
 
@@ -37,6 +40,7 @@ def build():
     comp_s = json.dumps(comp, separators=(",", ":"))
     names_s = json.dumps(names, separators=(",", ":"))
     sigs_s = json.dumps(sigs, separators=(",", ":"))
+    gf_s = json.dumps(gf, separators=(",", ":"))
     geo_s = json.dumps(geo, separators=(",", ":"))
     tile_s = json.dumps(TILE_MAP)
 
@@ -44,6 +48,7 @@ def build():
                         .replace("__COMP__", comp_s)\
                         .replace("__NAMES__", names_s)\
                         .replace("__SIGNALS__", sigs_s)\
+                        .replace("__GREENFIELD__", gf_s)\
                         .replace("__GEO__", geo_s)\
                         .replace("__TILEMAP__", tile_s)
 
@@ -166,6 +171,29 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
 .list .item .pop{font-size:10px;color:var(--muted)}
 .list .item.unknown-pop{opacity:.7}
 .list .item.unknown-pop .pop{color:#64748b;font-style:italic}
+.gf-row{cursor:pointer}
+.gf-row:hover{background:#0f1830}
+.gf-row.focused{background:#0f1830;outline:2px solid var(--accent);outline-offset:-2px}
+.gf-score{font-weight:700;font-size:14px}
+.gf-score-strong{color:#10b981}
+.gf-score-mid{color:#f59e0b}
+.gf-score-weak{color:#94a3b8}
+.gf-status{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.gf-status-greenfield{background:rgba(16,185,129,0.18);color:#34d399}
+.gf-status-in-window{background:rgba(239,68,68,0.18);color:#f87171}
+.gf-status-imminent{background:rgba(245,158,11,0.18);color:#fbbf24}
+.gf-status-warming{background:rgba(56,189,248,0.18);color:#7dd3fc}
+.gf-status-past-due{background:rgba(168,85,247,0.18);color:#c4b5fd}
+.gf-status-active{background:rgba(100,116,139,0.18);color:#94a3b8}
+.gf-status-unknown{background:rgba(100,116,139,0.18);color:#94a3b8}
+.gf-detail-section{margin-bottom:14px}
+.gf-detail-section h4{margin:0 0 6px 0;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.gf-bar{height:6px;background:#1e293b;border-radius:3px;overflow:hidden;margin-top:3px}
+.gf-bar-fill{height:100%;background:var(--accent)}
+.gf-component{display:grid;grid-template-columns:auto 1fr auto;gap:8px;font-size:11px;align-items:center;margin-bottom:4px}
+.gf-persona{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted var(--border)}
+.gf-persona:last-child{border-bottom:none}
+.gf-persona .role{font-size:9px;color:var(--muted);text-transform:uppercase}
 .sm-card{background:#0b1220;border:1px solid var(--border);border-radius:6px;padding:10px}
 .sm-card .sm-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
 .sm-card .sm-name{font-size:12px;font-weight:600;color:var(--text)}
@@ -191,6 +219,7 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
   <button data-tab="names">State &amp; Names</button>
   <button data-tab="competitive">Competitive Penetration</button>
   <button data-tab="signals">Buying Signals</button>
+  <button data-tab="prospects">Top Prospects</button>
 </nav>
 
 <main>
@@ -459,6 +488,44 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
   </div>
 </section>
 
+<!-- ===== TAB 6: TOP PROSPECTS ===== -->
+<section class="tab" id="tab-prospects">
+  <div class="grid kpis" id="gfKpis"></div>
+  <div class="spacer"></div>
+
+  <div class="controls">
+    <label>State:</label>
+    <select class="search" id="gfState" style="max-width:130px">
+      <option value="all">All</option>
+    </select>
+    <label>Bucket:</label>
+    <select class="search" id="gfBucket" style="max-width:140px">
+      <option value="all">All sizes</option>
+    </select>
+    <label>Status:</label>
+    <button class="btn chip-gfstatus active" data-gfstatus="all">All</button>
+    <button class="btn chip-gfstatus" data-gfstatus="greenfield">Greenfield</button>
+    <button class="btn chip-gfstatus" data-gfstatus="in-window">In Window</button>
+    <button class="btn chip-gfstatus" data-gfstatus="imminent">Imminent</button>
+    <button class="btn chip-gfstatus" data-gfstatus="past-due">Past Due</button>
+    <button class="btn chip-gfstatus" data-gfstatus="warming">Warming</button>
+    <span style="flex:1"></span>
+    <input class="search" id="gfSearch" placeholder="Search muni or vendor&hellip;" style="max-width:240px">
+    <button class="btn" id="gfExport">Export to CSV</button>
+  </div>
+
+  <div class="grid row2">
+    <div class="card">
+      <h3 id="gfListTitle">Top prospects</h3>
+      <div class="scroll" style="max-height:600px"><table class="matrix" id="gfList"></table></div>
+    </div>
+    <div class="card">
+      <h3 id="gfDetailTitle">Click a row for details</h3>
+      <div id="gfDetail"></div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <script>
@@ -466,6 +533,7 @@ const TAM = __TAM__;
 const COMP = __COMP__;
 const NAMES = __NAMES__;
 const SIGNALS = __SIGNALS__;
+const GREENFIELD = __GREENFIELD__;
 const GEO = __GEO__;
 const TILEMAP = __TILEMAP__;
 
@@ -503,6 +571,12 @@ const ui = {
   mShow: "all",         // all | known | small
   // named customers
   ncSearch: "",
+  // greenfield (Top Prospects)
+  gfState: "all",
+  gfBucket: "all",
+  gfStatus: "all",
+  gfSearch: "",
+  gfFocusKey: null,
 };
 
 // ===== Tabs =====
@@ -818,8 +892,10 @@ function renderLists() {
     .map(c => {
       const popStr = c.pop !== null ? fmtInt(c.pop) : "<15K (unknown)";
       const cls = c.pop === null ? " unknown-pop" : "";
+      const buyer = (GREENFIELD.personas_by_bucket[c.bucket] || [])[0] || "";
+      const buyerStr = buyer ? ` &middot; <span style="color:var(--accent);font-size:10px">${buyer}</span>` : "";
       return `<div class="item${cls}"><span class="name">${c.name}</span>`
-        + `<span class="meta"><span class="pop">${popStr}</span> &middot; ${c.bucket}</span></div>`;
+        + `<span class="meta"><span class="pop">${popStr}</span> &middot; ${c.bucket}${buyerStr}</span></div>`;
     })
     .join("") || '<div class="item"><span class="name">No munis match filter</span></div>';
   // Pull total counts for the header
@@ -1211,15 +1287,18 @@ function renderNamedCustomers() {
     t.innerHTML = "<thead><tr><th>—</th></tr></thead><tbody><tr><td>No customers seeded for this vendor or filter.</td></tr></tbody>";
     return;
   }
-  let html = "<thead><tr><th>Customer</th><th>State</th><th>Type</th><th>Bucket</th><th>Product</th><th>Since</th><th>Source</th></tr></thead><tbody>";
+  let html = "<thead><tr><th>Customer</th><th>State</th><th>Bucket</th><th>Product</th><th>Since</th><th>Renewal</th><th>Primary Buyer</th><th>Source</th></tr></thead><tbody>";
   filt.forEach(c => {
+    const status = c.renewal_status || "unknown";
+    const statusBadge = `<span class="${gfStatusClass(status)}" title="${c.renewal_label || ''}">${status}</span>`;
     html += `<tr>
       <td>${c.muni}</td>
       <td>${c.state}</td>
-      <td>${c.type}</td>
       <td>${c.bucket || "—"}</td>
       <td>${c.product || "—"}</td>
       <td>${c.since || "—"}</td>
+      <td>${statusBadge}</td>
+      <td>${c.primary_buyer || "—"}</td>
       <td><span class="meta" style="color:var(--muted);font-size:10px">${c.source || ""}</span></td>
     </tr>`;
   });
@@ -1470,6 +1549,225 @@ function renderSignalsTab() {
   renderSignalsFeed();
 }
 
+// ===== Top Prospects (greenfield) =====
+function gfStatusClass(s) { return "gf-status gf-status-" + (s || "unknown").replace(/[^a-z]/g, ""); }
+function gfScoreClass(n) { return n >= 60 ? "gf-score-strong" : n >= 50 ? "gf-score-mid" : "gf-score-weak"; }
+
+function renderGfKpis() {
+  const all = GREENFIELD.top_prospects;
+  const filt = filteredProspects();
+  const top = filt[0];
+  const inWindow = filt.filter(p => p.renewal_status === "in-window" || p.renewal_status === "imminent").length;
+  const greenfield = filt.filter(p => p.renewal_status === "greenfield").length;
+
+  const kpis = [
+    {label: "Top prospects shown", value: fmtInt(filt.length), sub: `of ${fmtInt(all.length)} cap (top ${fmtInt(GREENFIELD.total_scored)} scored)`},
+    {label: "Top score", value: top ? top.score : "—", sub: top ? `${top.muni}, ${top.state}` : ""},
+    {label: "In renewal window", value: fmtInt(inWindow), sub: "filtered subset"},
+    {label: "Pure greenfield", value: fmtInt(greenfield), sub: "no incumbent on record"},
+  ];
+  document.getElementById("gfKpis").innerHTML =
+    kpis.map(k => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join("");
+}
+
+function fillGfSelectors() {
+  const s = document.getElementById("gfState");
+  if (s.dataset.filled !== "1") {
+    STATES.forEach(st => {
+      const o = document.createElement("option");
+      o.value = st; o.textContent = `${st} – ${STATE_NAMES[st]}`;
+      s.appendChild(o);
+    });
+    s.dataset.filled = "1";
+    s.addEventListener("change", () => { ui.gfState = s.value; renderProspectsTab(); });
+  }
+  const b = document.getElementById("gfBucket");
+  if (b.dataset.filled !== "1") {
+    [...BUCKETS, "small (<15K)"].forEach(bk => {
+      const o = document.createElement("option");
+      o.value = bk; o.textContent = bk;
+      b.appendChild(o);
+    });
+    b.dataset.filled = "1";
+    b.addEventListener("change", () => { ui.gfBucket = b.value; renderProspectsTab(); });
+  }
+  const search = document.getElementById("gfSearch");
+  if (search.dataset.filled !== "1") {
+    search.dataset.filled = "1";
+    search.addEventListener("input", () => { ui.gfSearch = search.value.toLowerCase(); renderProspectsTab(); });
+  }
+}
+
+function filteredProspects() {
+  const q = ui.gfSearch;
+  return GREENFIELD.top_prospects.filter(p => {
+    if (ui.gfState !== "all" && p.state !== ui.gfState) return false;
+    if (ui.gfBucket !== "all" && p.bucket !== ui.gfBucket) return false;
+    if (ui.gfStatus !== "all" && p.renewal_status !== ui.gfStatus) return false;
+    if (q) {
+      const v = (p.incumbent && p.incumbent.vendor) || "";
+      if (!p.muni.toLowerCase().includes(q)
+          && !v.toLowerCase().includes(q)
+          && !p.state.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderGfList() {
+  const t = document.getElementById("gfList");
+  const filt = filteredProspects();
+  document.getElementById("gfListTitle").textContent =
+    `Top prospects (${filt.length})`;
+
+  if (filt.length === 0) {
+    t.innerHTML = "<thead><tr><th>—</th></tr></thead><tbody><tr><td>No prospects match the filter.</td></tr></tbody>";
+    return;
+  }
+  let html = '<thead><tr><th>#</th><th>Score</th><th>Muni</th><th>State</th><th>Bucket</th><th>Incumbent</th><th>Renewal</th><th>Top buyer</th></tr></thead><tbody>';
+  filt.slice(0, 500).forEach((p, i) => {
+    const inc = p.incumbent ? `${p.incumbent.vendor}${p.incumbent.product ? ' · ' + p.incumbent.product : ''}` : '<span style="color:#34d399">GREENFIELD</span>';
+    const buyer = (p.personas && p.personas[0]) || "—";
+    const key = p.muni + "|" + p.state;
+    const focused = ui.gfFocusKey === key ? " focused" : "";
+    html += `<tr class="gf-row${focused}" data-key="${key}">
+      <td>${i + 1}</td>
+      <td><span class="gf-score ${gfScoreClass(p.score)}">${p.score}</span></td>
+      <td><strong>${p.muni}</strong></td>
+      <td>${p.state}</td>
+      <td>${p.bucket || "—"}</td>
+      <td>${inc}</td>
+      <td><span class="${gfStatusClass(p.renewal_status)}">${p.renewal_status}</span></td>
+      <td>${buyer}</td>
+    </tr>`;
+  });
+  if (filt.length > 500) {
+    html += `<tr><td colspan="8" style="text-align:center;color:var(--muted);font-size:11px">... ${filt.length - 500} more (use filters or CSV export)</td></tr>`;
+  }
+  html += "</tbody>";
+  t.innerHTML = html;
+  t.querySelectorAll(".gf-row").forEach(row => {
+    row.addEventListener("click", () => {
+      ui.gfFocusKey = row.dataset.key;
+      renderGfList();
+      renderGfDetail();
+    });
+  });
+}
+
+function renderGfDetail() {
+  const c = document.getElementById("gfDetail");
+  if (!ui.gfFocusKey) {
+    document.getElementById("gfDetailTitle").textContent = "Click a row for details";
+    c.innerHTML = '<div class="note">Pick a prospect on the left to see score breakdown, personas, and outreach hints.</div>';
+    return;
+  }
+  const [muni, state] = ui.gfFocusKey.split("|");
+  const p = GREENFIELD.top_prospects.find(x => x.muni === muni && x.state === state);
+  if (!p) {
+    c.innerHTML = '<div class="note">Prospect not found in current cache.</div>';
+    return;
+  }
+  document.getElementById("gfDetailTitle").innerHTML =
+    `${p.muni}, ${p.state} <span style="color:var(--muted);font-size:12px;font-weight:400">· score ${p.score} · ${p.bucket}${p.pop ? ' · ' + fmtInt(p.pop) + ' pop' : ''}</span>`;
+
+  const comps = p.components;
+  const max = {icp: 30, displace: 25, signal: 25, white_space: 20, renewal: 10};
+  const compRow = (label, key) => {
+    const v = comps[key], m = max[key];
+    return `<div class="gf-component"><span>${label}</span><div class="gf-bar"><div class="gf-bar-fill" style="width:${(v/m)*100}%"></div></div><span style="font-weight:600">${v}/${m}</span></div>`;
+  };
+
+  let inc = "—";
+  if (p.incumbent) {
+    const sinceStr = p.incumbent.since ? ` (since ${p.incumbent.since})` : "";
+    inc = `<strong>${p.incumbent.vendor}</strong>${p.incumbent.product ? ' · ' + p.incumbent.product : ''}${sinceStr}`;
+  } else {
+    inc = '<strong style="color:#34d399">GREENFIELD</strong> — no incumbent on record';
+  }
+
+  const renewalBlock = p.renewal_label
+    ? `<div class="gf-detail-section"><h4>Renewal</h4>
+        <span class="${gfStatusClass(p.renewal_status)}">${p.renewal_status}</span>
+        <div class="note" style="margin-top:4px">${p.renewal_label}</div>
+       </div>`
+    : "";
+
+  const personasHtml = (p.personas || []).map(t =>
+    `<div class="gf-persona"><span>${t}</span></div>`).join("")
+    || '<div class="note">no personas mapped</div>';
+
+  const dirHints = (GREENFIELD.directory_hints_by_state[p.state] || []);
+  const dirHtml = dirHints.length
+    ? dirHints.map(d => `<div class="gf-persona"><a href="${d.url}" target="_blank" rel="noopener">${d.label}</a></div>`).join("")
+    : '<div class="note">no directory links</div>';
+
+  c.innerHTML = `
+    <div class="gf-detail-section">
+      <h4>Incumbent</h4>
+      ${inc}
+    </div>
+    ${renewalBlock}
+    <div class="gf-detail-section">
+      <h4>Score breakdown (${p.score}/100)</h4>
+      ${compRow("ICP fit", "icp")}
+      ${compRow("Displaceability", "displace")}
+      ${compRow("Signal intensity", "signal")}
+      ${compRow("White space", "white_space")}
+      ${compRow("Renewal boost", "renewal")}
+    </div>
+    <div class="gf-detail-section">
+      <h4>Likely buyers (top titles for this size + product)</h4>
+      ${personasHtml}
+    </div>
+    <div class="gf-detail-section">
+      <h4>Where to find contacts</h4>
+      ${dirHtml}
+    </div>
+  `;
+}
+
+function exportGfCsv() {
+  const rows = filteredProspects();
+  const cols = ["score", "muni", "state", "pop", "bucket", "incumbent_vendor",
+                 "incumbent_product", "incumbent_since", "renewal_status",
+                 "renewal_label", "next_renewal_min", "next_renewal_max",
+                 "primary_buyer", "secondary_buyer", "tertiary_buyer",
+                 "icp", "displace", "signal", "white_space", "renewal_boost"];
+  const escape = v => {
+    if (v === null || v === undefined) return "";
+    const s = String(v).replace(/"/g, '""');
+    return /[",\n]/.test(s) ? '"' + s + '"' : s;
+  };
+  const out = [cols.join(",")];
+  rows.forEach(p => {
+    const inc = p.incumbent || {};
+    const personas = p.personas || [];
+    const c = p.components || {};
+    out.push([
+      p.score, p.muni, p.state, p.pop, p.bucket,
+      inc.vendor, inc.product, inc.since,
+      p.renewal_status, p.renewal_label,
+      p.next_renewal_min, p.next_renewal_max,
+      personas[0], personas[1], personas[2],
+      c.icp, c.displace, c.signal, c.white_space, c.renewal,
+    ].map(escape).join(","));
+  });
+  const blob = new Blob([out.join("\n")], {type: "text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `top_prospects_${GREENFIELD.today}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderProspectsTab() {
+  fillGfSelectors();
+  renderGfKpis();
+  renderGfList();
+  renderGfDetail();
+}
+
 // ===== Wire up controls =====
 document.querySelectorAll("[data-metric]").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll("[data-metric]").forEach(x => x.classList.remove("active"));
@@ -1505,6 +1803,11 @@ document.getElementById("namedCustSearch").addEventListener("input", e => {
   ui.ncSearch = e.target.value;
   renderNamedCustomers();
 });
+document.querySelectorAll(".chip-gfstatus").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".chip-gfstatus").forEach(x => x.classList.remove("active"));
+  b.classList.add("active"); ui.gfStatus = b.dataset.gfstatus; renderProspectsTab();
+}));
+document.getElementById("gfExport").addEventListener("click", exportGfCsv);
 document.getElementById("nameSearch").addEventListener("input", renderLists);
 
 document.querySelectorAll(".chip-sev").forEach(b => b.addEventListener("click", () => {
@@ -1531,6 +1834,7 @@ renderNamedCustomers();
 renderChoropleth();
 renderSignalsBanner();
 renderSignalsTab();
+renderProspectsTab();
 
 // Auto-select biggest state for names tab so it's not empty
 selectState(STATES.map(s => [s, TAM.states[s].total_entities]).sort((a,b) => b[1]-a[1])[0][0]);

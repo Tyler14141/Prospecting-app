@@ -27,9 +27,11 @@ That sequence will:
 |---|---|---|---|---|
 | `crt_sh` | Queries Certificate Transparency logs for vendor-hosted muni subdomains. Highest-leverage source. | ~30-40% | free | ~1 min/vendor |
 | `case_studies` | Scrapes each vendor's "Customers" / "Case Studies" page. Lower coverage, very high precision. | ~10-20% | free | ~10s/vendor |
-| `dns_fingerprint` | Active probe of known muni URL patterns (e.g. `<muni>.tylerciviccess.com`). | ~30-40% | free | scales with `--max-probes` |
+| `dns_strict` | Strict-DNS probe of vendor domains (per-customer subdomains that only resolve when a customer exists). Bypasses HTTP firewalls. | ~30-40% | free | ~6 min full US |
+| `muni_website` | Probes each muni's `.gov` site for vendor URL/text fingerprints across homepage + key paths. Best for filling in incumbents on greenfield prospects. | ~40-60% | free | ~30 min full US |
 | `job_postings` | Scrapes Indeed for job descriptions requiring vendor-specific skills (e.g. "Tyler Munis required"). | ~30% on ERP | free | ~1 min/vendor |
 | `cafr_pdf` | Extracts vendor mentions from CAFR / ACFR PDFs. Best coverage but you have to gather PDFs. | ~70% if PDFs sourced | free | depends on # of PDFs |
+| `dns_fingerprint` | Deprecated — superseded by `dns_strict` and `muni_website`. Left for back-compat. | ~30-40% | free | scales with `--max-probes` |
 
 *Coverage = percentage of each vendor's installed base recoverable from
 that source alone. Stack three or more for ~80% combined.
@@ -94,6 +96,35 @@ python -m customer_intel.connectors.job_postings
 For production volume, swap the public-web scrape for the **Indeed
 Publisher API** (free tier, 1K calls/day). See connector docstring for
 the swap-in pattern.
+
+### `muni_website` — fingerprint vendors from the muni's own website
+
+**Highest-leverage way to fill in incumbents** for the ~16K greenfield
+prospects in `greenfield_data.json`. For each muni:
+
+1. Probes ~18 common URL patterns (`https://www.cityof<muni>.gov`,
+   `https://<muni>.<st>.gov`, etc.) until one resolves.
+2. Crawls homepage + 11 key paths (`/payments`, `/permits`,
+   `/utility-billing`, `/agendas`, etc.).
+3. Scans combined HTML for vendor URL patterns + text fingerprints
+   ("Powered by Tyler", "BS&A Software", iframe to `tylerciviccess.com`,
+   form action to `bsaonline.com`, etc.).
+
+```bash
+# Just scan greenfield prospects (highest ROI: ~10K targets that don't
+# already have a known incumbent)
+python -m customer_intel.connectors.muni_website --top-prospects
+
+# Or scan a state slice
+python -m customer_intel.connectors.muni_website --states IA NE KS
+
+# Or top-1000 by population (full US)
+python -m customer_intel.connectors.muni_website --top 1000
+```
+
+Politeness: 1.5s delay between requests to the same host, 12 concurrent
+munis by default. Tune `--muni-concurrency` if you have a tight runtime
+budget but watch for the host blocking you.
 
 ### `cafr_pdf` — CAFR / ACFR vendor mention extraction
 

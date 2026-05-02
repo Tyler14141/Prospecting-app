@@ -21,8 +21,9 @@ import csv
 import os
 import sys
 
-from customer_intel.connectors import case_studies, crt_sh, dns_fingerprint, \
-                                       job_postings
+from customer_intel.connectors import (case_studies, crt_sh, dns_fingerprint,
+                                         dns_strict, job_postings,
+                                         muni_website)
 
 
 CONNECTORS = {
@@ -33,8 +34,19 @@ CONNECTORS = {
     "dns_fingerprint": ("DNS / URL pattern fingerprint",
                          lambda args: dns_fingerprint.harvest(
                              max_probes=args.max_probes)),
+    "dns_strict": ("Strict-DNS vendor subdomain probe",
+                    lambda args: dns_strict.harvest(
+                        threads=args.dns_threads,
+                        top_n=args.dns_top,
+                        states=args.states)),
     "job_postings": ("Public job-board scraper (Indeed)",
                       lambda args: job_postings.harvest()),
+    "muni_website": ("Muni website fingerprint (high-leverage for filling in incumbents)",
+                      lambda args: muni_website.harvest(
+                          states=args.states,
+                          top_n=args.muni_top,
+                          top_prospects=args.muni_top_prospects,
+                          concurrency=args.muni_concurrency)),
 }
 
 # CAFR PDF connector is opt-in (needs a PDF directory)
@@ -97,13 +109,27 @@ def main():
                     help="skip these connectors")
     ap.add_argument("--max-probes", type=int, default=500,
                     help="DNS-fingerprint connector max probes")
+    ap.add_argument("--dns-threads", type=int, default=200,
+                    help="dns_strict thread count")
+    ap.add_argument("--dns-top", type=int, default=None,
+                    help="dns_strict: limit to top-N munis")
+    ap.add_argument("--muni-top", type=int, default=None,
+                    help="muni_website: limit to top-N munis")
+    ap.add_argument("--muni-top-prospects", action="store_true",
+                    help="muni_website: only scan greenfield prospects")
+    ap.add_argument("--muni-concurrency", type=int, default=12,
+                    help="muni_website concurrent connections (be polite)")
     ap.add_argument("--cafr-dir",
                     help="directory of CAFR PDFs (enables cafr_pdf)")
     ap.add_argument("--out", default="customer_intel_raw.csv")
     ap.add_argument("--out-merged", default="customer_intel_merged.csv")
     args = ap.parse_args()
 
-    selected = (args.only or [k for k in CONNECTORS if k != "cafr_pdf"])
+    # Default selection: free connectors, exclude cafr_pdf (needs PDFs).
+    # Also exclude dns_fingerprint by default (deprecated — dns_strict is
+    # the better successor).
+    selected = (args.only or [k for k in CONNECTORS
+                              if k not in ("cafr_pdf", "dns_fingerprint")])
     selected = [c for c in selected if c not in args.skip]
 
     print(f"Connectors selected: {selected}")

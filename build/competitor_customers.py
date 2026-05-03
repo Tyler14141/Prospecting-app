@@ -447,6 +447,9 @@ CUSTOMERS = [
     {"vendor": 'Tyler Technologies', "muni": 'Darien', "state": 'IL', "type": "muni", "bucket": '20K-50K', "product": 'Munis Self Service', "since": None, "source": "dns_strict (townofdarien.munisselfservice.com)", "demo": False},
     {"vendor": 'Tyler Technologies', "muni": 'Holliston', "state": 'MA', "type": "muni", "bucket": 'small (<15K)', "product": 'Munis Self Service', "since": None, "source": "dns_strict (townofholliston.munisselfservice.com)", "demo": False},
 
+    # ---- harvested via customer_intel (1 new) ----
+    {"vendor": 'Tyler Technologies', "muni": 'Lexington', "state": 'KY', "type": 'muni', "bucket": '100K+', "product": 'Socrata data', "since": None, "source": 'dns_strict', "demo": False},
+
 ]
 
 

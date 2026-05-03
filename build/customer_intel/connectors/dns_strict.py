@@ -62,13 +62,20 @@ DOMAIN_TO_VENDOR = {
     "tylerportals.com":     ("Tyler Technologies", "Munis / Enterprise"),
     "tylerhost.net":        ("Tyler Technologies", "Hosted services"),
     "tylertech.com":        ("Tyler Technologies", None),
+    "tyleronline.com":      ("Tyler Technologies", "Tyler Online"),
     "energovweb.com":       ("Tyler Technologies", "EnerGov"),
     "energovaccess.com":    ("Tyler Technologies", "EnerGov"),
     "energov.net":          ("Tyler Technologies", "EnerGov"),
     "mytylerportal.com":    ("Tyler Technologies", "Tyler Portal"),
     "newworldsystems.com":  ("Tyler Technologies", "New World public safety"),
-    # BS&A
+    "socrata.com":          ("Tyler Technologies", "Socrata data"),
+    "cartegraph.com":       ("Tyler Technologies", "Cartegraph asset mgmt"),
+    "brazostech.com":       ("Tyler Technologies", "Brazos public safety"),
+    "micropact.com":        ("Tyler Technologies", "MicroPact entellitrak"),
+    "entellitrak.com":      ("Tyler Technologies", "MicroPact entellitrak"),
+    # BS&A (Harris Computer parent)
     "bsaonline.com":        ("BS&A Software", "BSA Online"),
+    "harrislocalgov.com":   ("BS&A Software", "Harris Local Govt suite"),
     # TownCloud
     "towncloud.com":        ("TownCloud", "TownCloud Suite"),
     # gWorks family

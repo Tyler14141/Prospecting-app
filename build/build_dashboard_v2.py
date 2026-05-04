@@ -366,6 +366,18 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
           <div class="list" id="cityList"></div>
         </div>
       </div>
+      <div class="grid row2" style="margin-top:8px">
+        <div>
+          <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 6px" id="twpHeader">Townships</h4>
+          <div class="list" id="twpList"></div>
+          <div class="note" id="twpNote" style="margin-top:4px"></div>
+        </div>
+        <div>
+          <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 6px" id="sdHeader">Special Districts</h4>
+          <div class="list" id="sdList"></div>
+          <div class="note" id="sdNote" style="margin-top:4px"></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -444,9 +456,15 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
   <div class="spacer"></div>
 
   <div class="controls">
+    <label>ICP:</label>
+    <button class="btn chip-sicp active" data-sicp="sub15k" title="Default: under 15K population">&lt;15K (ICP)</button>
+    <button class="btn chip-sicp" data-sicp="under50k">&lt;50K</button>
+    <button class="btn chip-sicp" data-sicp="all">All sizes</button>
+    <span style="width:18px"></span>
     <label>Type:</label>
     <span id="sigTypeChips" class="chip-row"></span>
-    <span style="width:18px"></span>
+  </div>
+  <div class="controls" style="margin-top:6px">
     <label>Severity:</label>
     <button class="btn chip-sev active" data-sev="all">All</button>
     <button class="btn chip-sev" data-sev="high">High</button>
@@ -558,6 +576,7 @@ const ui = {
   smallm: "count",
   sigType: "all",
   sigSev: "all",
+  sigIcp: "sub15k",     // default to sub-15K ICP
   sigStateFilter: null,
   sigSearch: "",
   sigFocusKey: null,
@@ -929,22 +948,85 @@ function renderLists() {
   const totalSmall = data.cities.length - totalKnown;
   document.getElementById("cityHeader").textContent =
     `Municipalities (${cities.length}/${data.cities.length}) · ${totalKnown} known + ${totalSmall} small`;
+
+  // Townships
+  const twps = (data.townships || []).filter(t => !q || t.name.toLowerCase().includes(q));
+  const twpList = document.getElementById("twpList");
+  const twpTotal = data._township_count !== undefined ? data._township_count : (data.townships || []).length;
+  const twpReal = (data.townships || []).filter(t => t.real).length;
+  if (twpTotal === 0) {
+    twpList.innerHTML = '<div class="item"><span class="name">No townships in this state</span></div>';
+    document.getElementById("twpNote").textContent = "";
+  } else if (twpReal === 0) {
+    twpList.innerHTML = twps.slice(0, 50).map(t =>
+      `<div class="item unknown-pop"><span class="name">${t.name}</span><span class="meta">placeholder</span></div>`).join("");
+    document.getElementById("twpNote").innerHTML =
+      `<span style="color:#fbbf24">Names not loaded.</span> Showing ${twps.length} placeholders of ${fmtInt(twpTotal)} total. ` +
+      `Drop Census Gazetteer <code>2023_Gaz_cousubs_national.txt</code> in <code>build/data_extras/</code> and re-run <code>build_names_data.py</code> for real names.`;
+  } else {
+    twpList.innerHTML = twps.slice(0, 200).map(t =>
+      `<div class="item"><span class="name">${t.name}</span><span class="meta">${t.geoid || ''}</span></div>`).join("");
+    document.getElementById("twpNote").textContent = `${twps.length} of ${twpTotal} townships`;
+  }
+  document.getElementById("twpHeader").textContent =
+    `Townships (${twpTotal === 0 ? '0' : (twps.length + ' / ' + fmtInt(twpTotal))})`;
+
+  // Special Districts
+  const sds = (data.special_districts || []).filter(s => !q || s.name.toLowerCase().includes(q));
+  const sdList = document.getElementById("sdList");
+  const sdTotal = data._sd_count !== undefined ? data._sd_count : (data.special_districts || []).length;
+  const sdReal = (data.special_districts || []).filter(s => s.real).length;
+  if (sdTotal === 0) {
+    sdList.innerHTML = '<div class="item"><span class="name">No special districts in this state</span></div>';
+    document.getElementById("sdNote").textContent = "";
+  } else if (sdReal === 0) {
+    sdList.innerHTML = sds.slice(0, 50).map(s =>
+      `<div class="item unknown-pop"><span class="name">${s.name}</span><span class="meta">placeholder</span></div>`).join("");
+    document.getElementById("sdNote").innerHTML =
+      `<span style="color:#fbbf24">Names not loaded.</span> Showing ${sds.length} placeholders of ${fmtInt(sdTotal)} total. ` +
+      `Drop a CSV (<code>state,name,type</code>) in <code>build/data_extras/special_districts.csv</code> and re-run.`;
+  } else {
+    sdList.innerHTML = sds.slice(0, 200).map(s =>
+      `<div class="item"><span class="name">${s.name}</span><span class="meta">${s.type || ''}</span></div>`).join("");
+    document.getElementById("sdNote").textContent = `${sds.length} of ${sdTotal} special districts`;
+  }
+  document.getElementById("sdHeader").textContent =
+    `Special Districts (${sdTotal === 0 ? '0' : (sds.length + ' / ' + fmtInt(sdTotal))})`;
 }
 
 function exportNamesCsv() {
   if (!ui.selectedState) return;
   const st = ui.selectedState;
+  const data = NAMES[st] || {};
   const cities = namesFilteredCities();
-  const header = "name,state,population,bucket,latitude,longitude";
-  const rows = cities.map(c => [
+  const header = "type,name,state,population,bucket,latitude,longitude,extra";
+  const rows = [];
+  // counties
+  (data.counties || []).forEach(c => rows.push([
+    "county", c.name, st, "", "", "", "", c.fips || ""
+  ]));
+  // munis
+  cities.forEach(c => rows.push([
+    "muni",
     JSON.stringify(c.name).slice(1, -1),
     st,
     c.pop !== null ? c.pop : "",
     c.bucket,
     c.lat !== null ? c.lat : "",
     c.lon !== null ? c.lon : "",
-  ].join(","));
-  const csv = [header, ...rows].join("\n");
+    "",
+  ]));
+  // townships
+  (data.townships || []).forEach(t => rows.push([
+    "township", t.name, st, "", "", "", "", t.geoid || ""
+  ]));
+  // special districts
+  (data.special_districts || []).forEach(s => rows.push([
+    "special_district", s.name, st, "", "", "", "", s.type || ""
+  ]));
+  const csv = [header, ...rows.map(r => r.map(v =>
+    /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v
+  ).join(","))].join("\n");
   const blob = new Blob([csv], {type: "text/csv"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1370,11 +1452,23 @@ function renderSignalsBanner() {
   }
 }
 
+function signalMatchesIcp(s) {
+  if (ui.sigIcp === "all") return true;
+  // Always include statewide / vendor-wide signals — they don't have a
+  // muni population, so the ICP filter shouldn't drop them.
+  if (s.state === "ALL" || (s.population || 0) === 0) return true;
+  const pop = s.population;
+  if (ui.sigIcp === "sub15k")  return pop < 15000;
+  if (ui.sigIcp === "under50k") return pop < 50000;
+  return true;
+}
+
 function filteredSignals() {
   const q = ui.sigSearch.toLowerCase();
   return SIGNALS.signals.filter(s => {
     if (ui.sigType !== "all" && s.type !== ui.sigType) return false;
     if (ui.sigSev !== "all" && s.severity !== ui.sigSev) return false;
+    if (!signalMatchesIcp(s)) return false;
     if (ui.sigStateFilter && s.state !== ui.sigStateFilter && s.state !== "ALL") return false;
     if (q && !(s.muni.toLowerCase().includes(q) || s.headline.toLowerCase().includes(q))) return false;
     return true;
@@ -1860,6 +1954,10 @@ document.getElementById("nameSearch").addEventListener("input", renderLists);
 document.querySelectorAll(".chip-sev").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll(".chip-sev").forEach(x => x.classList.remove("active"));
   b.classList.add("active"); ui.sigSev = b.dataset.sev; renderSignalsTab();
+}));
+document.querySelectorAll(".chip-sicp").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".chip-sicp").forEach(x => x.classList.remove("active"));
+  b.classList.add("active"); ui.sigIcp = b.dataset.sicp; renderSignalsTab();
 }));
 document.getElementById("sigSearch").addEventListener("input", e => {
   ui.sigSearch = e.target.value;

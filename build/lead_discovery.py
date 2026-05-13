@@ -90,6 +90,10 @@ PAIN_POINTS_BY_SIGNAL = {
         "Public RFP issued — clear timeline, public competition",
         "Procurement department managing process — bid response must hit compliance bar",
     ],
+    "installed_base": [
+        "Incumbent footprint confirmed from public artifacts — account is in a known replacement cycle",
+        "Displacement motion can target integration gaps, support friction, or price pressure",
+    ],
     "intent": [
         "Council has formally signaled intent — RFP not yet public, low competitor density",
         "Window to influence requirements before they're locked into a public spec",
@@ -123,6 +127,12 @@ PAIN_POINTS_BY_SIGNAL = {
 
 # ---- Recommended Approach -----------------------------------------------
 APPROACH_BY_SIGNAL = {
+    "installed_base": (
+        "Start with displacement discovery: reach out to the {persona} with a concise"
+        " incumbent-gap checklist for {bucket} municipalities in {state}."
+        " Ask for a 20-minute operational review and anchor on measurable wins"
+        " (time-to-close, month-end speed, resident payment UX)."
+    ),
     "intent": (
         "Reach out to the {persona} this week — RFP isn't public yet, "
         "so competitor density is near zero. Lead with: 'I noticed your "

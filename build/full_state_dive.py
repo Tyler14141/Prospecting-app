@@ -130,12 +130,20 @@ def main():
     print(f"  {len(customers)} confirmed customer approvals (verbatim $)")
     print(f"  {len(signals)} buying-intent / signal rows")
 
-    # Dedupe signals by (muni, state, type) — keep first hit
+    # Dedupe near-duplicates while preserving distinct evidence threads.
+    # Keep up to 3 rows per (muni, state, type), keyed by headline+details.
     keyed = {}
+    per_type_count = {}
     for s in signals:
-        k = (s["muni"], s["state"], s["type"])
+        group = (s["muni"], s["state"], s["type"])
+        sig_text = (str(s.get("headline", "")) + "|" + str(s.get("details", ""))).lower()
+        norm = "".join(ch if ch.isalnum() else " " for ch in sig_text)
+        k = group + (" ".join(norm.split())[:180],)
         if k not in keyed:
+            if per_type_count.get(group, 0) >= 3:
+                continue
             keyed[k] = s
+            per_type_count[group] = per_type_count.get(group, 0) + 1
     deduped = list(keyed.values())
     print(f"  {len(deduped)} unique muni-x-signal-type rows after dedupe")
 

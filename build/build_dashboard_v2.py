@@ -649,6 +649,7 @@ select.search{appearance:none;-webkit-appearance:none;background:#ffffff url('da
           <div class="ld-chip-grid">
             <label class="ld-chip"><input type="checkbox" data-sigt="rfp" checked>Active RFP</label>
             <label class="ld-chip"><input type="checkbox" data-sigt="intent" checked>Buying Intent (Mtg)</label>
+            <label class="ld-chip"><input type="checkbox" data-sigt="installed_base" checked>Installed base</label>
             <label class="ld-chip"><input type="checkbox" data-sigt="vendor_eol" checked>Vendor EOL</label>
             <label class="ld-chip"><input type="checkbox" data-sigt="leadership" checked>Leadership change</label>
             <label class="ld-chip"><input type="checkbox" data-sigt="audit" checked>Audit finding</label>
@@ -789,7 +790,7 @@ const ui = {
   // lead discovery
   ldStates: new Set(["NY", "PA", "ME", "OH"]),
   ldBuckets: new Set(["<1K", "1K-5K", "5K-10K", "10K-20K"]),
-  ldSigTypes: new Set(["rfp", "intent", "vendor_eol", "leadership", "audit", "cyber", "bond"]),
+  ldSigTypes: new Set(["rfp", "intent", "installed_base", "vendor_eol", "leadership", "audit", "cyber", "bond"]),
   ldFocus: "all",
   ldTimeframeDays: 60,
   ldPipeline: new Set(),
@@ -2147,7 +2148,11 @@ function filteredLeads() {
   const today = new Date(LEADS.today);
   return LEADS.leads.filter(l => {
     if (!ui.ldStates.has(l.state)) return false;
-    if (!ui.ldBuckets.has(l.bucket)) return false;
+    const isSmallBucket = l.bucket === "small (<15K)";
+    if (isSmallBucket) {
+      const hasAnySmall = ["<1K", "1K-5K", "5K-10K", "10K-20K"].some(b => ui.ldBuckets.has(b));
+      if (!hasAnySmall) return false;
+    } else if (!ui.ldBuckets.has(l.bucket)) return false;
     if (!ui.ldSigTypes.has(l.signal_type)) return false;
     if (!focusMatches(l)) return false;
     if (l.detected) {
@@ -2163,6 +2168,7 @@ function badgeClassForSignal(t) {
   return {
     "rfp": "red",
     "intent": "purple",
+    "installed_base": "blue",
     "vendor_eol": "green",
     "cyber": "red",
     "leadership": "orange",

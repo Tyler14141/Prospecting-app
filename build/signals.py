@@ -21,6 +21,7 @@ TODAY = date(2026, 5, 13)
 # Higher weight = more direct buying intent.
 SIGNAL_TYPES = {
     "rfp":         {"label": "Active RFP",          "weight": 5.0, "color": "#ef4444"},
+    "installed_base":{"label": "Installed base",      "weight": 2.8, "color": "#0ea5e9"},
     "vendor_eol":  {"label": "Vendor EOL / M&A",    "weight": 4.5, "color": "#10b981"},
     "cyber":       {"label": "Cyber incident",      "weight": 4.0, "color": "#dc2626"},
     "leadership":  {"label": "New leadership",      "weight": 3.0, "color": "#f59e0b"},

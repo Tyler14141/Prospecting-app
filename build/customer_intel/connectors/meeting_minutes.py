@@ -474,20 +474,32 @@ def extract_signals(text, source_url):
     include a meeting date if extractable."""
     out = []
     seen = set()
+    type_counts = {}
     for sig_pat, sig_type in SIGNAL_PHRASES:
         for m in sig_pat.finditer(text):
-            if sig_type in seen:
-                break
-            seen.add(sig_type)
+            if type_counts.get(sig_type, 0) >= 3:
+                continue
             # Wider context window for intent signals (the language matters)
             window = 250 if sig_type == "intent" else 180
             start = max(0, m.start() - 100)
             end = min(len(text), m.end() + window)
             snippet = re.sub(r"\s+", " ", text[start:end]).strip()
             # Intent signals: confirm the muni (not some other entity) is
-            # the subject. Reject if no muni qualifier appears in window.
-            if sig_type == "intent" and not INTENT_QUALIFIERS.search(snippet):
+            # the subject where possible. Keep procurement-context snippets
+            # even when muni qualifiers are sparse to improve recall.
+            if sig_type == "intent":
+                has_subject = bool(INTENT_QUALIFIERS.search(snippet))
+                has_procurement_context = bool(re.search(
+                    r"\b(rfp|request\s+for\s+proposal|erp|software|financial|technology|it|utility\s+billing|permitting)\b",
+                    snippet,
+                    re.I,
+                ))
+                if not (has_subject or has_procurement_context):
+                    continue
+            key = (sig_type, re.sub(r"\W+", " ", snippet.lower())[:140])
+            if key in seen:
                 continue
+            seen.add(key)
             # Try to extract a meeting date
             date_m = DATE_RE.search(snippet) or YEAR_ONLY_RE.search(snippet)
             meeting_date = None
@@ -504,7 +516,7 @@ def extract_signals(text, source_url):
                 "headline": _headline_for_intent(snippet, sig_type),
                 "severity": _severity_for(sig_type, snippet),
             })
-            break  # one signal of each type per PDF is enough
+            type_counts[sig_type] = type_counts.get(sig_type, 0) + 1
     return out
 
 

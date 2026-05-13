@@ -163,9 +163,17 @@ select.search{appearance:none;-webkit-appearance:none;background:#ffffff url('da
 .ld-results-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
 .ld-results{display:flex;flex-direction:column;gap:14px}
 .ld-empty-state{background:#fff;border:1px dashed var(--border-strong);border-radius:10px;padding:36px 28px;text-align:center}
-.ld-empty-state h3{font-size:16px;color:var(--text);margin:0 0 8px}
-.ld-empty-state p{font-size:13px;color:var(--muted);max-width:540px;margin:0 auto 12px;line-height:1.55}
-.ld-empty-state code{background:var(--card-alt);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--text)}
+.ld-empty-state .ld-empty-icon{font-size:42px;margin-bottom:8px;opacity:.6}
+.ld-empty-state h3{font-size:18px;color:var(--text);margin:0 0 8px;font-weight:700}
+.ld-empty-state p{font-size:13px;color:var(--text-soft);max-width:580px;margin:0 auto 12px;line-height:1.55}
+.ld-empty-state code{background:transparent;padding:0;font-size:12px;color:var(--text);font-family:ui-monospace,Menlo,Consolas,monospace}
+.ld-cmd-block{display:inline-block;text-align:left;background:#0f172a;color:#e5e7eb;border-radius:8px;padding:12px 14px;margin:6px auto 0;min-width:420px;max-width:560px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.ld-cmd-block code{color:#e5e7eb !important}
+.ld-cmd-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 0}
+.ld-cmd-row:not(:last-child){border-bottom:1px solid rgba(255,255,255,0.08)}
+.ld-copy-btn{background:transparent;border:1px solid rgba(255,255,255,0.2);color:#e5e7eb;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;transition:.15s}
+.ld-copy-btn:hover{background:rgba(255,255,255,0.1)}
+.ld-copy-btn.copied{background:var(--green);color:#fff;border-color:var(--green)}
 .ld-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:.15s;position:relative}
 .ld-card:hover{box-shadow:0 4px 10px rgba(0,0,0,0.08)}
 .ld-card.saved{border-color:var(--green);box-shadow:0 0 0 1px var(--green-soft) inset}
@@ -591,7 +599,8 @@ select.search{appearance:none;-webkit-appearance:none;background:#ffffff url('da
             <option value="9999">All time</option>
           </select>
         </div>
-        <button class="btn active" id="ldRun" style="width:100%;font-weight:700;padding:10px">Generate Leads</button>
+        <button class="btn active" id="ldRun" style="width:100%;font-weight:700;padding:10px;font-size:14px">🔍 Search</button>
+        <div id="ldSearchStatus" style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center"></div>
         <div style="margin-top:8px">
           <button class="btn" id="ldExport" style="width:100%">Export results to CSV</button>
         </div>
@@ -2169,16 +2178,24 @@ function renderLeadCard(lead) {
 }
 
 function renderLeadEmptyState() {
+  const cmds = [
+    "cd build",
+    "pip install beautifulsoup4 pdfplumber",
+    "python3 full_state_dive.py --states NY PA ME OH",
+    "bash refresh_after_scan.sh",
+  ];
+  const cmdHtml = cmds.map((c, i) =>
+    `<div class="ld-cmd-row">
+       <code>${c}</code>
+       <button class="ld-copy-btn" data-cmd="${c.replace(/"/g, '&quot;')}" title="Copy">📋</button>
+     </div>`).join("");
   return `<div class="ld-empty-state">
+    <div class="ld-empty-icon">🔍</div>
     <h3>No real leads loaded yet</h3>
-    <p>The Lead Discovery feed only shows leads from <strong>real data sources</strong> — no demo data appears here. To populate this feed with verified buying-intent signals from council meeting minutes across your target states:</p>
-    <p style="text-align:left;background:var(--card-alt);padding:12px 16px;border-radius:6px;display:inline-block">
-      <code style="display:block;margin-bottom:4px">cd build</code>
-      <code style="display:block;margin-bottom:4px">pip install beautifulsoup4 pdfplumber</code>
-      <code style="display:block;margin-bottom:4px">python3 full_state_dive.py --states NY PA ME OH</code>
-      <code style="display:block">bash refresh_after_scan.sh</code>
-    </p>
+    <p>The Lead Discovery feed only shows leads from <strong>real data sources</strong> — no demo data appears here. To populate this feed with verified buying-intent signals from council meeting minutes across your target states, run the state-dive locally:</p>
+    <div class="ld-cmd-block">${cmdHtml}</div>
     <p style="margin-top:14px">Each surfaced lead carries the verbatim quote from the meeting minutes plus a source-URL link to the original PDF for verification. The <strong>Buying Signals</strong> tab includes seeded demo data (clearly labeled) so you can preview the workflow — but those are excluded from this Lead Discovery feed by design.</p>
+    <p style="margin-top:10px;font-size:11px;color:var(--muted)">Note: this static HTML dashboard can't run the scraper itself — it needs Python + internet access to municipal websites, which a browser tab cannot do.</p>
   </div>`;
 }
 
@@ -2217,12 +2234,32 @@ function renderLeadDiscovery() {
   document.getElementById("ldResultsCount").textContent = visible.length;
   document.getElementById("ldPipelineCount").textContent = `(${ui.ldPipeline.size})`;
 
+  // Update search-status line under the Search button
+  const statusEl = document.getElementById("ldSearchStatus");
+  if (statusEl) {
+    if (LEADS.leads.length === 0) {
+      statusEl.innerHTML = '<span style="color:#b45309">⚠ No harvested data — run state dive (see results panel)</span>';
+    } else {
+      statusEl.innerHTML = `Found <strong style="color:var(--accent)">${visible.length}</strong> of ${LEADS.leads.length} real leads`;
+    }
+  }
+
   const c = document.getElementById("ldResults");
   if (visible.length === 0) {
-    // If LEADS itself is empty, show the empty-state prompt explaining
-    // how to run full_state_dive.py. Otherwise just say no filter match.
     if (LEADS.leads.length === 0) {
       c.innerHTML = renderLeadEmptyState();
+      // Wire up copy buttons
+      c.querySelectorAll(".ld-copy-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const cmd = btn.dataset.cmd;
+          try {
+            await navigator.clipboard.writeText(cmd);
+            btn.classList.add("copied");
+            btn.textContent = "✓";
+            setTimeout(() => { btn.classList.remove("copied"); btn.textContent = "📋"; }, 1200);
+          } catch (e) { /* clipboard unavailable */ }
+        });
+      });
     } else {
       c.innerHTML = '<div class="note" style="padding:24px;text-align:center;background:var(--card);border:1px dashed var(--border-strong);border-radius:8px">No leads match the current filter. Loosen states, buckets, signal types, or timeframe.</div>';
     }

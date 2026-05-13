@@ -16,6 +16,7 @@ TAM_JSON = os.path.join(OUT_DIR, "tam_data.json")
 COMP_JSON = os.path.join(OUT_DIR, "competitors_data.json")
 SIGNALS_JSON = os.path.join(OUT_DIR, "signals_data.json")
 GREENFIELD_JSON = os.path.join(OUT_DIR, "greenfield_data.json")
+LEADS_JSON = os.path.join(OUT_DIR, "lead_discovery_data.json")
 NAMES_JSON = os.path.join(HERE, "names_data.json")
 GEOJSON_PATH = os.path.join(HERE, "us_states.geojson")
 HTML_PATH = os.path.join(OUT_DIR, "Local_Government_TAM_Dashboard.html")
@@ -32,6 +33,8 @@ def build():
         sigs = json.load(f)
     with open(GREENFIELD_JSON) as f:
         gf = json.load(f)
+    with open(LEADS_JSON) as f:
+        leads = json.load(f)
     with open(GEOJSON_PATH) as f:
         geo = json.load(f)
 
@@ -41,6 +44,7 @@ def build():
     names_s = json.dumps(names, separators=(",", ":"))
     sigs_s = json.dumps(sigs, separators=(",", ":"))
     gf_s = json.dumps(gf, separators=(",", ":"))
+    leads_s = json.dumps(leads, separators=(",", ":"))
     geo_s = json.dumps(geo, separators=(",", ":"))
     tile_s = json.dumps(TILE_MAP)
 
@@ -49,6 +53,7 @@ def build():
                         .replace("__NAMES__", names_s)\
                         .replace("__SIGNALS__", sigs_s)\
                         .replace("__GREENFIELD__", gf_s)\
+                        .replace("__LEADS__", leads_s)\
                         .replace("__GEO__", geo_s)\
                         .replace("__TILEMAP__", tile_s)
 
@@ -194,6 +199,47 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
 .gf-persona{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted var(--border)}
 .gf-persona:last-child{border-bottom:none}
 .gf-persona .role{font-size:9px;color:var(--muted);text-transform:uppercase}
+/* Lead Discovery */
+.ld-form .ld-field{margin-bottom:12px}
+.ld-form .ld-field label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.ld-locked{background:#0b1220;border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:12px;color:var(--text)}
+.ld-state-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.ld-state-grid .ld-state{background:#0b1220;border:1px solid var(--border);color:var(--muted);padding:4px 0;border-radius:4px;font-size:11px;cursor:pointer;text-align:center}
+.ld-state-grid .ld-state.active{background:var(--accent);color:#0b1220;border-color:var(--accent);font-weight:600}
+.ld-chip-grid{display:flex;gap:4px;flex-wrap:wrap}
+.ld-chip{display:inline-flex;align-items:center;gap:4px;background:#0b1220;border:1px solid var(--border);padding:3px 8px;border-radius:999px;font-size:10px;cursor:pointer;color:var(--muted)}
+.ld-chip input{accent-color:var(--accent);margin:0}
+.ld-chip:has(input:checked){background:rgba(56,189,248,0.15);border-color:var(--accent);color:var(--text)}
+.ld-results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.ld-tabs{display:flex;gap:4px}
+.ld-results-tab{font-size:11px;padding:4px 10px}
+.ld-results-tab.active{background:var(--accent);color:#0b1220;border-color:var(--accent);font-weight:600}
+.ld-results{display:flex;flex-direction:column;gap:12px}
+.ld-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:14px 16px;transition:.15s}
+.ld-card:hover{border-color:var(--accent)}
+.ld-card.saved{border-left-color:#10b981}
+.ld-card .ld-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:10px}
+.ld-card .ld-card-title{font-size:15px;font-weight:700;color:var(--text)}
+.ld-card .ld-card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.ld-card .ld-badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;margin-bottom:8px}
+.ld-card .ld-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#fff;background:rgba(56,189,248,0.18);color:var(--accent)}
+.ld-card .ld-badge.green{background:rgba(16,185,129,0.18);color:#10b981}
+.ld-card .ld-badge.orange{background:rgba(245,158,11,0.18);color:#f59e0b}
+.ld-card .ld-badge.red{background:rgba(239,68,68,0.18);color:#ef4444}
+.ld-card .ld-badge.purple{background:rgba(139,92,246,0.18);color:#a78bfa}
+.ld-card .ld-detail-quote{background:#0b1220;border-left:2px solid var(--accent);padding:8px 12px;margin:8px 0;font-size:12px;color:var(--text);font-style:italic}
+.ld-card .ld-section{margin-top:10px}
+.ld-card .ld-section h5{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:0 0 4px}
+.ld-card .ld-pain-list{list-style:disc;margin:0;padding-left:20px;font-size:12px;color:var(--text)}
+.ld-card .ld-pain-list li{margin-bottom:2px}
+.ld-card .ld-approach{font-size:12px;color:var(--text);background:#0b1220;border:1px solid var(--border);padding:8px 10px;border-radius:6px}
+.ld-card .ld-meta-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:8px;font-size:11px;color:var(--muted)}
+.ld-card .ld-meta-row strong{color:var(--text);font-weight:500;display:block}
+.ld-card .ld-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.ld-save-btn{font-size:11px;padding:5px 12px;background:var(--accent);color:#0b1220;border:1px solid var(--accent);border-radius:6px;font-weight:600;cursor:pointer}
+.ld-save-btn:hover{filter:brightness(1.1)}
+.ld-save-btn.saved{background:#10b981;border-color:#10b981;color:#0b1220}
+.ld-acv{font-weight:700;font-size:14px;color:#10b981}
 .sm-card{background:#0b1220;border:1px solid var(--border);border-radius:6px;padding:10px}
 .sm-card .sm-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
 .sm-card .sm-name{font-size:12px;font-weight:600;color:var(--text)}
@@ -220,6 +266,7 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
   <button data-tab="competitive">Competitive Penetration</button>
   <button data-tab="signals">Buying Signals</button>
   <button data-tab="prospects">Top Prospects</button>
+  <button data-tab="discovery">Lead Discovery</button>
 </nav>
 
 <main>
@@ -507,6 +554,96 @@ select.search{appearance:none;-webkit-appearance:none;background:#0b1220 url('da
   </div>
 </section>
 
+<!-- ===== TAB 7: LEAD DISCOVERY (lead-gen workflow) ===== -->
+<section class="tab" id="tab-discovery">
+  <div class="grid" style="grid-template-columns:300px 1fr;gap:18px">
+    <!-- LEFT: Search criteria -->
+    <div class="card" style="position:sticky;top:18px;align-self:start">
+      <h3>Search Criteria</h3>
+      <div class="ld-form">
+        <div class="ld-field">
+          <label>Industry</label>
+          <div class="ld-locked">Local / Municipal Government</div>
+        </div>
+        <div class="ld-field">
+          <label>Solution focus</label>
+          <select class="search" id="ldFocus">
+            <option value="all">All solutions</option>
+            <option value="erp">ERP / Financials</option>
+            <option value="utility">Utility Billing</option>
+            <option value="permitting">Permitting / EnerGov</option>
+            <option value="public_safety">Public Safety</option>
+            <option value="courts">Courts / Justice</option>
+            <option value="gis">GIS</option>
+            <option value="tax">Tax / Assessing</option>
+          </select>
+        </div>
+        <div class="ld-field">
+          <label>States</label>
+          <div class="ld-state-grid" id="ldStates"></div>
+        </div>
+        <div class="ld-field">
+          <label>Population (ICP)</label>
+          <div class="ld-chip-grid">
+            <label class="ld-chip"><input type="checkbox" data-pop="<1K" checked>&lt;1K</label>
+            <label class="ld-chip"><input type="checkbox" data-pop="1K-5K" checked>1K-5K</label>
+            <label class="ld-chip"><input type="checkbox" data-pop="5K-10K" checked>5K-10K</label>
+            <label class="ld-chip"><input type="checkbox" data-pop="10K-20K" checked>10K-20K</label>
+            <label class="ld-chip"><input type="checkbox" data-pop="20K-50K">20K-50K</label>
+            <label class="ld-chip"><input type="checkbox" data-pop="50K-100K">50K-100K</label>
+            <label class="ld-chip"><input type="checkbox" data-pop="100K+">100K+</label>
+          </div>
+        </div>
+        <div class="ld-field">
+          <label>Signal types</label>
+          <div class="ld-chip-grid">
+            <label class="ld-chip"><input type="checkbox" data-sigt="rfp" checked>Active RFP</label>
+            <label class="ld-chip"><input type="checkbox" data-sigt="intent" checked>Buying Intent (Mtg minutes)</label>
+            <label class="ld-chip"><input type="checkbox" data-sigt="vendor_eol" checked>Vendor EOL</label>
+            <label class="ld-chip"><input type="checkbox" data-sigt="leadership" checked>New leadership</label>
+            <label class="ld-chip"><input type="checkbox" data-sigt="audit" checked>Audit finding</label>
+            <label class="ld-chip"><input type="checkbox" data-sigt="cyber" checked>Cyber incident</label>
+            <label class="ld-chip"><input type="checkbox" data-sigt="bond" checked>Bond / capex</label>
+            <label class="ld-chip"><input type="checkbox" data-sigt="compliance">Compliance</label>
+          </div>
+        </div>
+        <div class="ld-field">
+          <label>Detected within</label>
+          <select class="search" id="ldTimeframe">
+            <option value="30">Last 30 days</option>
+            <option value="60" selected>Last 60 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="180">Last 6 months</option>
+            <option value="9999">All time</option>
+          </select>
+        </div>
+        <button class="btn" id="ldRun" style="background:var(--accent);color:#0b1220;border-color:var(--accent);font-weight:700;width:100%">Generate Leads</button>
+        <div style="margin-top:8px">
+          <button class="btn" id="ldExport" style="width:100%">Export results to CSV</button>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">My Pipeline <span id="ldPipelineCount" style="color:var(--accent)">(0)</span></h4>
+          <button class="btn" id="ldPipelineExport" style="width:100%">Export pipeline to CSV</button>
+          <button class="btn" id="ldPipelineClear" style="width:100%;margin-top:4px">Clear pipeline</button>
+          <div class="note" style="margin-top:6px">Pipeline is in-memory only; export to keep it.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Lead Generation Results -->
+    <div>
+      <div class="ld-results-header">
+        <h3 style="margin:0;font-size:14px"><span id="ldResultsCount">0</span> Lead Generation Results</h3>
+        <div class="ld-tabs">
+          <button class="btn ld-results-tab active" data-rtab="all">Discovery feed</button>
+          <button class="btn ld-results-tab" data-rtab="pipeline">My pipeline</button>
+        </div>
+      </div>
+      <div id="ldResults" class="ld-results"></div>
+    </div>
+  </div>
+</section>
+
 <!-- ===== TAB 6: TOP PROSPECTS ===== -->
 <section class="tab" id="tab-prospects">
   <div class="grid kpis" id="gfKpis"></div>
@@ -553,6 +690,7 @@ const COMP = __COMP__;
 const NAMES = __NAMES__;
 const SIGNALS = __SIGNALS__;
 const GREENFIELD = __GREENFIELD__;
+const LEADS = __LEADS__;
 const GEO = __GEO__;
 const TILEMAP = __TILEMAP__;
 
@@ -597,6 +735,14 @@ const ui = {
   gfStatus: "all",
   gfSearch: "",
   gfFocusKey: null,
+  // lead discovery
+  ldStates: new Set(["NY", "PA", "ME", "OH"]),
+  ldBuckets: new Set(["<1K", "1K-5K", "5K-10K", "10K-20K"]),
+  ldSigTypes: new Set(["rfp", "intent", "vendor_eol", "leadership", "audit", "cyber", "bond"]),
+  ldFocus: "all",
+  ldTimeframeDays: 60,
+  ldPipeline: new Set(),
+  ldResultsTab: "all",     // "all" | "pipeline"
 };
 
 // ===== Tabs =====
@@ -1909,6 +2055,196 @@ function renderProspectsTab() {
   renderGfDetail();
 }
 
+// ===== Lead Discovery =====
+function focusMatches(lead) {
+  if (ui.ldFocus === "all") return true;
+  // Best-effort match on incumbent product or signal headline keywords
+  const m = (lead.incumbent && lead.incumbent.product || "") + " " +
+            (lead.headline || "") + " " + (lead.details || "");
+  const t = m.toLowerCase();
+  switch (ui.ldFocus) {
+    case "erp":           return /\b(erp|munis|financial mgmt|financials|caselle connect|gworks suite)\b/i.test(t);
+    case "utility":       return /utility billing|water|sewer|muni-link/i.test(t);
+    case "permitting":    return /permit|energov|civic access|code enforcement|building dep/i.test(t);
+    case "public_safety": return /public safety|cad|rms|new world/i.test(t);
+    case "courts":        return /court|odyssey/i.test(t);
+    case "gis":           return /gis|cartegraph|mapping/i.test(t);
+    case "tax":           return /tax|assessing/i.test(t);
+  }
+  return true;
+}
+
+function filteredLeads() {
+  const today = new Date(LEADS.today);
+  return LEADS.leads.filter(l => {
+    if (!ui.ldStates.has(l.state)) return false;
+    if (!ui.ldBuckets.has(l.bucket)) return false;
+    if (!ui.ldSigTypes.has(l.signal_type)) return false;
+    if (!focusMatches(l)) return false;
+    if (l.detected) {
+      const det = new Date(l.detected);
+      const days = Math.round((today - det) / (1000*60*60*24));
+      if (days > ui.ldTimeframeDays) return false;
+    }
+    return true;
+  });
+}
+
+function badgeClassForSignal(t) {
+  return {
+    "rfp": "red",
+    "intent": "purple",
+    "vendor_eol": "green",
+    "cyber": "red",
+    "leadership": "orange",
+    "audit": "orange",
+    "bond": "",
+    "compliance": "purple",
+  }[t] || "";
+}
+
+function renderLeadCard(lead) {
+  const saved = ui.ldPipeline.has(lead.lead_id);
+  const acv = lead.acv || {};
+  const inc = lead.incumbent
+    ? `${lead.incumbent.vendor}` : '<span style="color:#10b981">GREENFIELD</span>';
+  const popStr = lead.population ? fmtInt(lead.population) + ' pop' : '';
+  const acvStr = acv.mid
+    ? `<span class="ld-acv">${fmtUsd(acv.mid)}</span> <span style="color:var(--muted);font-size:11px">(${fmtUsd(acv.low)}–${fmtUsd(acv.high)})</span>`
+    : '';
+  const deadline = lead.expires ? `Deadline: <strong>${lead.expires}</strong>` : '';
+  const detected = lead.detected ? `Detected: <strong>${lead.detected}</strong>` : '';
+  const sigClass = badgeClassForSignal(lead.signal_type);
+
+  return `<div class="ld-card ${saved ? 'saved' : ''}">
+    <div class="ld-card-head">
+      <div>
+        <div class="ld-card-title">${lead.muni}, ${lead.state}</div>
+        <div class="ld-card-sub">${popStr} · ${lead.bucket || ''} · Part of: ${lead.state} local government</div>
+      </div>
+      <button class="ld-save-btn ${saved ? 'saved' : ''}" data-lid="${lead.lead_id}">
+        ${saved ? '✓ Saved' : '+ Save to pipeline'}
+      </button>
+    </div>
+    <div class="ld-badge-row">
+      <span class="ld-badge ${sigClass}">${lead.signal_label}</span>
+      <span class="ld-badge ${lead.severity === 'high' ? 'red' : lead.severity === 'medium' ? 'orange' : ''}">Severity: ${lead.severity}</span>
+      ${lead.greenfield_score ? `<span class="ld-badge green">Score ${lead.greenfield_score}/100</span>` : ''}
+      <span class="ld-badge">Buyer: ${lead.primary_buyer}</span>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-top:4px">${lead.headline}</div>
+    <div class="ld-detail-quote">${lead.details}</div>
+    <div class="ld-meta-row">
+      <div>Estimated ACV<strong>${acvStr || '—'}</strong></div>
+      <div>Incumbent<strong>${inc}</strong></div>
+      <div>${detected || ''}</div>
+      ${deadline ? '<div>' + deadline + '</div>' : ''}
+      <div>Source<strong style="font-size:10px;color:var(--muted);font-weight:400">${lead.source || ''}</strong></div>
+    </div>
+    <div class="ld-section">
+      <h5>Pain Points</h5>
+      <ul class="ld-pain-list">${(lead.pain_points || []).map(p => '<li>' + p + '</li>').join('')}</ul>
+    </div>
+    <div class="ld-section">
+      <h5>Recommended Approach</h5>
+      <div class="ld-approach">${lead.recommended_approach}</div>
+    </div>
+  </div>`;
+}
+
+function renderLeadDiscovery() {
+  // State chip grid
+  const stCont = document.getElementById("ldStates");
+  if (stCont.dataset.filled !== "1") {
+    stCont.innerHTML = STATES.map(s =>
+      `<div class="ld-state ${ui.ldStates.has(s) ? 'active' : ''}" data-st="${s}">${s}</div>`
+    ).join("");
+    stCont.dataset.filled = "1";
+    stCont.querySelectorAll(".ld-state").forEach(el => {
+      el.addEventListener("click", () => {
+        const s = el.dataset.st;
+        if (ui.ldStates.has(s)) ui.ldStates.delete(s);
+        else ui.ldStates.add(s);
+        el.classList.toggle("active");
+        renderLeadDiscovery();
+      });
+    });
+  }
+  // Results
+  const filt = filteredLeads();
+  let visible;
+  if (ui.ldResultsTab === "pipeline") {
+    visible = filt.filter(l => ui.ldPipeline.has(l.lead_id));
+    // Also include pipeline items that don't match the current filter
+    LEADS.leads.forEach(l => {
+      if (ui.ldPipeline.has(l.lead_id) && !visible.some(v => v.lead_id === l.lead_id)) {
+        visible.push(l);
+      }
+    });
+  } else {
+    visible = filt;
+  }
+  document.getElementById("ldResultsCount").textContent = visible.length;
+  document.getElementById("ldPipelineCount").textContent = `(${ui.ldPipeline.size})`;
+
+  const c = document.getElementById("ldResults");
+  if (visible.length === 0) {
+    c.innerHTML = '<div class="note" style="padding:24px;text-align:center;background:var(--card);border:1px dashed var(--border);border-radius:8px">No leads match the current filter. Loosen states, buckets, signal types, or timeframe.</div>';
+  } else {
+    c.innerHTML = visible.map(renderLeadCard).join("");
+    c.querySelectorAll(".ld-save-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.lid;
+        if (ui.ldPipeline.has(id)) ui.ldPipeline.delete(id);
+        else ui.ldPipeline.add(id);
+        renderLeadDiscovery();
+      });
+    });
+  }
+}
+
+function exportLeadsCsv(scope) {
+  const leads = scope === "pipeline"
+    ? LEADS.leads.filter(l => ui.ldPipeline.has(l.lead_id))
+    : filteredLeads();
+  if (!leads.length) return;
+  const cols = ["lead_id", "muni", "state", "population", "bucket",
+                 "signal_type", "signal_label", "severity",
+                 "detected", "expires", "headline", "details", "source",
+                 "incumbent_vendor", "primary_buyer",
+                 "acv_low", "acv_mid", "acv_high", "acv_impl",
+                 "greenfield_score", "pain_points", "recommended_approach"];
+  const escape = v => {
+    if (v === null || v === undefined) return "";
+    const s = String(v).replace(/"/g, '""');
+    return /[",\n]/.test(s) ? '"' + s + '"' : s;
+  };
+  const rows = [cols.join(",")];
+  leads.forEach(l => {
+    const inc = l.incumbent || {};
+    const acv = l.acv || {};
+    rows.push([
+      l.lead_id, l.muni, l.state, l.population, l.bucket,
+      l.signal_type, l.signal_label, l.severity,
+      l.detected, l.expires, l.headline, l.details, l.source,
+      inc.vendor || "", l.primary_buyer,
+      acv.low, acv.mid, acv.high, acv.impl_oneoff,
+      l.greenfield_score,
+      (l.pain_points || []).join(" | "),
+      l.recommended_approach,
+    ].map(escape).join(","));
+  });
+  const blob = new Blob([rows.join("\n")], {type: "text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = scope === "pipeline"
+    ? `pipeline_${LEADS.today}.csv`
+    : `lead_discovery_${LEADS.today}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 // ===== Wire up controls =====
 document.querySelectorAll("[data-metric]").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll("[data-metric]").forEach(x => x.classList.remove("active"));
@@ -1949,6 +2285,38 @@ document.querySelectorAll(".chip-gfstatus").forEach(b => b.addEventListener("cli
   b.classList.add("active"); ui.gfStatus = b.dataset.gfstatus; renderProspectsTab();
 }));
 document.getElementById("gfExport").addEventListener("click", exportGfCsv);
+// Lead Discovery wire-up
+document.getElementById("ldFocus").addEventListener("change", e => {
+  ui.ldFocus = e.target.value; renderLeadDiscovery();
+});
+document.getElementById("ldTimeframe").addEventListener("change", e => {
+  ui.ldTimeframeDays = parseInt(e.target.value, 10); renderLeadDiscovery();
+});
+document.querySelectorAll('[data-pop]').forEach(c => c.addEventListener("change", e => {
+  const b = e.target.dataset.pop;
+  if (e.target.checked) ui.ldBuckets.add(b);
+  else ui.ldBuckets.delete(b);
+  renderLeadDiscovery();
+}));
+document.querySelectorAll('[data-sigt]').forEach(c => c.addEventListener("change", e => {
+  const s = e.target.dataset.sigt;
+  if (e.target.checked) ui.ldSigTypes.add(s);
+  else ui.ldSigTypes.delete(s);
+  renderLeadDiscovery();
+}));
+document.getElementById("ldRun").addEventListener("click", renderLeadDiscovery);
+document.getElementById("ldExport").addEventListener("click", () => exportLeadsCsv("results"));
+document.getElementById("ldPipelineExport").addEventListener("click", () => exportLeadsCsv("pipeline"));
+document.getElementById("ldPipelineClear").addEventListener("click", () => {
+  ui.ldPipeline.clear();
+  renderLeadDiscovery();
+});
+document.querySelectorAll(".ld-results-tab").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".ld-results-tab").forEach(x => x.classList.remove("active"));
+  b.classList.add("active");
+  ui.ldResultsTab = b.dataset.rtab;
+  renderLeadDiscovery();
+}));
 document.getElementById("nameSearch").addEventListener("input", renderLists);
 
 document.querySelectorAll(".chip-sev").forEach(b => b.addEventListener("click", () => {
@@ -1980,6 +2348,7 @@ renderChoropleth();
 renderSignalsBanner();
 renderSignalsTab();
 renderProspectsTab();
+renderLeadDiscovery();
 
 // Auto-select biggest state for names tab so it's not empty
 selectState(STATES.map(s => [s, TAM.states[s].total_entities]).sort((a,b) => b[1]-a[1])[0][0]);

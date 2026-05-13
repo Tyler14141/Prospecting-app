@@ -135,15 +135,17 @@ def main():
                      f"{os.path.getsize(HTML)/1024:.1f} KB")
     all_ok &= check("Chart.js CDN reference present",
                      "chart.js" in html.lower())
-    all_ok &= check("all six tab sections present",
+    all_ok &= check("all seven tab sections present",
                      all(s in html for s in
                          ('id="tab-overview"', 'id="tab-heatmaps"',
                           'id="tab-names"', 'id="tab-competitive"',
-                          'id="tab-signals"', 'id="tab-prospects"')))
+                          'id="tab-signals"', 'id="tab-prospects"',
+                          'id="tab-discovery"')))
     all_ok &= check("embedded JSON data present",
                      "TAM = " in html and "COMP = " in html
                      and "NAMES = " in html and "TILEMAP = " in html
-                     and "SIGNALS = " in html and "GREENFIELD = " in html)
+                     and "SIGNALS = " in html and "GREENFIELD = " in html
+                     and "LEADS = " in html)
     all_ok &= check("no localStorage / sessionStorage",
                      "localStorage" not in html and "sessionStorage" not in html)
     all_ok &= check("no fetch() calls",
@@ -152,7 +154,7 @@ def main():
                      not any(p in html for p in ("__TAM__", "__COMP__",
                                                   "__NAMES__", "__TILEMAP__",
                                                   "__GEO__", "__SIGNALS__",
-                                                  "__GREENFIELD__")))
+                                                  "__GREENFIELD__", "__LEADS__")))
     all_ok &= check("d3 CDN reference present",
                      "d3@7" in html.lower() or "d3.geojson" in html.lower()
                      or "d3.geoalbers" in html.lower() or 'd3.min.js' in html)

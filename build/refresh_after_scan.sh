@@ -15,6 +15,7 @@ python3 build_workbook.py
 python3 add_competitor_tab.py
 python3 build_signals_data.py
 python3 build_greenfield_data.py
+python3 build_lead_discovery_data.py
 
 echo
 echo "=== rebuilding dashboard ==="

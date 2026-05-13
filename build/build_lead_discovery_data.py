@@ -37,12 +37,20 @@ def build():
     # Pre-compute greenfield score per muni so we can attach it
     indices = build_indices()
 
-    # Combine seeded signals with any harvested-from-meetings signals
-    seed_count = len(SIGNALS)
+    # Real-leads-only: skip anything flagged `demo: True`. The seeded
+    # signals in signals.SIGNALS are all demo entries and shouldn't
+    # appear as "leads to call" — only signals harvested from real
+    # data sources (full_state_dive.py, customer_intel connectors, RFP
+    # awards scraper) should populate the Lead Discovery feed.
     harvested = _load_harvested_signals()
-    all_signals = list(SIGNALS) + list(harvested)
-    if harvested:
-        print(f"  loaded {len(harvested)} harvested signals from {HARVESTED_PATH}")
+    real_seed = [s for s in SIGNALS if not s.get("demo", True)]
+    all_signals = real_seed + list(harvested)
+    print(f"  seeded real (non-demo) signals: {len(real_seed)}")
+    print(f"  harvested signals from {HARVESTED_PATH}: {len(harvested)}")
+    if not all_signals:
+        print(f"  WARNING: no real leads available — Lead Discovery feed will be empty.")
+        print(f"  Run `python3 full_state_dive.py` to harvest real intent signals")
+        print(f"  from council meeting minutes across NY/PA/ME/OH.")
 
     leads = []
     for s in all_signals:

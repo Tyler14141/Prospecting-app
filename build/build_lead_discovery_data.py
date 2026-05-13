@@ -20,14 +20,32 @@ from signals import SIGNALS, SIGNAL_TYPES, signal_score, TODAY
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, "..", "TAM", "lead_discovery_data.json"))
+HARVESTED_PATH = os.path.join(HERE, "harvested_signals.json")
+
+
+def _load_harvested_signals():
+    """Pull in harvested intent signals from full_state_dive.py output, if
+    present. Format mirrors signals.SIGNALS so it concatenates cleanly."""
+    if not os.path.exists(HARVESTED_PATH):
+        return []
+    with open(HARVESTED_PATH) as f:
+        d = json.load(f)
+    return d.get("signals", [])
 
 
 def build():
     # Pre-compute greenfield score per muni so we can attach it
     indices = build_indices()
 
+    # Combine seeded signals with any harvested-from-meetings signals
+    seed_count = len(SIGNALS)
+    harvested = _load_harvested_signals()
+    all_signals = list(SIGNALS) + list(harvested)
+    if harvested:
+        print(f"  loaded {len(harvested)} harvested signals from {HARVESTED_PATH}")
+
     leads = []
-    for s in SIGNALS:
+    for s in all_signals:
         score = signal_score(s, TODAY)
         if score <= 0:
             continue

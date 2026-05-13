@@ -142,23 +142,140 @@ DATE_RE = re.compile(
 
 YEAR_ONLY_RE = re.compile(r"\b(20\d{2})\b")
 
-# Buying-signal patterns (separate from incumbent confirmations)
+# Buying-signal patterns (separate from incumbent confirmations).
+# These extract one signal per pattern-match per PDF. The intent
+# patterns are the highest-value: they catch pre-RFP buying intent
+# in meeting minutes BEFORE the public RFP is issued.
 SIGNAL_PHRASES = [
+    # ===== INTENT — pre-RFP buying intent (highest value) =====
+    # Each pattern is independently triggerable. We don't require a
+    # leading "decision verb" because the trigger phrase itself
+    # (motion to issue RFP, modernization study, scope of work for
+    # ERP RFP, capital budget for software, etc.) is enough evidence.
+
+    # Motion to issue RFP
+    (re.compile(
+        r"(?:motion|approv\w*|authoriz\w*|direct\w*|vote[d]?)"
+        r"[\s\S]{0,120}?"
+        r"issue\s+(?:an?\s+)?(?:RFP|RFI|request\s+for\s+proposal|request\s+for\s+information)",
+        re.I), "intent"),
+    # Issue RFP (without preceding verb — still strong signal)
+    (re.compile(
+        r"(?:issue|will\s+issue|to\s+issue)\s+(?:an?\s+)?"
+        r"(?:RFP|RFI|request\s+for\s+proposal)\s+for\s+"
+        r"(?:ERP|software|financial|IT|technology|utility\s+billing|permitting)",
+        re.I), "intent"),
+    # Selection committee
+    (re.compile(
+        r"(?:authoriz\w*|approv\w*|establish\w*|form\w*|create\w*|direct\w*)"
+        r"[\s\S]{0,80}?(?:technology|ERP|software|IT|vendor)\s+"
+        r"(?:selection\s+)?committee",
+        re.I), "intent"),
+    # Modernization / assessment / feasibility study
+    (re.compile(
+        r"(?:motion|approv\w*|authoriz\w*|commission\w*|conduct\w*|undertake)"
+        r"[\s\S]{0,80}?"
+        r"(?:technology|modernization|assessment|feasibility|ERP)\s+study",
+        re.I), "intent"),
+    # Modernization study standalone (no verb required)
+    (re.compile(
+        r"(?:technology|modernization|ERP)\s+study\s+"
+        r"(?:to\s+commence|will\s+commence|will\s+begin)",
+        re.I), "intent"),
+    # Reserve fund / budget for software
+    (re.compile(
+        r"(?:establish\w*|approv\w*|create\w*|set\s+aside|design\w*)"
+        r"[\s\S]{0,60}?"
+        r"(?:reserve|fund|budget\s+line\s+item|appropriation|allocation)"
+        r"[\s\S]{0,60}?"
+        r"(?:software|ERP|financial\s+system|technology|IT\s+modernization)",
+        re.I), "intent"),
+    # Capital budget / appropriation $X for ERP/software
+    (re.compile(
+        r"capital\s+(?:budget|appropriation|line\s+item)"
+        r"[\s\S]{0,60}?\$[\d,]+"
+        r"[\s\S]{0,40}?(?:ERP|software|financial|IT|technology|modernization)",
+        re.I), "intent"),
+    # Scope of work for ERP RFP
+    (re.compile(
+        r"scope\s+of\s+work"
+        r"[\s\S]{0,80}?(?:ERP|RFP|software|financial|IT)",
+        re.I), "intent"),
+    # Vendor presentation received
+    (re.compile(
+        r"(?:received?|heard)\s+(?:a\s+|the\s+)?(?:vendor\s+|sales\s+|product\s+)?"
+        r"presentation\s+(?:from|by)\s+([A-Z][A-Za-z&\.\-' ]{2,40})",
+        re.I), "intent"),
+    # Non-renewal / contract termination
+    (re.compile(
+        r"(?:non[-\s]renewal\s+(?:notice|letter)|"
+        r"(?:terminate|end|discontinue|cancel)\s+(?:the\s+|our\s+|current\s+)?"
+        r"(?:contract|agreement)\s+with\s+[A-Z])",
+        re.I), "intent"),
+    # Discussion of replacement/modernization (intent — not vendor EOL)
+    (re.compile(
+        r"(?:discuss\w*|consider\w*|evaluat\w*|explor\w*)"
+        r"[\s\S]{0,40}?"
+        r"(?:replacing|modernizing|upgrading|replacement\s+of)"
+        r"[\s\S]{0,40}?"
+        r"(?:financial|ERP|software|system|billing|permitting|vendor|tax)",
+        re.I), "intent"),
+
+    # ===== RFP committee / formal process =====
     (re.compile(r"RFP\s+committee", re.I),                    "rfp"),
-    (re.compile(r"request\s+for\s+proposal", re.I),           "rfp"),
-    (re.compile(r"replac(?:e|ement|ing)\s+(?:our|the)\s+", re.I), "vendor_eol"),
-    (re.compile(r"end\s+of\s+life|sunsetting?", re.I),       "vendor_eol"),
-    (re.compile(r"cyber(?:\s*security)?\s+incident", re.I),   "cyber"),
-    (re.compile(r"(?:ransomware|data\s+breach)", re.I),       "cyber"),
-    (re.compile(r"new\s+(?:finance\s+director|city\s+manager|cfo|cio)", re.I), "leadership"),
-    (re.compile(r"audit\s+(?:finding|deficienc)", re.I),     "audit"),
+    (re.compile(r"request\s+for\s+proposal\s+(?:was\s+)?(?:issued|published|posted)",
+                 re.I), "rfp"),
+
+    # ===== Vendor EOL / replacement =====
+    (re.compile(r"replac(?:e|ement|ing)\s+(?:our|the)\s+(?:current|existing)?\s*"
+                 r"(?:legacy\s+)?(?:financial|ERP|software|system|vendor)",
+                 re.I), "vendor_eol"),
+    (re.compile(r"end\s+of\s+life|sunsetting?|EOL\s+notice", re.I), "vendor_eol"),
+
+    # ===== Cyber =====
+    (re.compile(r"cyber(?:\s*security)?\s+incident", re.I),    "cyber"),
+    (re.compile(r"(?:ransomware|data\s+breach|network\s+intrusion)", re.I),
+     "cyber"),
+
+    # ===== Leadership =====
+    (re.compile(r"appoint(?:ed|ing)?\s+(?:a\s+)?new\s+"
+                 r"(?:finance\s+director|city\s+manager|town\s+manager|"
+                 r"administrator|CFO|CIO|IT\s+director|clerk-?treasurer)",
+                 re.I), "leadership"),
+    (re.compile(r"welcome\s+(?:our\s+)?new\s+(?:finance\s+director|CFO|CIO)",
+                 re.I), "leadership"),
+
+    # ===== Audit =====
+    (re.compile(r"audit\s+(?:finding|deficienc|material\s+weakness)", re.I),
+     "audit"),
+    (re.compile(r"(?:state|external)\s+auditor\s+(?:identified|cited|flagged)",
+                 re.I), "audit"),
+
+    # ===== Bond / capex =====
+    (re.compile(r"(?:GO|general\s+obligation)\s+bond.*(?:software|IT|technology|ERP)",
+                 re.I), "bond"),
+    (re.compile(r"capital\s+appropriation.*(?:software|IT|ERP)",
+                 re.I), "bond"),
 ]
+
+
+# Words that indicate the muni is the SUBJECT of the intent (not just
+# discussing some other entity). Used to filter out false positives like
+# "the State of NY plans to issue an RFP for ..." (not relevant).
+INTENT_QUALIFIERS = re.compile(
+    r"\b(?:city|town|village|borough|township|county|board|council|"
+    r"municipal(?:ity)?|administration)\b", re.I)
 
 
 def slugify(name):
     n = re.sub(r"[^a-z0-9 \-']", "", name.lower())
     n = n.replace("'", "").replace(" ", "").replace("-", "")
     return n
+
+
+def _today_iso():
+    from datetime import date
+    return date.today().isoformat()
 
 
 # ---- HTTP helpers --------------------------------------------------------
@@ -351,24 +468,79 @@ def extract_approvals(text, source_url):
 
 
 def extract_signals(text, source_url):
-    """Return list of buying-signal records found in the text."""
+    """Return list of buying-signal records found in the text. Each
+    record carries a verbatim snippet with ~250 chars of context, which
+    is what gets surfaced in the Lead Discovery card. Intent signals
+    include a meeting date if extractable."""
     out = []
     seen = set()
     for sig_pat, sig_type in SIGNAL_PHRASES:
-        m = sig_pat.search(text)
-        if m:
+        for m in sig_pat.finditer(text):
             if sig_type in seen:
-                continue
+                break
             seen.add(sig_type)
-            start = max(0, m.start() - 80)
-            end = min(len(text), m.end() + 120)
+            # Wider context window for intent signals (the language matters)
+            window = 250 if sig_type == "intent" else 180
+            start = max(0, m.start() - 100)
+            end = min(len(text), m.end() + window)
             snippet = re.sub(r"\s+", " ", text[start:end]).strip()
+            # Intent signals: confirm the muni (not some other entity) is
+            # the subject. Reject if no muni qualifier appears in window.
+            if sig_type == "intent" and not INTENT_QUALIFIERS.search(snippet):
+                continue
+            # Try to extract a meeting date
+            date_m = DATE_RE.search(snippet) or YEAR_ONLY_RE.search(snippet)
+            meeting_date = None
+            if date_m:
+                try:
+                    meeting_date = date_m.group(0)
+                except IndexError:
+                    pass
             out.append({
                 "type": sig_type,
                 "snippet": snippet,
+                "meeting_date": meeting_date,
                 "source_url": source_url,
+                "headline": _headline_for_intent(snippet, sig_type),
+                "severity": _severity_for(sig_type, snippet),
             })
+            break  # one signal of each type per PDF is enough
     return out
+
+
+def _headline_for_intent(snippet, sig_type):
+    """Build a short, sales-friendly headline from a signal snippet."""
+    if sig_type == "intent":
+        # Pick the verbiest fragment around 'motion to ...' or 'authoriz...'
+        m = re.search(r"motion\s+to\s+\w[\w\s\-]{4,80}", snippet, re.I)
+        if m:
+            h = m.group(0).strip()
+            return h[:90] + ("..." if len(h) > 90 else "")
+        m = re.search(r"authoriz\w+\s+\w[\w\s\-]{4,80}", snippet, re.I)
+        if m:
+            return m.group(0).strip()[:90]
+        m = re.search(r"establish(?:ed|ing)?\s+\w[\w\s\-]{4,80}", snippet, re.I)
+        if m:
+            return m.group(0).strip()[:90]
+        return "Pre-RFP buying intent in council minutes"
+    return {
+        "rfp": "RFP committee / public RFP discussion",
+        "vendor_eol": "Vendor replacement / EOL discussion",
+        "cyber": "Cyber incident reported",
+        "leadership": "New leadership / staff change",
+        "audit": "Audit finding flagged",
+        "bond": "Capital bond with IT line item",
+    }.get(sig_type, "Buying signal")
+
+
+def _severity_for(sig_type, snippet):
+    """Heuristic severity. RFP committee + motion to issue = high.
+    Discussion / consideration = medium. Vague = low."""
+    if re.search(r"motion\s+to\s+(?:issue|approve|authoriz)|vote\s+\d+", snippet, re.I):
+        return "high"
+    if re.search(r"discussion|consider|evaluate|presentation", snippet, re.I):
+        return "medium"
+    return "low"
 
 
 # ---- Per-muni harvest ----------------------------------------------------
@@ -412,14 +584,25 @@ def scan_muni(name, state, pop=None, bucket=None,
                 "confidence": r["confidence"],
                 "pop": pop,
             })
-        # Signals -> buying-signal records (separate stream)
+        # Signals -> records shaped to drop into signals.SIGNALS directly.
         for s in extract_signals(text, pdf_url):
             signals.append({
-                "muni": name, "state": state, "bucket": bucket,
+                "id": f"mm_{state}_{slug}_{s['type']}_{abs(hash(pdf_url)) % 100000}",
+                "muni": name, "state": state,
+                "population": pop, "bucket": bucket,
                 "type": s["type"],
-                "headline": s["snippet"][:120],
+                "severity": s["severity"],
+                # Always ISO date — meeting_date is extracted but kept in
+                # `meeting_date` so the parser can still parse the
+                # 'detected' field.
+                "detected": _today_iso(),
+                "meeting_date_text": s.get("meeting_date"),
+                "expires": None,
+                "headline": s["headline"],
                 "details":  s["snippet"],
-                "source": f"meeting_minutes ({pdf_url})",
+                "source": f"Council meeting minutes ({pdf_url})",
+                "url": pdf_url,
+                "incumbent": None,    # connector caller may enrich later
                 "demo": False,
             })
         time.sleep(per_pdf_delay)

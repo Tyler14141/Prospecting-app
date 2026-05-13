@@ -32,6 +32,14 @@ build_workbook.py   build_dashboard_v2.py   add_competitor_tab.py
 
 ## Build
 
+Run everything from the repo root with one command:
+
+```bash
+./rebuild_tam.sh
+```
+
+Manual build steps:
+
 ```bash
 pip install openpyxl geonamescache python-docx formulas
 cd build

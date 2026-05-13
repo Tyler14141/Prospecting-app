@@ -20,6 +20,7 @@ LEADS_JSON = os.path.join(OUT_DIR, "lead_discovery_data.json")
 NAMES_JSON = os.path.join(HERE, "names_data.json")
 GEOJSON_PATH = os.path.join(HERE, "us_states.geojson")
 HTML_PATH = os.path.join(OUT_DIR, "Local_Government_TAM_Dashboard.html")
+INDEX_PATH = os.path.join(OUT_DIR, "index.html")
 
 
 def build():
@@ -58,8 +59,11 @@ def build():
                         .replace("__TILEMAP__", tile_s)
 
     with open(HTML_PATH, "w", encoding="utf-8") as f:
-        f.write(html)
+      f.write(html)
+    with open(INDEX_PATH, "w", encoding="utf-8") as f:
+      f.write(html)
     print(f"Wrote {HTML_PATH}  ({len(html)/1024:.1f} KB)")
+    print(f"Wrote {INDEX_PATH}  ({len(html)/1024:.1f} KB)")
 
 
 HTML_TEMPLATE = r"""<!DOCTYPE html>

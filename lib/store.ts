@@ -4,6 +4,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import { KNOWLEDGE_VAULT } from './knowledge'
+import { GOAL_METRICS } from './pipeline'
 import type {
   Lead,
   ContentItem,
@@ -11,6 +12,8 @@ import type {
   MemoryNote,
   Material,
   AgentOverride,
+  Goal,
+  GoalProgress,
   LeadStage,
   ContentStage,
 } from './pipeline'
@@ -22,6 +25,7 @@ interface DB {
   memory: MemoryNote[]
   materials: Material[]
   agentConfig: Record<string, AgentOverride>
+  goals: Goal[]
   vaultText?: string
 }
 
@@ -39,10 +43,11 @@ async function load(): Promise<DB> {
       memory: parsed.memory ?? [],
       materials: parsed.materials ?? [],
       agentConfig: parsed.agentConfig ?? {},
+      goals: parsed.goals ?? [],
       vaultText: parsed.vaultText,
     }
   } catch {
-    cache = { leads: [], content: [], activity: [], memory: [], materials: [], agentConfig: {} }
+    cache = { leads: [], content: [], activity: [], memory: [], materials: [], agentConfig: {}, goals: [] }
   }
   return cache
 }
@@ -287,6 +292,90 @@ export async function setAgentConfig(id: string, patch: AgentOverride): Promise<
   db.agentConfig[id] = next
   await persist(db)
   return next
+}
+
+/* ---------------- Goals / OKRs / quotas ---------------- */
+
+export async function listGoals(): Promise<Goal[]> {
+  return (await load()).goals
+}
+
+export async function addGoal(input: {
+  title: string
+  metric: string
+  target: number
+  current?: number
+  owner?: string
+}): Promise<Goal> {
+  const db = await load()
+  const goal: Goal = {
+    id: uid('goal'),
+    createdAt: new Date().toISOString(),
+    title: input.title,
+    metric: input.metric || 'custom',
+    target: Number(input.target) || 0,
+    current: input.current,
+    owner: input.owner,
+  }
+  db.goals.unshift(goal)
+  await persist(db)
+  return goal
+}
+
+export async function updateGoal(id: string, patch: Partial<Goal>): Promise<Goal | null> {
+  const db = await load()
+  const goal = db.goals.find((g) => g.id === id)
+  if (!goal) return null
+  Object.assign(goal, patch, { id: goal.id })
+  await persist(db)
+  return goal
+}
+
+export async function deleteGoal(id: string): Promise<void> {
+  const db = await load()
+  db.goals = db.goals.filter((g) => g.id !== id)
+  await persist(db)
+}
+
+// Compute live attainment for each goal from pipeline data.
+export async function computeGoalProgress(): Promise<GoalProgress[]> {
+  const db = await load()
+  const leads = db.leads
+  const content = db.content
+  const won = leads.filter((l) => l.stage === 'won').length
+  const value = (g: Goal): number => {
+    switch (g.metric) {
+      case 'leads':
+        return leads.length
+      case 'qualified':
+        return leads.filter((l) => l.stage !== 'new').length
+      case 'meetings':
+        return leads.filter((l) => l.stage === 'meeting' || l.stage === 'won').length
+      case 'won':
+        return won
+      case 'win_rate':
+        return leads.length ? Math.round((won / leads.length) * 100) : 0
+      case 'content':
+        return content.filter((c) => c.stage === 'approved' || c.stage === 'published').length
+      default:
+        return g.current ?? 0
+    }
+  }
+  return db.goals.map((g) => {
+    const meta = GOAL_METRICS.find((m) => m.key === g.metric)
+    const current = value(g)
+    const pct = g.target > 0 ? Math.min(100, Math.round((current / g.target) * 100)) : 0
+    return { ...g, current, pct, unit: meta?.unit ?? '', label: meta?.label ?? g.metric }
+  })
+}
+
+export async function getGoalsText(): Promise<string> {
+  const gp = await computeGoalProgress()
+  if (!gp.length) return ''
+  const lines = gp.map(
+    (g) => `- ${g.title}: ${g.current}/${g.target}${g.unit} (${g.pct}%${g.pct >= 100 ? ' ✓ hit' : ''})`,
+  )
+  return `# GOALS & ATTAINMENT (the team's current targets — work toward these; the Analyst tracks them)\n${lines.join('\n')}`
 }
 
 /* ---------------- Knowledge Vault ---------------- */

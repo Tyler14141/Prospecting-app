@@ -7,10 +7,12 @@ import { WORKFLOWS, getWorkflow } from '@/lib/workflows'
 import {
   LEAD_STAGES,
   CONTENT_STAGES,
+  GOAL_METRICS,
   type Lead,
   type ContentItem,
   type ActivityEvent,
   type Material,
+  type GoalProgress,
   type LeadStage,
   type ContentStage,
 } from '@/lib/pipeline'
@@ -20,7 +22,16 @@ interface Msg {
   role: Role
   content: string
 }
-type View = 'command' | 'map' | 'console' | 'leads' | 'content' | 'review' | 'analytics' | 'vault'
+type View =
+  | 'command'
+  | 'map'
+  | 'console'
+  | 'leads'
+  | 'content'
+  | 'review'
+  | 'analytics'
+  | 'goals'
+  | 'vault'
 type Status = 'idle' | 'working'
 
 function countOccurrences(haystack: string, needle: string): number {
@@ -130,6 +141,14 @@ function NavIcon({ view }: { view: View }) {
           <rect x="17" y="13" width="3" height="4" rx="1" />
         </svg>
       )
+    case 'goals':
+      return (
+        <svg {...c}>
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5" />
+          <circle cx="12" cy="12" r="1.5" />
+        </svg>
+      )
     case 'vault':
       return (
         <svg {...c}>
@@ -150,6 +169,7 @@ const NAV: [View, string, string][] = [
   ['content', 'Content Pipeline', '✎'],
   ['review', 'Needs Review', '✔'],
   ['analytics', 'Analytics', '▥'],
+  ['goals', 'Goals', '◎'],
   ['vault', 'Knowledge Vault', '▤'],
 ]
 
@@ -163,6 +183,7 @@ export default function Page() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [content, setContent] = useState<ContentItem[]>([])
   const [activity, setActivity] = useState<ActivityEvent[]>([])
+  const [goals, setGoals] = useState<GoalProgress[]>([])
   const [runningWf, setRunningWf] = useState<Record<string, boolean>>({})
   const [autopilot, setAutopilot] = useState(false)
   const [consoleTab, setConsoleTab] = useState<'chat' | 'profile'>('chat')
@@ -176,14 +197,16 @@ export default function Page() {
 
   const refresh = useCallback(async () => {
     try {
-      const [l, c, a] = await Promise.all([
+      const [l, c, a, g] = await Promise.all([
         fetch('/api/leads').then((r) => r.json()),
         fetch('/api/content').then((r) => r.json()),
         fetch('/api/activity').then((r) => r.json()),
+        fetch('/api/goals').then((r) => r.json()),
       ])
       setLeads(l.leads ?? [])
       setContent(c.content ?? [])
       setActivity(a.activity ?? [])
+      setGoals(g.goals ?? [])
     } catch {
       /* ignore */
     }
@@ -253,6 +276,34 @@ export default function Page() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, patch: { stage } }),
+    }).catch(() => {})
+    refresh()
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function addGoal(payload: any) {
+    await fetch('/api/goals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {})
+    refresh()
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function patchGoal(id: string, patch: any) {
+    await fetch('/api/goals', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, patch }),
+    }).catch(() => {})
+    refresh()
+  }
+  async function deleteGoal(id: string) {
+    setGoals((gs) => gs.filter((g) => g.id !== id))
+    await fetch('/api/goals', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
     }).catch(() => {})
     refresh()
   }
@@ -422,6 +473,7 @@ export default function Page() {
             leadCount={leads.length}
             reviewCount={reviewCount}
             activity={activity}
+            goals={goals}
             runningWf={runningWf}
             autopilot={autopilot}
             onToggleAutopilot={() => setAutopilot((v) => !v)}
@@ -533,6 +585,9 @@ export default function Page() {
         {view === 'content' && <ContentBoard content={content} onMove={moveContent} />}
         {view === 'review' && <ReviewQueue content={content} onMove={moveContent} />}
         {view === 'analytics' && <Analytics leads={leads} content={content} activity={activity} />}
+        {view === 'goals' && (
+          <Goals goals={goals} onAdd={addGoal} onPatch={patchGoal} onDelete={deleteGoal} />
+        )}
         {view === 'vault' && <VaultEditor />}
       </main>
     </div>
@@ -771,6 +826,7 @@ function CommandCenter({
   leadCount,
   reviewCount,
   activity,
+  goals,
   runningWf,
   autopilot,
   onToggleAutopilot,
@@ -782,6 +838,7 @@ function CommandCenter({
   leadCount: number
   reviewCount: number
   activity: ActivityEvent[]
+  goals: GoalProgress[]
   runningWf: Record<string, boolean>
   autopilot: boolean
   onToggleAutopilot: () => void
@@ -821,6 +878,38 @@ function CommandCenter({
             </div>
           ))}
         </div>
+
+        {/* Goals */}
+        {goals.length > 0 && (
+          <div className="mt-8">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-gray-700">Goals &amp; attainment</h2>
+              <span className="text-[11px] text-gray-400">Manage in the Goals tab</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {goals.slice(0, 6).map((g) => {
+                const color = g.pct >= 100 ? '#10b981' : g.pct >= 50 ? '#0ea5e9' : '#f59e0b'
+                return (
+                  <div key={g.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="truncate text-[13px] font-medium">{g.title}</div>
+                      <span className="shrink-0 text-xs font-semibold" style={{ color }}>
+                        {g.pct}%
+                      </span>
+                    </div>
+                    <div className="mt-2 h-2 rounded bg-gray-100">
+                      <div className="h-2 rounded" style={{ width: `${g.pct}%`, background: color }} />
+                    </div>
+                    <div className="mt-1.5 text-[11px] text-gray-400">
+                      {g.current}/{g.target}
+                      {g.unit} · {g.label}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Workflows */}
         <div className="mb-3 mt-8 flex items-center justify-between">
@@ -1440,6 +1529,172 @@ function Analytics({
         <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
           <h2 className="mb-3 text-sm font-semibold text-gray-700">Activity log</h2>
           <ActivityFeed activity={activity.slice(0, 30)} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function GoalRow({
+  g,
+  onPatch,
+  onDelete,
+}: {
+  g: GoalProgress
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onPatch: (id: string, patch: any) => void
+  onDelete: (id: string) => void
+}) {
+  const owner = g.owner ? getAgent(g.owner) : undefined
+  const color = g.pct >= 100 ? '#10b981' : g.pct >= 50 ? '#0ea5e9' : '#f59e0b'
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold">{g.title}</div>
+          <div className="text-[11px] text-gray-400">
+            {g.label}
+            {owner ? ` · owner: ${owner.name}` : ''}
+            {g.pct >= 100 ? ' · ✓ hit' : ''}
+          </div>
+        </div>
+        <span className="shrink-0 text-sm font-semibold tabular-nums">
+          {g.current}
+          <span className="text-gray-400">
+            /{g.target}
+            {g.unit}
+          </span>
+        </span>
+        <span className="w-10 shrink-0 text-right text-xs font-semibold" style={{ color }}>
+          {g.pct}%
+        </span>
+        <button
+          onClick={() => onDelete(g.id)}
+          className="shrink-0 text-gray-300 transition hover:text-red-500"
+          title="Remove"
+        >
+          ✕
+        </button>
+      </div>
+      <div className="mt-2 h-2 rounded bg-gray-100">
+        <div className="h-2 rounded" style={{ width: `${g.pct}%`, background: color }} />
+      </div>
+      <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-400">
+        Target:
+        <input
+          type="number"
+          defaultValue={g.target}
+          onBlur={(e) => onPatch(g.id, { target: Number(e.target.value) })}
+          className="w-20 rounded border border-gray-300 px-2 py-0.5 text-xs outline-none focus:border-gray-400"
+        />
+        {g.metric === 'custom' && (
+          <>
+            Current:
+            <input
+              type="number"
+              defaultValue={g.current}
+              onBlur={(e) => onPatch(g.id, { current: Number(e.target.value) })}
+              className="w-20 rounded border border-gray-300 px-2 py-0.5 text-xs outline-none focus:border-gray-400"
+            />
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function Goals({
+  goals,
+  onAdd,
+  onPatch,
+  onDelete,
+}: {
+  goals: GoalProgress[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onAdd: (payload: any) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onPatch: (id: string, patch: any) => void
+  onDelete: (id: string) => void
+}) {
+  const [title, setTitle] = useState('')
+  const [metric, setMetric] = useState('meetings')
+  const [target, setTarget] = useState('')
+  const [owner, setOwner] = useState('')
+
+  async function add() {
+    if (!title.trim() || !target) return
+    onAdd({ title: title.trim(), metric, target: Number(target), owner: owner || undefined })
+    setTitle('')
+    setTarget('')
+    setOwner('')
+  }
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+      <div className="mx-auto max-w-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight">Goals &amp; OKRs</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Targets the CEO sets and the team works toward. Most metrics track automatically from the
+          pipeline; the Analyst reports against them and every agent sees them. (You can also ask the
+          CEO to “set our Q3 OKRs”.)
+        </p>
+
+        <div className="mt-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="grid gap-2 sm:grid-cols-[1fr_150px_100px_150px_auto]">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Objective (e.g. Q3: 30 discovery calls)"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
+            />
+            <select
+              value={metric}
+              onChange={(e) => setMetric(e.target.value)}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-400"
+            >
+              {GOAL_METRICS.map((m) => (
+                <option key={m.key} value={m.key}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              placeholder="Target"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
+            />
+            <select
+              value={owner}
+              onChange={(e) => setOwner(e.target.value)}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-400"
+            >
+              <option value="">Owner (optional)</option>
+              {AGENTS.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={add}
+              disabled={!title.trim() || !target}
+              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-50"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {goals.length === 0 ? (
+            <p className="text-sm text-gray-400">
+              No goals yet. Add one above, or ask the CEO to set the team’s OKRs.
+            </p>
+          ) : (
+            goals.map((g) => <GoalRow key={g.id} g={g} onPatch={onPatch} onDelete={onDelete} />)
+          )}
         </div>
       </div>
     </div>

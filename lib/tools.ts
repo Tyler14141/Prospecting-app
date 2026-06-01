@@ -1,6 +1,6 @@
 // Custom tools the agents can call to do real work. Server-only. The agent
 // runner maps an agent's `tools` names to these defs and executes via runTool().
-import { addLead, addContent, addMemory, updateLead } from './store'
+import { addLead, addContent, addMemory, updateLead, addGoal } from './store'
 import { crmConfigured, pushLeadToSalesforce } from './salesforce'
 import { enrich, matchaConfigured } from './matcha'
 
@@ -83,6 +83,26 @@ export const TOOL_DEFS: Record<string, ToolDef> = {
         reason: { type: 'string', description: 'One-line rationale for the score' },
       },
       required: ['lead_id', 'score'],
+    },
+  },
+  set_goal: {
+    name: 'set_goal',
+    description:
+      'Set a team OKR / quota. Give a short title, a metric to track, and a numeric target. ' +
+      'Use when the operator asks you to set goals or quotas; the Analyst and dashboard track attainment.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Short objective, e.g. "Q3: book 30 discovery calls"' },
+        metric: {
+          type: 'string',
+          enum: ['leads', 'qualified', 'meetings', 'won', 'win_rate', 'content', 'custom'],
+          description: 'What to measure (auto-tracked, except custom)',
+        },
+        target: { type: 'number', description: 'Numeric target for the metric' },
+        owner: { type: 'string', description: 'agent id responsible, optional' },
+      },
+      required: ['title', 'metric', 'target'],
     },
   },
   remember: {
@@ -168,6 +188,16 @@ export async function runTool(name: string, input: Record<string, any>, agentId?
     const lead = await updateLead(id, { score, scoreReason: input.reason ? String(input.reason) : undefined })
     if (!lead) return `No lead found with id ${id}.`
     return `Scored “${lead.org}” at ${score}/100${input.reason ? ` — ${input.reason}` : ''}.`
+  }
+
+  if (name === 'set_goal') {
+    const goal = await addGoal({
+      title: String(input.title ?? 'Goal'),
+      metric: String(input.metric ?? 'custom'),
+      target: Number(input.target) || 0,
+      owner: input.owner ? String(input.owner) : undefined,
+    })
+    return `Set goal “${goal.title}” — target ${goal.target} (${goal.metric}).`
   }
 
   if (name === 'remember') {

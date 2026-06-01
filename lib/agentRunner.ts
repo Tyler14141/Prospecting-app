@@ -10,6 +10,7 @@ import {
   getMemoryText,
   getInsightsText,
   getMaterialsText,
+  getGoalsText,
   listAgentConfigs,
   addActivity,
 } from './store'
@@ -27,6 +28,7 @@ interface Context {
   memory: string
   insights: string
   materials: string
+  goals: string
   configs: Record<string, AgentOverride>
 }
 
@@ -75,6 +77,7 @@ function systemFor(agent: AgentDef, ctx: Context) {
       type: 'text' as const,
       text: `# OPERATING INSTRUCTIONS (operator-set — follow these)\n${o.instructions}`,
     })
+  if (ctx.goals) blocks.push({ type: 'text' as const, text: ctx.goals })
   if (ctx.materials) blocks.push({ type: 'text' as const, text: ctx.materials })
   if (ctx.insights) blocks.push({ type: 'text' as const, text: ctx.insights })
   if (ctx.memory) blocks.push({ type: 'text' as const, text: ctx.memory })
@@ -128,14 +131,15 @@ export async function runConversation(
   messages: unknown[],
   send: Send,
 ): Promise<{ usage: Usage }> {
-  const [vault, memory, insights, materials, configs] = await Promise.all([
+  const [vault, memory, insights, materials, goals, configs] = await Promise.all([
     getVaultText(),
     getMemoryText(),
     getInsightsText(),
     getMaterialsText(),
+    getGoalsText(),
     listAgentConfigs(),
   ])
-  const ctx: Context = { vault, memory, insights, materials, configs }
+  const ctx: Context = { vault, memory, insights, materials, goals, configs }
   const usage: Usage = { input: 0, output: 0 }
   if (agent.canDelegate) await runOrchestrator(agent, messages, send, ctx, usage)
   else await runAgentTurn(agent, messages, send, ctx, usage)
@@ -200,7 +204,9 @@ async function runAgentTurn(
 async function runOrchestrator(ceo: AgentDef, history: unknown[], send: Send, ctx: Context, usage: Usage) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const convo: any[] = [...history]
-  const tools = [DELEGATE_TOOL]
+  // The CEO can both delegate and use its own tools (e.g. set_goal).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tools: any[] = [DELEGATE_TOOL, ...(ceo.tools ?? []).map((n) => TOOL_DEFS[n]).filter(Boolean)]
 
   for (let round = 0; round < 5; round++) {
     const params: Record<string, unknown> = {
@@ -225,7 +231,16 @@ async function runOrchestrator(ceo: AgentDef, history: unknown[], send: Send, ct
     const results: any[] = []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const block of final.content as any[]) {
-      if (block.type !== 'tool_use' || block.name !== 'delegate') continue
+      if (block.type !== 'tool_use') continue
+      // The CEO's own tools (e.g. set_goal) run directly.
+      if (block.name !== 'delegate') {
+        if (!TOOL_DEFS[block.name]) continue
+        const note = await runTool(block.name, block.input ?? {}, ceo.id)
+        await addActivity({ agentId: 'ceo', type: 'tool', message: note })
+        send(`\n\n✓ ${note}\n`)
+        results.push({ type: 'tool_result', tool_use_id: block.id, content: note })
+        continue
+      }
       const agentId = String(block.input?.agent_id ?? '')
       const task = String(block.input?.task ?? '')
       const target = getAgent(agentId)

@@ -45,6 +45,34 @@ export interface AgentOverride {
   model?: string
 }
 
+// OKRs / quotas. Most metrics auto-compute from pipeline data; 'custom' is manual.
+export const GOAL_METRICS: { key: string; label: string; unit: string }[] = [
+  { key: 'leads', label: 'Leads in pipeline', unit: '' },
+  { key: 'qualified', label: 'Qualified leads', unit: '' },
+  { key: 'meetings', label: 'Meetings reached', unit: '' },
+  { key: 'won', label: 'Deals won', unit: '' },
+  { key: 'win_rate', label: 'Win rate', unit: '%' },
+  { key: 'content', label: 'Content shipped', unit: '' },
+  { key: 'custom', label: 'Custom (manual)', unit: '' },
+]
+
+export interface Goal {
+  id: string
+  title: string
+  metric: string // one of GOAL_METRICS keys
+  target: number
+  current?: number // manual value for 'custom'
+  owner?: string // agent id responsible
+  createdAt: string
+}
+
+export interface GoalProgress extends Goal {
+  current: number
+  pct: number
+  unit: string
+  label: string
+}
+
 export interface ContentItem {
   id: string
   title: string

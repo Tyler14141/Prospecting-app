@@ -36,6 +36,7 @@ export const AGENTS: AgentDef[] = [
     model: 'claude-opus-4-8',
     thinking: true,
     canDelegate: true,
+    tools: ['set_goal'],
     mission: 'Set strategy and orchestrate the team to hit growth targets.',
     owns: ['Goals & prioritization', 'Delegation & coordination', 'Final synthesis & decisions'],
     kpis: ['Pipeline created', 'Win rate / revenue', 'Team throughput'],

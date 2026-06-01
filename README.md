@@ -19,6 +19,7 @@ CEO/Orchestrator · CMO · Researcher · **SDR** · AE · **Sales Engineer** · 
 
 - **Lifecycle & handoffs:** research → SDR → AE → SE/Proposal → AM, with RevOps and the Analyst supporting. The CEO sees the live roster and delegates by role.
 - **Qualification scoring:** SDR/AE/RevOps can `score_lead` (0–100 fit) — shown as a colored badge on Lead Pipeline cards for prioritization/routing.
+- **Goals / OKRs (Goals tab):** the CEO sets quotas (chat: “set our Q3 OKRs” → `set_goal` tool) or you add them in the UI. Most metrics (leads, qualified, meetings, won, win rate, content) **auto-track** from the pipeline with live % attainment; the Analyst reports against them and every agent sees the targets. Surfaced on the Command Center too.
 - **Per-agent settings (Agent Console → Profile & Settings):** edit each agent's **job description**, **context**, **custom instructions / playbook**, and **model** — persisted (`/api/agents/config`) and injected into that agent's runs. The charter (mission/owns/KPIs/handoffs) is shown for reference.
 
 ## CRM, enrichment, two-way email & the daily brief

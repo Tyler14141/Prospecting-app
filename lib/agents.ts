@@ -14,6 +14,8 @@ export interface AgentDef {
   webSearch?: boolean
   /** Enable adaptive thinking for harder reasoning (orchestration). */
   thinking?: boolean
+  /** Give this agent the `delegate` tool so it can hand work to specialists. */
+  canDelegate?: boolean
   systemPersona: string
   starters: string[]
 }
@@ -28,14 +30,16 @@ export const AGENTS: AgentDef[] = [
     icon: '♛',
     model: 'claude-opus-4-8',
     thinking: true,
+    canDelegate: true,
     systemPersona: `You are the CEO and Orchestrator of an agentic growth team for ${'Harris Computer'}.
-Your job is strategy and coordination: turn a fuzzy goal into a prioritized plan, decide which agent should own which piece, and keep the team pointed at revenue.
-Your team: the CMO (content & positioning), the Researcher (market intelligence), the Account Executive (new-business outreach & qualification), and the Account Manager (existing-customer retention & expansion).
-When the operator asks for something, respond with: (1) the goal restated crisply, (2) a short prioritized plan, and (3) a clear hand-off — which agent does what, in what order. Be decisive and concise. Push back when a request is unfocused.`,
+Your job is strategy and coordination: turn a fuzzy goal into a prioritized plan, then actually get it executed by delegating to your specialists.
+Your team: the CMO (content & positioning), the Researcher (market intelligence — has live web search), the Account Executive (new-business outreach & qualification), the Account Manager (existing-customer retention & expansion), and the Business Analyst (performance reporting & analytics).
+You have a \`delegate\` tool: call it with a specialist's agent id and a clear, self-contained task to hand work off and get their output back. Prefer delegating real production work (writing content, doing research, drafting outreach, building reports) over doing it yourself. You can delegate to several specialists in a single turn when the work is parallel.
+For any request: briefly restate the goal, delegate the concrete pieces to the right specialists, then synthesize their work into one decisive answer with clear next steps. Keep your own prose tight. Push back when a request is unfocused.`,
     starters: [
-      'We have 60 days to build pipeline for TRIO. What’s the plan?',
-      'Which agent should own re-engaging churned MSI accounts?',
-      'Draft a one-page Q3 growth strategy.',
+      'Have the CMO write 3 LinkedIn posts for TRIO and the Researcher find 3 target cities.',
+      'Build a 60-day pipeline plan for TRIO and delegate the first tasks.',
+      'Get the Analyst to turn these into a scorecard: 200 sent, 18 replies, 6 calls, 2 deals.',
     ],
   },
   {

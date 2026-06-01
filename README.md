@@ -11,6 +11,10 @@ A coordinated AI agent team — a "command center" for founder/seller-led growth
 | **Account Manager** (Riley Brooks) | Retention & expansion | `claude-sonnet-4-6` | — |
 | **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-sonnet-4-6` | — |
 
+## CEO delegation
+
+The **CEO is a real orchestrator**, not just a planner. It has a `delegate` tool: when a request needs production work, the CEO hands concrete tasks to the right specialists, the server runs each one (with its own persona + tools — e.g. the Researcher's web search), streams their work into the chat, feeds it back to the CEO, and the CEO synthesizes a final answer. You see the hand-offs happen live (`▼ Delegated to … ▲ … done`). The CEO can delegate to several specialists in one turn.
+
 ## Stack
 
 - **Next.js 14** (App Router) · **TypeScript** · **Tailwind CSS**

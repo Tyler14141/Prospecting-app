@@ -9,6 +9,7 @@ A coordinated AI agent team — a "command center" for founder/seller-led growth
 | **Researcher** (Sam Rivera) | Market intelligence & prospecting | `claude-sonnet-4-6` | live web search |
 | **Account Executive** (Morgan Diaz) | New-business outreach & qualification | `claude-sonnet-4-6` | — |
 | **Account Manager** (Riley Brooks) | Retention & expansion | `claude-sonnet-4-6` | — |
+| **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-sonnet-4-6` | — |
 
 ## Stack
 

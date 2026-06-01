@@ -282,7 +282,7 @@ function CommandCenter({
   onOpen: (id: string) => void
 }) {
   const metrics = [
-    { label: 'Agents online', value: String(AGENTS.length), sub: 'CEO + 4 specialists' },
+    { label: 'Agents online', value: String(AGENTS.length), sub: 'CEO + 5 specialists' },
     { label: 'Active conversations', value: String(totalConversations), sub: 'this session' },
     { label: 'Product lines', value: String(PRODUCTS.length), sub: 'in the knowledge vault' },
     { label: 'Monitoring', value: '24/7', sub: 'always-on' },

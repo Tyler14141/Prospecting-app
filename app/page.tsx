@@ -19,7 +19,7 @@ interface Msg {
   role: Role
   content: string
 }
-type View = 'command' | 'console' | 'leads' | 'content' | 'review' | 'analytics' | 'vault'
+type View = 'command' | 'map' | 'console' | 'leads' | 'content' | 'review' | 'analytics' | 'vault'
 type Status = 'idle' | 'working'
 
 function countOccurrences(haystack: string, needle: string): number {
@@ -62,6 +62,7 @@ function fmtTime(ts: string) {
 
 const NAV: [View, string, string][] = [
   ['command', 'Command Center', '▦'],
+  ['map', 'Agent Map', '◎'],
   ['console', 'Agent Console', '✦'],
   ['leads', 'Lead Pipeline', '◫'],
   ['content', 'Content Pipeline', '✎'],
@@ -426,6 +427,7 @@ export default function Page() {
           </section>
         )}
 
+        {view === 'map' && <AgentMap full statuses={statuses} onOpen={openConsole} />}
         {view === 'leads' && <LeadBoard leads={leads} onMove={moveLead} onSync={syncCrm} />}
         {view === 'content' && <ContentBoard content={content} onMove={moveContent} />}
         {view === 'review' && <ReviewQueue content={content} onMove={moveContent} />}
@@ -531,6 +533,8 @@ function CommandCenter({
           A coordinated AI agent team for {COMPANY.name}. Chat with an agent or run a workflow —
           their leads and content land in the pipelines.
         </p>
+
+        <AgentMap statuses={statuses} onOpen={onOpen} />
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {metrics.map((m) => (
@@ -643,6 +647,160 @@ function CommandCenter({
         </div>
       </div>
     </div>
+  )
+}
+
+function MapNode({
+  agent,
+  x,
+  y,
+  working,
+  onOpen,
+}: {
+  agent: (typeof AGENTS)[number]
+  x: number
+  y: number
+  working: boolean
+  onOpen: (id: string) => void
+}) {
+  return (
+    <button
+      onClick={() => onOpen(agent.id)}
+      className="group absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: `${x}%`, top: `${y}%` }}
+      title={`Open ${agent.name}`}
+    >
+      {working && (
+        <span
+          className="absolute inset-0 animate-ping rounded-2xl"
+          style={{ background: `${agent.accent}40` }}
+        />
+      )}
+      <div
+        className="relative flex w-36 flex-col items-center rounded-2xl border bg-white px-3 py-2.5 text-center shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md"
+        style={{ borderColor: working ? agent.accent : '#e5e7eb' }}
+      >
+        <span
+          className="grid h-9 w-9 place-items-center rounded-xl text-lg"
+          style={{ background: `${agent.accent}22`, color: agent.accent }}
+        >
+          {agent.icon}
+        </span>
+        <div className="mt-1 truncate text-[13px] font-semibold leading-tight">{agent.name}</div>
+        <div className="truncate text-[10px] text-gray-400">
+          {agent.role.split('·')[1]?.trim() ?? agent.role}
+        </div>
+        <span
+          className={`mt-1 inline-flex items-center gap-1 text-[10px] ${working ? 'text-amber-600' : 'text-gray-400'}`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${working ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`}
+          />
+          {working ? 'working' : 'online'}
+        </span>
+      </div>
+    </button>
+  )
+}
+
+function AgentMap({
+  statuses,
+  onOpen,
+  full,
+}: {
+  statuses: Record<string, 'idle' | 'working'>
+  onOpen: (id: string) => void
+  full?: boolean
+}) {
+  const ceo = AGENTS.find((a) => a.canDelegate)!
+  const specialists = AGENTS.filter((a) => !a.canDelegate)
+  const n = specialists.length
+  const nodes = specialists.map((agent, i) => {
+    const angle = (-90 + i * (360 / n)) * (Math.PI / 180)
+    return { agent, x: 50 + 37 * Math.cos(angle), y: 50 + 33 * Math.sin(angle) }
+  })
+  const isWorking = (id: string) => (statuses[id] ?? 'idle') === 'working'
+  const ceoWorking = isWorking(ceo.id)
+
+  const canvas = (
+    <div
+      className="relative w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+      style={{ height: full ? 'min(72vh, 640px)' : 380 }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(440px 320px at 50% 50%, rgba(56,189,248,0.07), transparent 70%)',
+        }}
+      />
+      <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
+        {nodes.map(({ agent, x, y }) => {
+          const active = isWorking(agent.id) || ceoWorking
+          return (
+            <line
+              key={agent.id}
+              x1="50%"
+              y1="50%"
+              x2={`${x}%`}
+              y2={`${y}%`}
+              stroke={active ? agent.accent : '#d1d5db'}
+              strokeWidth={active ? 2 : 1.5}
+              strokeLinecap="round"
+              className={active ? 'agent-edge-active' : ''}
+              style={active ? undefined : { opacity: 0.85 }}
+            />
+          )
+        })}
+      </svg>
+
+      {nodes.map(({ agent, x, y }) => (
+        <MapNode key={agent.id} agent={agent} x={x} y={y} working={isWorking(agent.id)} onOpen={onOpen} />
+      ))}
+
+      <button
+        onClick={() => onOpen(ceo.id)}
+        className="group absolute -translate-x-1/2 -translate-y-1/2"
+        style={{ left: '50%', top: '50%' }}
+        title={`Open ${ceo.name}`}
+      >
+        {ceoWorking && (
+          <span className="absolute inset-0 animate-ping rounded-3xl" style={{ background: `${ceo.accent}40` }} />
+        )}
+        <div
+          className="relative flex flex-col items-center rounded-3xl border-2 bg-white px-5 py-4 shadow-md transition group-hover:-translate-y-0.5"
+          style={{ borderColor: ceoWorking ? ceo.accent : '#e5e7eb' }}
+        >
+          <span
+            className="grid h-12 w-12 place-items-center rounded-2xl text-2xl"
+            style={{ background: `${ceo.accent}22`, color: ceo.accent }}
+          >
+            {ceo.icon}
+          </span>
+          <div className="mt-1.5 text-sm font-semibold">{ceo.name}</div>
+          <div className="text-[10px] font-medium uppercase tracking-wide text-gray-400">Orchestrator</div>
+        </div>
+      </button>
+
+      <div className="pointer-events-none absolute bottom-3 left-4 text-[11px] text-gray-400">
+        Hub-and-spoke: the CEO delegates to every specialist · click a node to open it
+      </div>
+    </div>
+  )
+
+  if (!full) return <div className="mt-6">{canvas}</div>
+
+  return (
+    <section className="flex min-h-0 flex-1 flex-col">
+      <div className="border-b border-gray-200 px-6 py-4">
+        <h1 className="text-lg font-semibold">Agent Map</h1>
+        <p className="text-xs text-gray-500">
+          How the team is wired — the CEO orchestrates and delegates to each specialist. Lines light
+          up and pulse when an agent is working.
+        </p>
+      </div>
+      <div className="flex-1 px-6 py-6">{canvas}</div>
+    </section>
   )
 }
 

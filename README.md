@@ -11,6 +11,15 @@ A coordinated AI agent team — a "command center" for founder/seller-led growth
 | **Account Manager** (Riley Brooks) | Retention & expansion | `claude-sonnet-4-6` | — |
 | **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-opus-4-8` | — |
 
+## CRM, enrichment, two-way email & the daily brief
+
+- **Salesforce sync** — saved leads auto-push to Salesforce when configured (`SALESFORCE_INSTANCE_URL` + `SALESFORCE_ACCESS_TOKEN`); a **Sync new → Salesforce** button on the Lead board pushes the backlog. Synced cards show a `✓ CRM` badge. Graceful no-op without creds.
+- **Matcha enrichment** — the Researcher has a `matcha` tool that calls your internal contact tool (`MATCHA_API_URL` + `MATCHA_API_KEY`) to find real decision-makers with verified emails and attach the best one to a lead (`enriched` badge). Closes the "invented contacts" gap.
+- **Two-way email** — the AE drafts outreach with a recipient (`to`); on approval an Email-channel draft is **actually sent** to the prospect. When a prospect **replies**, `/api/inbound` matches them to a lead, notifies you, and the AE drafts a suggested response into Needs Review.
+- **Daily brief + reply-to-approve** — `/api/brief` (scheduled in `vercel.json`) emails you a morning digest: pipeline snapshot, numbered decisions awaiting review, and what's working. **Reply** "approve 1, 3" / "reject 2" / "approve all" and the inbound route applies it — no dashboard needed.
+- **Closed-loop learning** — outcomes (win rate by product, content approval rate) are summarized and injected into every agent run, so targeting and messaging sharpen over time.
+- **Calendar booking** — set `CALENDLY_URL` and agents include your scheduling link when proposing a call.
+
 ## Offload layer — run it without sitting in the dashboard
 
 This is what turns the dashboard into a tool you delegate to:

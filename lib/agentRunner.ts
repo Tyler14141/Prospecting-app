@@ -5,7 +5,7 @@
 import { anthropic } from './anthropic'
 import { AGENTS, getAgent, type AgentDef } from './agents'
 import { TOOL_DEFS, runTool } from './tools'
-import { getVaultText, getMemoryText, addActivity } from './store'
+import { getVaultText, getMemoryText, getInsightsText, addActivity } from './store'
 
 const WEB_SEARCH = { type: 'web_search_20260209', name: 'web_search' }
 
@@ -14,12 +14,26 @@ export interface Usage {
   output: number
 }
 
-function systemFor(agent: AgentDef, vaultText: string, memoryText: string) {
+interface Context {
+  vault: string
+  memory: string
+  insights: string
+}
+
+function systemFor(agent: AgentDef, ctx: Context) {
   const blocks = [
-    { type: 'text' as const, text: vaultText, cache_control: { type: 'ephemeral' as const } },
+    { type: 'text' as const, text: ctx.vault, cache_control: { type: 'ephemeral' as const } },
     { type: 'text' as const, text: agent.systemPersona },
   ]
-  if (memoryText) blocks.push({ type: 'text' as const, text: memoryText })
+  if (ctx.insights) blocks.push({ type: 'text' as const, text: ctx.insights })
+  if (ctx.memory) blocks.push({ type: 'text' as const, text: ctx.memory })
+  const calendly = process.env.CALENDLY_URL
+  if (calendly) {
+    blocks.push({
+      type: 'text' as const,
+      text: `Booking link: when you propose a call or meeting, include this Calendly link so they can self-schedule: ${calendly}`,
+    })
+  }
   if (agent.tools?.length) {
     blocks.push({
       type: 'text' as const,
@@ -63,10 +77,15 @@ export async function runConversation(
   messages: unknown[],
   send: Send,
 ): Promise<{ usage: Usage }> {
-  const [vaultText, memoryText] = await Promise.all([getVaultText(), getMemoryText()])
+  const [vault, memory, insights] = await Promise.all([
+    getVaultText(),
+    getMemoryText(),
+    getInsightsText(),
+  ])
+  const ctx: Context = { vault, memory, insights }
   const usage: Usage = { input: 0, output: 0 }
-  if (agent.canDelegate) await runOrchestrator(agent, messages, send, vaultText, memoryText, usage)
-  else await runAgentTurn(agent, messages, send, vaultText, memoryText, usage)
+  if (agent.canDelegate) await runOrchestrator(agent, messages, send, ctx, usage)
+  else await runAgentTurn(agent, messages, send, ctx, usage)
   return { usage }
 }
 
@@ -74,8 +93,7 @@ async function runAgentTurn(
   agent: AgentDef,
   messages: unknown[],
   send: Send,
-  vaultText: string,
-  memoryText: string,
+  ctx: Context,
   usage: Usage,
   maxTokens = 4096,
 ): Promise<string> {
@@ -90,7 +108,7 @@ async function runAgentTurn(
     const params: Record<string, unknown> = {
       model: agent.model,
       max_tokens: maxTokens,
-      system: systemFor(agent, vaultText, memoryText),
+      system: systemFor(agent, ctx),
       messages: convo,
     }
     if (agent.thinking) params.thinking = { type: 'adaptive' }
@@ -126,14 +144,7 @@ async function runAgentTurn(
   return text
 }
 
-async function runOrchestrator(
-  ceo: AgentDef,
-  history: unknown[],
-  send: Send,
-  vaultText: string,
-  memoryText: string,
-  usage: Usage,
-) {
+async function runOrchestrator(ceo: AgentDef, history: unknown[], send: Send, ctx: Context, usage: Usage) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const convo: any[] = [...history]
   const tools = [DELEGATE_TOOL]
@@ -142,7 +153,7 @@ async function runOrchestrator(
     const params: Record<string, unknown> = {
       model: ceo.model,
       max_tokens: 4096,
-      system: systemFor(ceo, vaultText, memoryText),
+      system: systemFor(ceo, ctx),
       messages: convo,
       tools,
     }
@@ -179,15 +190,7 @@ async function runOrchestrator(
       await addActivity({ agentId: 'ceo', type: 'delegate', message: `→ ${target.name}: ${task}` })
       const roleShort = target.role.split('·')[1]?.trim() ?? target.role
       send(`\n\n──────────\n▼ Delegated to ${target.name} · ${roleShort}\n   “${task}”\n\n`)
-      const out = await runAgentTurn(
-        target,
-        [{ role: 'user', content: task }],
-        send,
-        vaultText,
-        memoryText,
-        usage,
-        1800,
-      )
+      const out = await runAgentTurn(target, [{ role: 'user', content: task }], send, ctx, usage, 1800)
       send(`\n\n▲ ${target.name} done — back to ${ceo.name}\n──────────\n\n`)
 
       results.push({

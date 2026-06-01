@@ -31,6 +31,8 @@ export interface Lead {
   whyFit: string
   stage: LeadStage
   createdAt: string
+  crmId?: string // Salesforce record id once synced
+  enriched?: boolean // contacts found via Matcha
 }
 
 export interface ContentItem {
@@ -41,6 +43,8 @@ export interface ContentItem {
   product: string
   stage: ContentStage
   createdAt: string
+  to?: string // prospect recipient (Email channel) — enables real send on approval
+  leadId?: string // the lead this content is for, if any
 }
 
 export type ActivityType = 'tool' | 'delegate' | 'review' | 'workflow' | 'system'

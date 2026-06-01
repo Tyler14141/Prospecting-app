@@ -74,6 +74,8 @@ export async function addLead(input: Partial<Lead> & { org: string }): Promise<L
     email: input.email ?? '',
     product: input.product ?? '',
     whyFit: input.whyFit ?? '',
+    crmId: input.crmId,
+    enriched: input.enriched,
   }
   db.leads.unshift(lead)
   await persist(db)
@@ -87,6 +89,13 @@ export async function updateLead(id: string, patch: Partial<Lead>): Promise<Lead
   Object.assign(lead, patch, { id: lead.id })
   await persist(db)
   return lead
+}
+
+export async function findLeadByEmail(email: string): Promise<Lead | null> {
+  if (!email) return null
+  const e = email.trim().toLowerCase()
+  const db = await load()
+  return db.leads.find((l) => l.email && l.email.toLowerCase() === e) ?? null
 }
 
 /* ---------------- Content ---------------- */
@@ -107,10 +116,16 @@ export async function addContent(
     channel: input.channel ?? 'Other',
     body: input.body,
     product: input.product ?? '',
+    to: input.to,
+    leadId: input.leadId,
   }
   db.content.unshift(item)
   await persist(db)
   return item
+}
+
+export async function pendingReviewContent(): Promise<ContentItem[]> {
+  return (await load()).content.filter((c) => c.stage === 'review')
 }
 
 export async function updateContent(
@@ -157,6 +172,47 @@ export async function getMemoryText(): Promise<string> {
   if (!m.length) return ''
   const recent = m.slice(0, 12).map((n) => `- ${n.text}`).join('\n')
   return `# TEAM MEMORY (durable notes the team has saved — use when relevant)\n${recent}`
+}
+
+/* ---------------- Closed-loop insights ---------------- */
+
+// A compact "what's working" summary, derived from outcomes, injected into
+// every agent run so the team adapts targeting and messaging over time.
+export async function getInsightsText(): Promise<string> {
+  const db = await load()
+  const leads = db.leads
+  const content = db.content
+  if (leads.length === 0 && content.length === 0) return ''
+
+  const lines: string[] = []
+  const total = leads.length
+  const won = leads.filter((l) => l.stage === 'won').length
+  const meeting = leads.filter((l) => l.stage === 'meeting' || l.stage === 'won').length
+  if (total) {
+    lines.push(`- Leads: ${total} total · ${won} won (${Math.round((won / total) * 100)}%) · ${meeting} reached a meeting`)
+    // Win rate by product (only where we have signal)
+    const byProduct: Record<string, { total: number; won: number }> = {}
+    for (const l of leads) {
+      const p = l.product || 'Unspecified'
+      byProduct[p] ??= { total: 0, won: 0 }
+      byProduct[p].total++
+      if (l.stage === 'won') byProduct[p].won++
+    }
+    const top = Object.entries(byProduct)
+      .sort((a, b) => b[1].won - a[1].won)
+      .slice(0, 3)
+      .map(([p, s]) => `${p} ${s.won}/${s.total}`)
+      .join(', ')
+    if (top) lines.push(`- By product (won/total): ${top}`)
+  }
+  const approved = content.filter((c) => c.stage === 'approved' || c.stage === 'published').length
+  const rejected = content.filter((c) => c.stage === 'rejected').length
+  const decided = approved + rejected
+  if (decided) {
+    lines.push(`- Content approval rate: ${Math.round((approved / decided) * 100)}% (${approved} approved, ${rejected} rejected)`)
+  }
+  if (!lines.length) return ''
+  return `# WHAT'S WORKING (recent outcomes — use these to sharpen targeting and messaging)\n${lines.join('\n')}`
 }
 
 /* ---------------- Knowledge Vault ---------------- */

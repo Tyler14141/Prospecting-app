@@ -172,6 +172,18 @@ export default function Page() {
     refresh()
   }
 
+  async function syncCrm(id?: string): Promise<{ configured: boolean; synced: number }> {
+    const res = await fetch('/api/crm/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(id ? { id } : {}),
+    })
+      .then((r) => r.json())
+      .catch(() => ({ configured: false, synced: 0 }))
+    refresh()
+    return res
+  }
+
   async function send(text: string) {
     const clean = text.trim()
     if (!clean || busy) return
@@ -414,7 +426,7 @@ export default function Page() {
           </section>
         )}
 
-        {view === 'leads' && <LeadBoard leads={leads} onMove={moveLead} />}
+        {view === 'leads' && <LeadBoard leads={leads} onMove={moveLead} onSync={syncCrm} />}
         {view === 'content' && <ContentBoard content={content} onMove={moveContent} />}
         {view === 'review' && <ReviewQueue content={content} onMove={moveContent} />}
         {view === 'analytics' && <Analytics leads={leads} content={content} activity={activity} />}
@@ -651,13 +663,44 @@ function EmptyHint({ children }: { children: React.ReactNode }) {
   )
 }
 
-function LeadBoard({ leads, onMove }: { leads: Lead[]; onMove: (id: string, s: LeadStage) => void }) {
+function LeadBoard({
+  leads,
+  onMove,
+  onSync,
+}: {
+  leads: Lead[]
+  onMove: (id: string, s: LeadStage) => void
+  onSync: (id?: string) => Promise<{ configured: boolean; synced: number }>
+}) {
+  const [syncing, setSyncing] = useState(false)
+  const [msg, setMsg] = useState('')
+  const sync = async () => {
+    setSyncing(true)
+    const r = await onSync()
+    setMsg(r.configured === false ? 'Salesforce not configured' : `Synced ${r.synced} lead(s)`)
+    setSyncing(false)
+    setTimeout(() => setMsg(''), 3000)
+  }
   return (
     <section className="flex min-h-0 flex-1 flex-col">
-      <BoardHeader
-        title="Lead Pipeline"
-        subtitle="Prospects saved by the Researcher and AE. Move cards as deals progress."
-      />
+      <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+        <div>
+          <h1 className="text-lg font-semibold">Lead Pipeline</h1>
+          <p className="text-xs text-slate-400">
+            Prospects saved by the Researcher and AE. Move cards as deals progress.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {msg && <span className="text-[11px] text-slate-400">{msg}</span>}
+          <button
+            onClick={sync}
+            disabled={syncing}
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-[11px] text-slate-200 transition hover:bg-white/5 disabled:opacity-50"
+          >
+            {syncing ? 'Syncing…' : 'Sync new → Salesforce'}
+          </button>
+        </div>
+      </div>
       {leads.length === 0 ? (
         <EmptyHint>
           No leads yet. Ask the <strong className="text-slate-300">Researcher</strong> to find
@@ -677,6 +720,18 @@ function LeadBoard({ leads, onMove }: { leads: Lead[]; onMove: (id: string, s: L
                   {cards.map((l) => (
                     <div key={l.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
                       <div className="text-sm font-semibold">{l.org}</div>
+                      {(l.crmId || l.enriched) && (
+                        <div className="mt-0.5 flex gap-1">
+                          {l.crmId && (
+                            <span className="rounded bg-sky-400/15 px-1.5 text-[10px] text-sky-300">✓ CRM</span>
+                          )}
+                          {l.enriched && (
+                            <span className="rounded bg-emerald-400/15 px-1.5 text-[10px] text-emerald-300">
+                              enriched
+                            </span>
+                          )}
+                        </div>
+                      )}
                       {l.location && <div className="text-[11px] text-slate-500">{l.location}</div>}
                       {(l.contact || l.title) && (
                         <div className="mt-1 text-xs text-slate-300">
@@ -818,6 +873,7 @@ function ReviewQueue({
                   </span>
                   <span className="text-sm font-semibold">{c.title}</span>
                   {c.product && <span className="text-[10px] text-slate-500">{c.product}</span>}
+                  {c.to && <span className="text-[10px] text-slate-500">→ {c.to}</span>}
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
                   {c.body}

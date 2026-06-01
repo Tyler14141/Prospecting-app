@@ -42,3 +42,13 @@ export interface ContentItem {
   stage: ContentStage
   createdAt: string
 }
+
+export type ActivityType = 'tool' | 'delegate' | 'review' | 'workflow' | 'system'
+
+export interface ActivityEvent {
+  id: string
+  ts: string
+  agentId?: string
+  type: ActivityType
+  message: string
+}

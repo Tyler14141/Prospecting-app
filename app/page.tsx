@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AGENTS, getAgent } from '@/lib/agents'
 import { COMPANY, PRODUCTS, ICP } from '@/lib/knowledge'
+import { WORKFLOWS, getWorkflow } from '@/lib/workflows'
 import {
   LEAD_STAGES,
   CONTENT_STAGES,
   type Lead,
   type ContentItem,
+  type ActivityEvent,
   type LeadStage,
   type ContentStage,
 } from '@/lib/pipeline'
@@ -17,7 +19,7 @@ interface Msg {
   role: Role
   content: string
 }
-type View = 'command' | 'console' | 'leads' | 'content' | 'review' | 'vault'
+type View = 'command' | 'console' | 'leads' | 'content' | 'review' | 'analytics' | 'vault'
 type Status = 'idle' | 'working'
 
 function countOccurrences(haystack: string, needle: string): number {
@@ -33,8 +35,6 @@ function countOccurrences(haystack: string, needle: string): number {
   return count
 }
 
-// Read the CEO's delegation markers out of the live stream to know which
-// specialists are mid-task (delegated but not yet "done").
 function deriveWorking(text: string): string[] {
   return AGENTS.filter((a) => !a.canDelegate)
     .filter(
@@ -45,12 +45,28 @@ function deriveWorking(text: string): string[] {
     .map((a) => a.id)
 }
 
+function agentMeta(id?: string) {
+  const a = id ? getAgent(id) : undefined
+  return a
+    ? { name: a.name, accent: a.accent, icon: a.icon }
+    : { name: 'System', accent: '#94a3b8', icon: '•' }
+}
+
+function fmtTime(ts: string) {
+  try {
+    return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return ''
+  }
+}
+
 const NAV: [View, string, string][] = [
   ['command', 'Command Center', '▦'],
   ['console', 'Agent Console', '✦'],
   ['leads', 'Lead Pipeline', '◫'],
   ['content', 'Content Pipeline', '✎'],
   ['review', 'Needs Review', '✔'],
+  ['analytics', 'Analytics', '▥'],
   ['vault', 'Knowledge Vault', '▤'],
 ]
 
@@ -63,6 +79,9 @@ export default function Page() {
   const [statuses, setStatuses] = useState<Record<string, Status>>({})
   const [leads, setLeads] = useState<Lead[]>([])
   const [content, setContent] = useState<ContentItem[]>([])
+  const [activity, setActivity] = useState<ActivityEvent[]>([])
+  const [runningWf, setRunningWf] = useState<Record<string, boolean>>({})
+  const [autopilot, setAutopilot] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const active = getAgent(activeId)!
@@ -73,12 +92,14 @@ export default function Page() {
 
   const refresh = useCallback(async () => {
     try {
-      const [l, c] = await Promise.all([
+      const [l, c, a] = await Promise.all([
         fetch('/api/leads').then((r) => r.json()),
         fetch('/api/content').then((r) => r.json()),
+        fetch('/api/activity').then((r) => r.json()),
       ])
       setLeads(l.leads ?? [])
       setContent(c.content ?? [])
+      setActivity(a.activity ?? [])
     } catch {
       /* ignore */
     }
@@ -91,6 +112,41 @@ export default function Page() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, view])
+
+  const runWorkflow = useCallback(
+    async (id: string) => {
+      const wf = getWorkflow(id)
+      if (!wf || runningWf[id]) return
+      setRunningWf((r) => ({ ...r, [id]: true }))
+      setStatuses((s) => ({ ...s, [wf.agentId]: 'working' }))
+      try {
+        await fetch('/api/workflows/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        })
+      } catch {
+        /* ignore */
+      } finally {
+        setRunningWf((r) => ({ ...r, [id]: false }))
+        setStatuses((s) => {
+          const n = { ...s }
+          delete n[wf.agentId]
+          return n
+        })
+        refresh()
+      }
+    },
+    [runningWf, refresh],
+  )
+
+  // Auto-pilot: while on (and the tab is open), scan for leads every 5 minutes.
+  useEffect(() => {
+    if (!autopilot) return
+    const t = setInterval(() => runWorkflow('scan-leads'), 5 * 60 * 1000)
+    return () => clearInterval(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autopilot])
 
   function openConsole(id: string) {
     setActiveId(id)
@@ -113,6 +169,7 @@ export default function Page() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, patch: { stage } }),
     }).catch(() => {})
+    refresh()
   }
 
   async function send(text: string) {
@@ -160,7 +217,7 @@ export default function Page() {
     } finally {
       setBusy(false)
       setStatuses({})
-      refresh() // agents may have created leads / content this turn
+      refresh()
     }
   }
 
@@ -256,6 +313,11 @@ export default function Page() {
             statuses={statuses}
             leadCount={leads.length}
             reviewCount={reviewCount}
+            activity={activity}
+            runningWf={runningWf}
+            autopilot={autopilot}
+            onToggleAutopilot={() => setAutopilot((v) => !v)}
+            onRun={runWorkflow}
             onOpen={openConsole}
           />
         )}
@@ -355,7 +417,8 @@ export default function Page() {
         {view === 'leads' && <LeadBoard leads={leads} onMove={moveLead} />}
         {view === 'content' && <ContentBoard content={content} onMove={moveContent} />}
         {view === 'review' && <ReviewQueue content={content} onMove={moveContent} />}
-        {view === 'vault' && <Vault />}
+        {view === 'analytics' && <Analytics leads={leads} content={content} activity={activity} />}
+        {view === 'vault' && <VaultEditor />}
       </main>
     </div>
   )
@@ -387,17 +450,55 @@ function Bubble({ msg, accent, icon }: { msg: Msg; accent: string; icon: string 
   )
 }
 
+function ActivityFeed({ activity }: { activity: ActivityEvent[] }) {
+  if (activity.length === 0) {
+    return <p className="text-xs text-slate-500">No activity yet. Put an agent to work.</p>
+  }
+  return (
+    <div className="space-y-2">
+      {activity.map((e) => {
+        const m = agentMeta(e.agentId)
+        return (
+          <div key={e.id} className="flex items-start gap-2.5 text-xs">
+            <span
+              className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md text-[11px]"
+              style={{ background: `${m.accent}22`, color: m.accent }}
+            >
+              {m.icon}
+            </span>
+            <div className="min-w-0 flex-1">
+              <span className="text-slate-300">{e.message}</span>
+              <span className="ml-1.5 text-slate-600">· {m.name}</span>
+            </div>
+            <span className="shrink-0 text-[11px] text-slate-600">{fmtTime(e.ts)}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function CommandCenter({
   totalConversations,
   statuses,
   leadCount,
   reviewCount,
+  activity,
+  runningWf,
+  autopilot,
+  onToggleAutopilot,
+  onRun,
   onOpen,
 }: {
   totalConversations: number
   statuses: Record<string, 'idle' | 'working'>
   leadCount: number
   reviewCount: number
+  activity: ActivityEvent[]
+  runningWf: Record<string, boolean>
+  autopilot: boolean
+  onToggleAutopilot: () => void
+  onRun: (id: string) => void
   onOpen: (id: string) => void
 }) {
   const workingCount = Object.values(statuses).filter((s) => s === 'working').length
@@ -415,7 +516,7 @@ function CommandCenter({
         </div>
         <h1 className="text-2xl font-semibold">Command Center</h1>
         <p className="mt-1 text-sm text-slate-400">
-          A coordinated AI agent team for {COMPANY.name}. Chat with any agent to put it to work —
+          A coordinated AI agent team for {COMPANY.name}. Chat with an agent or run a workflow —
           their leads and content land in the pipelines.
         </p>
 
@@ -429,45 +530,104 @@ function CommandCenter({
           ))}
         </div>
 
-        <h2 className="mb-3 mt-8 text-sm font-semibold text-slate-300">Your team</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {AGENTS.map((a) => {
-            const working = (statuses[a.id] ?? 'idle') === 'working'
+        {/* Workflows */}
+        <div className="mb-3 mt-8 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-300">Workflows</h2>
+          <button
+            onClick={onToggleAutopilot}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] transition ${
+              autopilot
+                ? 'border-amber-400/40 bg-amber-400/10 text-amber-300'
+                : 'border-white/10 text-slate-400 hover:bg-white/5'
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${autopilot ? 'animate-pulse bg-amber-400' : 'bg-slate-500'}`}
+            />
+            {autopilot ? 'Auto-pilot on · scans every 5 min' : 'Auto-pilot off'}
+          </button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {WORKFLOWS.map((w) => {
+            const a = getAgent(w.agentId)
+            const running = !!runningWf[w.id]
             return (
-              <button
-                key={a.id}
-                onClick={() => onOpen(a.id)}
-                className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06]"
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="grid h-10 w-10 place-items-center rounded-lg text-lg"
-                    style={{ background: `${a.accent}22`, color: a.accent }}
+              <div key={w.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="flex items-center gap-2">
+                  {a && (
+                    <span
+                      className="grid h-7 w-7 place-items-center rounded-md text-sm"
+                      style={{ background: `${a.accent}22`, color: a.accent }}
+                    >
+                      {a.icon}
+                    </span>
+                  )}
+                  <div className="text-sm font-semibold">{w.name}</div>
+                  <button
+                    onClick={() => onRun(w.id)}
+                    disabled={running}
+                    className="ml-auto rounded-lg border border-white/15 px-3 py-1 text-[11px] text-slate-200 transition hover:bg-white/5 disabled:opacity-50"
                   >
-                    {a.icon}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{a.name}</div>
-                    <div className="truncate text-[11px] text-slate-500">{a.role}</div>
-                  </div>
-                  <span
-                    className={`ml-auto h-2 w-2 rounded-full ${
-                      working
-                        ? 'animate-pulse bg-amber-400 shadow-[0_0_8px] shadow-amber-400/70'
-                        : 'bg-emerald-400'
-                    }`}
-                  />
+                    {running ? 'Running…' : 'Run ▷'}
+                  </button>
                 </div>
-                <p className="mt-3 text-xs leading-relaxed text-slate-400">{a.blurb}</p>
-                <div
-                  className="mt-3 text-[11px] font-medium"
-                  style={{ color: working ? '#fbbf24' : a.accent }}
-                >
-                  {working ? 'Working…' : 'Open console →'}
-                </div>
-              </button>
+                <p className="mt-2 text-xs text-slate-400">{w.description}</p>
+              </div>
             )
           })}
+        </div>
+
+        {/* Team + Activity */}
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+          <div>
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">Your team</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {AGENTS.map((a) => {
+                const working = (statuses[a.id] ?? 'idle') === 'working'
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => onOpen(a.id)}
+                    className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="grid h-10 w-10 place-items-center rounded-lg text-lg"
+                        style={{ background: `${a.accent}22`, color: a.accent }}
+                      >
+                        {a.icon}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold">{a.name}</div>
+                        <div className="truncate text-[11px] text-slate-500">{a.role}</div>
+                      </div>
+                      <span
+                        className={`ml-auto h-2 w-2 rounded-full ${
+                          working
+                            ? 'animate-pulse bg-amber-400 shadow-[0_0_8px] shadow-amber-400/70'
+                            : 'bg-emerald-400'
+                        }`}
+                      />
+                    </div>
+                    <p className="mt-3 text-xs leading-relaxed text-slate-400">{a.blurb}</p>
+                    <div
+                      className="mt-3 text-[11px] font-medium"
+                      style={{ color: working ? '#fbbf24' : a.accent }}
+                    >
+                      {working ? 'Working…' : 'Open console →'}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">Recent activity</h2>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <ActivityFeed activity={activity.slice(0, 8)} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -501,7 +661,7 @@ function LeadBoard({ leads, onMove }: { leads: Lead[]; onMove: (id: string, s: L
       {leads.length === 0 ? (
         <EmptyHint>
           No leads yet. Ask the <strong className="text-slate-300">Researcher</strong> to find
-          prospects (it can save them straight to this board).
+          prospects, or run the “Scan for new leads” workflow.
         </EmptyHint>
       ) : (
         <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto px-6 py-5">
@@ -515,10 +675,7 @@ function LeadBoard({ leads, onMove }: { leads: Lead[]; onMove: (id: string, s: L
                 </div>
                 <div className="space-y-2">
                   {cards.map((l) => (
-                    <div
-                      key={l.id}
-                      className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
-                    >
+                    <div key={l.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
                       <div className="text-sm font-semibold">{l.org}</div>
                       {l.location && <div className="text-[11px] text-slate-500">{l.location}</div>}
                       {(l.contact || l.title) && (
@@ -533,7 +690,9 @@ function LeadBoard({ leads, onMove }: { leads: Lead[]; onMove: (id: string, s: L
                           {l.product}
                         </span>
                       )}
-                      {l.whyFit && <p className="mt-2 text-[11px] leading-snug text-slate-500">{l.whyFit}</p>}
+                      {l.whyFit && (
+                        <p className="mt-2 text-[11px] leading-snug text-slate-500">{l.whyFit}</p>
+                      )}
                       <div className="mt-3 flex justify-between text-[11px]">
                         <button
                           disabled={si === 0}
@@ -579,7 +738,7 @@ function ContentBoard({
       {visible.length === 0 ? (
         <EmptyHint>
           No content yet. Ask the <strong className="text-slate-300">CMO</strong> to write posts or
-          the <strong className="text-slate-300">AE</strong> to draft outreach.
+          run the “Draft this week’s content” workflow.
         </EmptyHint>
       ) : (
         <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto px-6 py-5">
@@ -593,10 +752,7 @@ function ContentBoard({
                 </div>
                 <div className="space-y-2">
                   {cards.map((c) => (
-                    <div
-                      key={c.id}
-                      className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
-                    >
+                    <div key={c.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
                       <div className="flex items-center gap-2">
                         <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-300">
                           {c.channel}
@@ -689,23 +845,166 @@ function ReviewQueue({
   )
 }
 
-function Vault() {
+function Bar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0
+  return (
+    <div>
+      <div className="flex justify-between text-[11px] text-slate-400">
+        <span>{label}</span>
+        <span className="text-slate-300">{value}</span>
+      </div>
+      <div className="mt-1 h-2 rounded bg-white/5">
+        <div className="h-2 rounded" style={{ width: `${pct}%`, background: color }} />
+      </div>
+    </div>
+  )
+}
+
+function Analytics({
+  leads,
+  content,
+  activity,
+}: {
+  leads: Lead[]
+  content: ContentItem[]
+  activity: ActivityEvent[]
+}) {
+  const leadCounts = LEAD_STAGES.map((s) => leads.filter((l) => l.stage === s.key).length)
+  const leadMax = Math.max(1, ...leadCounts)
+  const contentCounts = CONTENT_STAGES.map((s) => content.filter((c) => c.stage === s.key).length)
+  const contentMax = Math.max(1, ...contentCounts)
+  const won = leads.filter((l) => l.stage === 'won').length
+  const conv = leads.length ? Math.round((won / leads.length) * 100) : 0
+  const channels = Array.from(new Set(content.map((c) => c.channel)))
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="text-2xl font-semibold">Analytics</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Performance across the pipeline — the Business Analyst’s view of the system.
+        </p>
+
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: 'Total leads', value: String(leads.length) },
+            { label: 'Won', value: String(won) },
+            { label: 'Win rate', value: `${conv}%` },
+            { label: 'Content pieces', value: String(content.length) },
+          ].map((m) => (
+            <div key={m.label} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-[11px] uppercase tracking-wide text-slate-500">{m.label}</div>
+              <div className="mt-1 text-2xl font-semibold">{m.value}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">Lead funnel</h2>
+            <div className="space-y-3">
+              {LEAD_STAGES.map((s, i) => (
+                <Bar key={s.key} label={s.label} value={leadCounts[i]} max={leadMax} color="#38bdf8" />
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">Content by stage</h2>
+            <div className="space-y-3">
+              {CONTENT_STAGES.map((s, i) => (
+                <Bar key={s.key} label={s.label} value={contentCounts[i]} max={contentMax} color="#a78bfa" />
+              ))}
+            </div>
+            {channels.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {channels.map((ch) => (
+                  <span
+                    key={ch}
+                    className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-300"
+                  >
+                    {ch}: {content.filter((c) => c.channel === ch).length}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <h2 className="mb-3 text-sm font-semibold text-slate-300">Activity log</h2>
+          <ActivityFeed activity={activity.slice(0, 30)} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function VaultEditor() {
+  const [text, setText] = useState('')
+  const [loaded, setLoaded] = useState(false)
+  const [isDefault, setIsDefault] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/vault')
+      .then((r) => r.json())
+      .then((d) => {
+        setText(d.text ?? '')
+        setIsDefault(!!d.isDefault)
+        setLoaded(true)
+      })
+      .catch(() => setLoaded(true))
+  }, [])
+
+  async function save() {
+    setSaving(true)
+    setSaved(false)
+    try {
+      await fetch('/api/vault', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      setIsDefault(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch {
+      /* ignore */
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-2xl font-semibold">Knowledge Vault</h1>
         <p className="mt-1 text-sm text-slate-400">
-          The shared context every agent reasons from. Edit{' '}
-          <code className="text-slate-300">lib/knowledge.ts</code> to re-point the OS at a different
-          company, products, or ICP.
+          The shared context every agent reasons from. Edit it here and save — changes take effect on
+          the next agent run. {isDefault ? 'Currently using the built-in default.' : 'Custom vault saved.'}
         </p>
 
-        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <div className="text-sm font-semibold">{COMPANY.name}</div>
-          <p className="mt-1 text-xs leading-relaxed text-slate-400">{COMPANY.description}</p>
+        <textarea
+          value={loaded ? text : 'Loading…'}
+          onChange={(e) => setText(e.target.value)}
+          disabled={!loaded}
+          rows={20}
+          className="mt-4 w-full resize-y rounded-2xl border border-white/10 bg-black/30 p-4 font-mono text-xs leading-relaxed text-slate-200 outline-none focus:border-white/25"
+        />
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            onClick={save}
+            disabled={saving || !loaded}
+            className="rounded-xl bg-cyan-400 px-5 py-2 text-sm font-medium text-slate-900 transition hover:bg-cyan-300 disabled:opacity-50"
+          >
+            {saving ? 'Saving…' : 'Save vault'}
+          </button>
+          {saved && <span className="text-xs text-emerald-400">Saved ✓</span>}
         </div>
 
-        <h2 className="mb-3 mt-6 text-sm font-semibold text-slate-300">Product lines</h2>
+        <h2 className="mb-3 mt-8 text-sm font-semibold text-slate-300">Product reference</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {PRODUCTS.map((p) => (
             <div key={p.key} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -718,22 +1017,8 @@ function Vault() {
           ))}
         </div>
 
-        <h2 className="mb-3 mt-6 text-sm font-semibold text-slate-300">Ideal Customer Profile</h2>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <p className="text-xs text-slate-400">
-            <span className="text-slate-300">Segment:</span> {ICP.segment}
-          </p>
-          <p className="mt-2 text-xs text-slate-400">
-            <span className="text-slate-300">Size:</span> {ICP.size}
-          </p>
-          <ul className="mt-3 space-y-1">
-            {ICP.triggers.map((t) => (
-              <li key={t} className="flex gap-2 text-xs text-slate-400">
-                <span className="text-cyan-400">▹</span>
-                {t}
-              </li>
-            ))}
-          </ul>
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs text-slate-400">
+          <span className="text-slate-300">ICP:</span> {ICP.segment} — {ICP.size}
         </div>
       </div>
     </div>

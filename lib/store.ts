@@ -1,13 +1,22 @@
-// Tiny JSON-file datastore for leads & content. Good enough for local dev and
-// demos; swap for Postgres/KV for production. Falls back to in-memory if the
-// filesystem is read-only (e.g. serverless), so it never crashes.
+// Tiny JSON-file datastore for leads, content, activity, and the editable
+// Knowledge Vault. Good enough for local dev and demos; swap for Postgres/KV
+// for production. Falls back to in-memory if the filesystem is read-only.
 import { promises as fs } from 'fs'
 import path from 'path'
-import type { Lead, ContentItem, LeadStage, ContentStage } from './pipeline'
+import { KNOWLEDGE_VAULT } from './knowledge'
+import type {
+  Lead,
+  ContentItem,
+  ActivityEvent,
+  LeadStage,
+  ContentStage,
+} from './pipeline'
 
 interface DB {
   leads: Lead[]
   content: ContentItem[]
+  activity: ActivityEvent[]
+  vaultText?: string
 }
 
 const FILE = path.join(process.cwd(), '.data', 'db.json')
@@ -17,9 +26,14 @@ async function load(): Promise<DB> {
   if (cache) return cache
   try {
     const parsed = JSON.parse(await fs.readFile(FILE, 'utf8')) as Partial<DB>
-    cache = { leads: parsed.leads ?? [], content: parsed.content ?? [] }
+    cache = {
+      leads: parsed.leads ?? [],
+      content: parsed.content ?? [],
+      activity: parsed.activity ?? [],
+      vaultText: parsed.vaultText,
+    }
   } catch {
-    cache = { leads: [], content: [] }
+    cache = { leads: [], content: [], activity: [] }
   }
   return cache
 }
@@ -37,6 +51,8 @@ async function persist(db: DB) {
 function uid(prefix: string) {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
 }
+
+/* ---------------- Leads ---------------- */
 
 export async function listLeads(): Promise<Lead[]> {
   return (await load()).leads
@@ -70,6 +86,8 @@ export async function updateLead(id: string, patch: Partial<Lead>): Promise<Lead
   return lead
 }
 
+/* ---------------- Content ---------------- */
+
 export async function listContent(): Promise<ContentItem[]> {
   return (await load()).content
 }
@@ -102,6 +120,36 @@ export async function updateContent(
   Object.assign(item, patch, { id: item.id })
   await persist(db)
   return item
+}
+
+/* ---------------- Activity ---------------- */
+
+export async function listActivity(): Promise<ActivityEvent[]> {
+  return (await load()).activity
+}
+
+export async function addActivity(e: Omit<ActivityEvent, 'id' | 'ts'>): Promise<void> {
+  const db = await load()
+  db.activity.unshift({ id: uid('act'), ts: new Date().toISOString(), ...e })
+  if (db.activity.length > 200) db.activity.length = 200
+  await persist(db)
+}
+
+/* ---------------- Knowledge Vault ---------------- */
+
+export async function getVaultText(): Promise<string> {
+  return (await load()).vaultText ?? KNOWLEDGE_VAULT
+}
+
+export async function readVault(): Promise<{ text: string; isDefault: boolean }> {
+  const db = await load()
+  return { text: db.vaultText ?? KNOWLEDGE_VAULT, isDefault: db.vaultText == null }
+}
+
+export async function setVaultText(text: string): Promise<void> {
+  const db = await load()
+  db.vaultText = text
+  await persist(db)
 }
 
 export type { LeadStage, ContentStage }

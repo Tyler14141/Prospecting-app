@@ -11,6 +11,13 @@ A coordinated AI agent team — a "command center" for founder/seller-led growth
 | **Account Manager** (Riley Brooks) | Retention & expansion | `claude-sonnet-4-6` | — |
 | **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-sonnet-4-6` | — |
 
+## Workflows, analytics, activity & editable vault
+
+- **Workflows** (Command Center) — one-click autonomous runs: *Scan for new leads*, *Draft this week's content*, *Draft outbound follow-up*, *Weekly scorecard*. Each fires an agent server-side; its tools populate the pipelines. **Auto-pilot** toggle re-runs lead scanning every 5 minutes while the tab is open.
+- **Analytics** — lead funnel, content-by-stage, channel mix, win rate, and a full activity log (the Business Analyst's view).
+- **Activity log** — every tool call, delegation, approval, and workflow run is recorded (`/api/activity`) and shown on the Command Center + Analytics.
+- **Editable Knowledge Vault** — edit the shared context in-app and save (`/api/vault`); agents pick it up on their next run. Falls back to the built-in default until you customize it.
+
 ## Pipelines, review & tools
 
 Agents don't just talk — they **act**. Specialists have real tools that write to a datastore:

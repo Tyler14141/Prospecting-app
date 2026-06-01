@@ -9,6 +9,7 @@ import type {
   ContentItem,
   ActivityEvent,
   MemoryNote,
+  Material,
   LeadStage,
   ContentStage,
 } from './pipeline'
@@ -18,6 +19,7 @@ interface DB {
   content: ContentItem[]
   activity: ActivityEvent[]
   memory: MemoryNote[]
+  materials: Material[]
   vaultText?: string
 }
 
@@ -33,10 +35,11 @@ async function load(): Promise<DB> {
       content: parsed.content ?? [],
       activity: parsed.activity ?? [],
       memory: parsed.memory ?? [],
+      materials: parsed.materials ?? [],
       vaultText: parsed.vaultText,
     }
   } catch {
-    cache = { leads: [], content: [], activity: [], memory: [] }
+    cache = { leads: [], content: [], activity: [], memory: [], materials: [] }
   }
   return cache
 }
@@ -172,6 +175,52 @@ export async function getMemoryText(): Promise<string> {
   if (!m.length) return ''
   const recent = m.slice(0, 12).map((n) => `- ${n.text}`).join('\n')
   return `# TEAM MEMORY (durable notes the team has saved — use when relevant)\n${recent}`
+}
+
+/* ---------------- Product materials ---------------- */
+
+export async function listMaterials(): Promise<Material[]> {
+  return (await load()).materials
+}
+
+export async function addMaterial(
+  input: { product: string; title: string; body: string },
+): Promise<Material> {
+  const db = await load()
+  const material: Material = {
+    id: uid('mat'),
+    createdAt: new Date().toISOString(),
+    product: input.product || 'General',
+    title: input.title,
+    body: input.body,
+  }
+  db.materials.unshift(material)
+  await persist(db)
+  return material
+}
+
+export async function deleteMaterial(id: string): Promise<void> {
+  const db = await load()
+  db.materials = db.materials.filter((m) => m.id !== id)
+  await persist(db)
+}
+
+// Operator-provided product docs, grouped per product, for injection into agent
+// runs so messaging is grounded in real materials. Capped to keep prompts sane.
+export async function getMaterialsText(): Promise<string> {
+  const mats = (await load()).materials
+  if (!mats.length) return ''
+  const byProduct: Record<string, Material[]> = {}
+  for (const m of mats) (byProduct[m.product] ??= []).push(m)
+  const parts = Object.entries(byProduct).map(([product, list]) => {
+    const items = list
+      .map((m) => `### ${m.title}\n${m.body.length > 900 ? m.body.slice(0, 900) + '…' : m.body}`)
+      .join('\n\n')
+    return `## ${product}\n${items}`
+  })
+  let text = `# PRODUCT MATERIALS (operator-provided docs per product — ground all messaging in these when relevant)\n${parts.join('\n\n')}`
+  if (text.length > 8000) text = text.slice(0, 8000) + '\n…(truncated)'
+  return text
 }
 
 /* ---------------- Closed-loop insights ---------------- */

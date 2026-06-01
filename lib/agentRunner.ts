@@ -5,7 +5,7 @@
 import { anthropic } from './anthropic'
 import { AGENTS, getAgent, type AgentDef } from './agents'
 import { TOOL_DEFS, runTool } from './tools'
-import { getVaultText, getMemoryText, getInsightsText, addActivity } from './store'
+import { getVaultText, getMemoryText, getInsightsText, getMaterialsText, addActivity } from './store'
 
 const WEB_SEARCH = { type: 'web_search_20260209', name: 'web_search' }
 
@@ -18,6 +18,7 @@ interface Context {
   vault: string
   memory: string
   insights: string
+  materials: string
 }
 
 function systemFor(agent: AgentDef, ctx: Context) {
@@ -25,6 +26,7 @@ function systemFor(agent: AgentDef, ctx: Context) {
     { type: 'text' as const, text: ctx.vault, cache_control: { type: 'ephemeral' as const } },
     { type: 'text' as const, text: agent.systemPersona },
   ]
+  if (ctx.materials) blocks.push({ type: 'text' as const, text: ctx.materials })
   if (ctx.insights) blocks.push({ type: 'text' as const, text: ctx.insights })
   if (ctx.memory) blocks.push({ type: 'text' as const, text: ctx.memory })
   const calendly = process.env.CALENDLY_URL
@@ -77,12 +79,13 @@ export async function runConversation(
   messages: unknown[],
   send: Send,
 ): Promise<{ usage: Usage }> {
-  const [vault, memory, insights] = await Promise.all([
+  const [vault, memory, insights, materials] = await Promise.all([
     getVaultText(),
     getMemoryText(),
     getInsightsText(),
+    getMaterialsText(),
   ])
-  const ctx: Context = { vault, memory, insights }
+  const ctx: Context = { vault, memory, insights, materials }
   const usage: Usage = { input: 0, output: 0 }
   if (agent.canDelegate) await runOrchestrator(agent, messages, send, ctx, usage)
   else await runAgentTurn(agent, messages, send, ctx, usage)

@@ -63,3 +63,11 @@ export interface MemoryNote {
   agentId?: string
   text: string
 }
+
+export interface Material {
+  id: string
+  product: string // product key, e.g. Spectrum / TRIO / MSI / Aurora
+  title: string
+  body: string
+  createdAt: string
+}

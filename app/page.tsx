@@ -10,6 +10,7 @@ import {
   type Lead,
   type ContentItem,
   type ActivityEvent,
+  type Material,
   type LeadStage,
   type ContentStage,
 } from '@/lib/pipeline'
@@ -57,6 +58,87 @@ function fmtTime(ts: string) {
     return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   } catch {
     return ''
+  }
+}
+
+function NavIcon({ view }: { view: View }) {
+  const c = {
+    width: 18,
+    height: 18,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
+  switch (view) {
+    case 'command':
+      return (
+        <svg {...c}>
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        </svg>
+      )
+    case 'map':
+      return (
+        <svg {...c}>
+          <circle cx="12" cy="12" r="2.4" />
+          <circle cx="5" cy="6" r="1.8" />
+          <circle cx="19" cy="6" r="1.8" />
+          <circle cx="5" cy="18" r="1.8" />
+          <circle cx="19" cy="18" r="1.8" />
+          <path d="M10.2 10.6 6.4 7.4M13.8 10.6l3.8-3.2M10.2 13.4l-3.8 3.2M13.8 13.4l3.8 3.2" />
+        </svg>
+      )
+    case 'console':
+      return (
+        <svg {...c}>
+          <path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.5 8.5 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5Z" />
+        </svg>
+      )
+    case 'leads':
+      return (
+        <svg {...c}>
+          <rect x="3" y="4" width="5" height="16" rx="1.2" />
+          <rect x="10" y="4" width="5" height="11" rx="1.2" />
+          <rect x="17" y="4" width="4" height="7" rx="1.2" />
+        </svg>
+      )
+    case 'content':
+      return (
+        <svg {...c}>
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+      )
+    case 'review':
+      return (
+        <svg {...c}>
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      )
+    case 'analytics':
+      return (
+        <svg {...c}>
+          <path d="M3 3v18h18" />
+          <rect x="7" y="11" width="3" height="6" rx="1" />
+          <rect x="12" y="7" width="3" height="10" rx="1" />
+          <rect x="17" y="13" width="3" height="4" rx="1" />
+        </svg>
+      )
+    case 'vault':
+      return (
+        <svg {...c}>
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+        </svg>
+      )
+    default:
+      return null
   }
 }
 
@@ -237,38 +319,49 @@ export default function Page() {
   return (
     <div className="flex h-screen w-full overflow-hidden">
       {/* Sidebar */}
-      <aside className="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-white px-3 py-4">
-        <div className="mb-6 flex items-center gap-2 px-2">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 font-bold text-slate-900">
+      <aside className="flex w-[260px] shrink-0 flex-col border-r border-gray-200 bg-white px-3 py-5">
+        <div className="mb-6 flex items-center gap-2.5 px-2">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-bold text-white shadow-sm">
             OS
           </div>
           <div>
-            <div className="text-sm font-semibold leading-tight">Agentic OS</div>
-            <div className="text-[11px] text-gray-500">Agentic growth ops</div>
+            <div className="text-[15px] font-semibold leading-tight tracking-tight">Agentic OS</div>
+            <div className="text-[11px] text-gray-400">Agentic growth ops</div>
           </div>
         </div>
 
-        <nav className="space-y-1">
-          {NAV.map(([v, label, glyph]) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
-                view === v ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <span className="opacity-70">{glyph}</span>
-              {label}
-              {v === 'review' && reviewCount > 0 && (
-                <span className="ml-auto rounded-full bg-amber-100 px-1.5 text-[11px] font-medium text-amber-600">
-                  {reviewCount}
+        <nav className="space-y-0.5">
+          {NAV.map(([v, label]) => {
+            const activeNav = view === v
+            return (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition ${
+                  activeNav
+                    ? 'bg-gray-900 text-white shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <span className={activeNav ? 'text-white' : 'text-gray-400'}>
+                  <NavIcon view={v} />
                 </span>
-              )}
-            </button>
-          ))}
+                <span className="flex-1">{label}</span>
+                {v === 'review' && reviewCount > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 text-[11px] font-semibold ${
+                      activeNav ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'
+                    }`}
+                  >
+                    {reviewCount}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </nav>
 
-        <div className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+        <div className="mb-2 mt-7 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
           Agents
         </div>
         <div className="space-y-1 overflow-y-auto">
@@ -278,8 +371,8 @@ export default function Page() {
               <button
                 key={a.id}
                 onClick={() => openConsole(a.id)}
-                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition ${
-                  view === 'console' && activeId === a.id ? 'bg-gray-100' : 'hover:bg-gray-50'
+                className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition ${
+                  view === 'console' && activeId === a.id ? 'bg-gray-100' : 'hover:bg-gray-100'
                 }`}
               >
                 <span
@@ -308,13 +401,13 @@ export default function Page() {
           })}
         </div>
 
-        <div className="mt-auto px-3 pt-4 text-[11px] text-gray-400">
-          <span className="inline-flex items-center gap-1.5">
+        <div className="mt-auto px-1 pt-4">
+          <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-3 py-2.5 text-[11px] font-medium text-gray-500">
             <span
               className={`h-2 w-2 rounded-full ${workingCount ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`}
             />
-            {workingCount ? `${workingCount} working…` : `System live · ${AGENTS.length} agents`}
-          </span>
+            {workingCount ? `${workingCount} agent(s) working…` : `System live · ${AGENTS.length} agents online`}
+          </div>
         </div>
       </aside>
 
@@ -538,9 +631,12 @@ function CommandCenter({
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {metrics.map((m) => (
-            <div key={m.label} className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
-              <div className="text-[11px] uppercase tracking-wide text-gray-400">{m.label}</div>
-              <div className="mt-1 text-2xl font-semibold">{m.value}</div>
+            <div
+              key={m.label}
+              className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-gray-300 hover:shadow"
+            >
+              <div className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{m.label}</div>
+              <div className="mt-1 text-[26px] font-semibold tracking-tight">{m.value}</div>
               <div className="text-[11px] text-gray-400">{m.sub}</div>
             </div>
           ))}
@@ -1154,12 +1250,158 @@ function Analytics({
   )
 }
 
+function ProductMaterials({
+  productKey,
+  name,
+  oneLiner,
+  buyers,
+  materials,
+  onAdd,
+  onDelete,
+}: {
+  productKey: string
+  name: string
+  oneLiner: string
+  buyers: string[]
+  materials: Material[]
+  onAdd: (product: string, title: string, body: string) => Promise<void>
+  onDelete: (id: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+  const [busy, setBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    if (!f) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setBody(String(reader.result || ''))
+      if (!title) setTitle(f.name.replace(/\.[^.]+$/, ''))
+    }
+    reader.readAsText(f)
+  }
+
+  async function add() {
+    if (!title.trim() || !body.trim()) return
+    setBusy(true)
+    await onAdd(productKey, title.trim(), body)
+    setBusy(false)
+    setTitle('')
+    setBody('')
+    setOpen(false)
+  }
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-sm font-semibold">{name}</div>
+          <p className="text-[11px] text-gray-400">{oneLiner}</p>
+          <p className="mt-1 text-[11px] text-gray-400">
+            <span className="text-gray-500">Buyers:</span> {buyers.join(', ')}
+          </p>
+        </div>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="shrink-0 rounded-lg border border-gray-300 px-2.5 py-1 text-[11px] text-gray-700 transition hover:bg-gray-50"
+        >
+          {open ? 'Cancel' : '+ Add material'}
+        </button>
+      </div>
+
+      {materials.length > 0 ? (
+        <ul className="mt-3 space-y-2">
+          {materials.map((m) => (
+            <li
+              key={m.id}
+              className="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+            >
+              <span className="mt-0.5 text-xs">📄</span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13px] font-medium text-gray-800">{m.title}</div>
+                <div className="line-clamp-2 text-[11px] text-gray-500">{m.body}</div>
+              </div>
+              <button
+                onClick={() => onDelete(m.id)}
+                className="shrink-0 text-gray-400 transition hover:text-red-500"
+                title="Remove"
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        !open && (
+          <p className="mt-3 text-[11px] text-gray-400">
+            No materials yet. Add a one-pager, battlecard, spec sheet, or case study and the agents
+            will use it for messaging.
+          </p>
+        )
+      )}
+
+      {open && (
+        <div className="mt-3 space-y-2">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={`Title (e.g. ${productKey} one-pager)`}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
+          />
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={5}
+            placeholder="Paste the document text here…"
+            className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-[11px] text-gray-700 transition hover:bg-gray-50"
+            >
+              Upload .txt / .md…
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".txt,.md,.markdown,.csv,.json,.text"
+              onChange={onFile}
+              className="hidden"
+            />
+            <button
+              onClick={add}
+              disabled={busy || !title.trim() || !body.trim()}
+              className="ml-auto rounded-lg bg-cyan-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-cyan-500 disabled:opacity-50"
+            >
+              {busy ? 'Adding…' : 'Add material'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function VaultEditor() {
   const [text, setText] = useState('')
   const [loaded, setLoaded] = useState(false)
   const [isDefault, setIsDefault] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [materials, setMaterials] = useState<Material[]>([])
+
+  const loadMaterials = useCallback(async () => {
+    try {
+      const d = await fetch('/api/materials').then((r) => r.json())
+      setMaterials(d.materials ?? [])
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   useEffect(() => {
     fetch('/api/vault')
@@ -1170,7 +1412,8 @@ function VaultEditor() {
         setLoaded(true)
       })
       .catch(() => setLoaded(true))
-  }, [])
+    loadMaterials()
+  }, [loadMaterials])
 
   async function save() {
     setSaving(true)
@@ -1191,47 +1434,86 @@ function VaultEditor() {
     }
   }
 
+  async function addMaterial(product: string, title: string, body: string) {
+    await fetch('/api/materials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product, title, body }),
+    }).catch(() => {})
+    loadMaterials()
+  }
+
+  async function deleteMaterial(id: string) {
+    setMaterials((ms) => ms.filter((m) => m.id !== id))
+    await fetch('/api/materials', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    }).catch(() => {})
+  }
+
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-4xl">
         <h1 className="text-2xl font-semibold">Knowledge Vault</h1>
         <p className="mt-1 text-sm text-gray-500">
-          The shared context every agent reasons from. Edit it here and save — changes take effect on
-          the next agent run. {isDefault ? 'Currently using the built-in default.' : 'Custom vault saved.'}
+          Everything your agents reason from. Edit the company context, and add documents per product
+          so the team grounds its messaging in your real materials.
         </p>
 
+        {/* Product knowledge */}
+        <div className="mt-6 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-700">Product knowledge</h2>
+          <span className="text-[11px] text-gray-400">{materials.length} document(s)</span>
+        </div>
+        <p className="mb-3 mt-1 text-xs text-gray-500">
+          Upload or paste one-pagers, battlecards, spec sheets, or case studies. Agents pull the right
+          product&rsquo;s materials into their messaging automatically.
+        </p>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {PRODUCTS.map((p) => (
+            <ProductMaterials
+              key={p.key}
+              productKey={p.key}
+              name={p.name}
+              oneLiner={p.oneLiner}
+              buyers={p.buyers}
+              materials={materials.filter((m) => m.product === p.key)}
+              onAdd={addMaterial}
+              onDelete={deleteMaterial}
+            />
+          ))}
+        </div>
+
+        {/* Company & ICP context */}
+        <div className="mt-8 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-700">Company &amp; ICP context</h2>
+          <span className="text-[11px] text-gray-400">
+            {isDefault ? 'built-in default' : 'custom saved'}
+          </span>
+        </div>
+        <p className="mb-3 mt-1 text-xs text-gray-500">
+          The shared brief every agent reads. Changes take effect on the next agent run.
+        </p>
         <textarea
           value={loaded ? text : 'Loading…'}
           onChange={(e) => setText(e.target.value)}
           disabled={!loaded}
-          rows={20}
-          className="mt-4 w-full resize-y rounded-2xl border border-gray-200 bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-800 outline-none focus:border-gray-400"
+          rows={16}
+          className="w-full resize-y rounded-2xl border border-gray-200 bg-white p-4 font-mono text-xs leading-relaxed text-gray-800 shadow-sm outline-none focus:border-gray-400"
         />
         <div className="mt-3 flex items-center gap-3">
           <button
             onClick={save}
             disabled={saving || !loaded}
-            className="rounded-xl bg-cyan-600 px-5 py-2 text-sm font-medium text-gray-900 transition hover:bg-cyan-500 disabled:opacity-50"
+            className="rounded-xl bg-cyan-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-cyan-500 disabled:opacity-50"
           >
-            {saving ? 'Saving…' : 'Save vault'}
+            {saving ? 'Saving…' : 'Save context'}
           </button>
           {saved && <span className="text-xs text-emerald-600">Saved ✓</span>}
         </div>
 
-        <h2 className="mb-3 mt-8 text-sm font-semibold text-gray-700">Product reference</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {PRODUCTS.map((p) => (
-            <div key={p.key} className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
-              <div className="text-sm font-semibold">{p.name}</div>
-              <p className="mt-1 text-xs text-gray-500">{p.oneLiner}</p>
-              <p className="mt-2 text-[11px] text-gray-400">
-                <span className="text-gray-500">Buyers:</span> {p.buyers.join(', ')}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm p-4 text-xs text-gray-500">
+        <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 text-xs text-gray-500 shadow-sm">
           <span className="text-gray-700">ICP:</span> {ICP.segment} — {ICP.size}
         </div>
       </div>

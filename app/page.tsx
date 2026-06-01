@@ -10,6 +10,32 @@ interface Msg {
   content: string
 }
 type View = 'command' | 'console' | 'vault'
+type Status = 'idle' | 'working'
+
+function countOccurrences(haystack: string, needle: string): number {
+  if (!needle) return 0
+  let count = 0
+  let idx = 0
+  for (;;) {
+    const i = haystack.indexOf(needle, idx)
+    if (i === -1) break
+    count++
+    idx = i + needle.length
+  }
+  return count
+}
+
+// Read the CEO's delegation markers out of the live stream to know which
+// specialists are mid-task (delegated but not yet "done").
+function deriveWorking(text: string): string[] {
+  return AGENTS.filter((a) => !a.canDelegate)
+    .filter(
+      (a) =>
+        countOccurrences(text, `▼ Delegated to ${a.name}`) >
+        countOccurrences(text, `▲ ${a.name} done`),
+    )
+    .map((a) => a.id)
+}
 
 export default function Page() {
   const [view, setView] = useState<View>('command')
@@ -17,11 +43,13 @@ export default function Page() {
   const [threads, setThreads] = useState<Record<string, Msg[]>>({})
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
+  const [statuses, setStatuses] = useState<Record<string, Status>>({})
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const active = getAgent(activeId)!
   const messages = threads[activeId] ?? []
   const totalConversations = Object.values(threads).filter((m) => m.length > 0).length
+  const workingCount = Object.values(statuses).filter((s) => s === 'working').length
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -40,6 +68,7 @@ export default function Page() {
     setThreads((t) => ({ ...t, [id]: [...history, { role: 'assistant', content: '' }] }))
     setInput('')
     setBusy(true)
+    setStatuses({ [id]: 'working' })
 
     const patchLast = (content: string) =>
       setThreads((t) => {
@@ -66,12 +95,16 @@ export default function Page() {
         if (done) break
         acc += dec.decode(value, { stream: true })
         patchLast(acc)
+        const next: Record<string, Status> = { [id]: 'working' }
+        for (const w of deriveWorking(acc)) next[w] = 'working'
+        setStatuses(next)
       }
       if (!acc.trim()) patchLast('(no response)')
     } catch (err) {
       patchLast(`⚠️ ${err instanceof Error ? err.message : 'Something went wrong.'}`)
     } finally {
       setBusy(false)
+      setStatuses({})
     }
   }
 
@@ -114,34 +147,48 @@ export default function Page() {
           Agents
         </div>
         <div className="space-y-1 overflow-y-auto">
-          {AGENTS.map((a) => (
-            <button
-              key={a.id}
-              onClick={() => openConsole(a.id)}
-              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition ${
-                view === 'console' && activeId === a.id ? 'bg-white/10' : 'hover:bg-white/5'
-              }`}
-            >
-              <span
-                className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-sm"
-                style={{ background: `${a.accent}22`, color: a.accent }}
+          {AGENTS.map((a) => {
+            const working = (statuses[a.id] ?? 'idle') === 'working'
+            return (
+              <button
+                key={a.id}
+                onClick={() => openConsole(a.id)}
+                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition ${
+                  view === 'console' && activeId === a.id ? 'bg-white/10' : 'hover:bg-white/5'
+                }`}
               >
-                {a.icon}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] text-slate-200">{a.name}</span>
-                <span className="block truncate text-[11px] text-slate-500">
-                  {a.role.split('·')[0].trim()}
+                <span
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-sm"
+                  style={{ background: `${a.accent}22`, color: a.accent }}
+                >
+                  {a.icon}
                 </span>
-              </span>
-              <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60" />
-            </button>
-          ))}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] text-slate-200">{a.name}</span>
+                  <span
+                    className={`block truncate text-[11px] ${working ? 'text-amber-300' : 'text-slate-500'}`}
+                  >
+                    {working ? 'working…' : a.role.split('·')[0].trim()}
+                  </span>
+                </span>
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full shadow-[0_0_8px] ${
+                    working
+                      ? 'animate-pulse bg-amber-400 shadow-amber-400/70'
+                      : 'bg-emerald-400 shadow-emerald-400/50'
+                  }`}
+                />
+              </button>
+            )
+          })}
         </div>
 
         <div className="mt-auto px-3 pt-4 text-[11px] text-slate-500">
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" /> System live · {AGENTS.length} agents
+            <span
+              className={`h-2 w-2 rounded-full ${workingCount ? 'animate-pulse bg-amber-400' : 'bg-emerald-400'}`}
+            />
+            {workingCount ? `${workingCount} working…` : `System live · ${AGENTS.length} agents`}
           </span>
         </div>
       </aside>
@@ -151,6 +198,7 @@ export default function Page() {
         {view === 'command' && (
           <CommandCenter
             totalConversations={totalConversations}
+            statuses={statuses}
             onOpen={openConsole}
           />
         )}
@@ -172,6 +220,11 @@ export default function Page() {
                 <p className="truncate text-xs text-slate-400">{active.role}</p>
               </div>
               <div className="ml-auto flex items-center gap-2">
+                {statuses[activeId] === 'working' && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 px-2.5 py-1 text-[11px] text-amber-300">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" /> working
+                  </span>
+                )}
                 <span className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-slate-400">
                   {active.model}
                 </span>
@@ -276,15 +329,18 @@ function Bubble({ msg, accent, icon }: { msg: Msg; accent: string; icon: string 
 
 function CommandCenter({
   totalConversations,
+  statuses,
   onOpen,
 }: {
   totalConversations: number
+  statuses: Record<string, 'idle' | 'working'>
   onOpen: (id: string) => void
 }) {
+  const workingCount = Object.values(statuses).filter((s) => s === 'working').length
   const metrics = [
     { label: 'Agents online', value: String(AGENTS.length), sub: 'CEO + 5 specialists' },
+    { label: 'Working now', value: String(workingCount), sub: workingCount ? 'live' : 'idle' },
     { label: 'Active conversations', value: String(totalConversations), sub: 'this session' },
-    { label: 'Product lines', value: String(PRODUCTS.length), sub: 'in the knowledge vault' },
     { label: 'Monitoring', value: '24/7', sub: 'always-on' },
   ]
   return (
@@ -310,31 +366,41 @@ function CommandCenter({
 
         <h2 className="mb-3 mt-8 text-sm font-semibold text-slate-300">Your team</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {AGENTS.map((a) => (
-            <button
-              key={a.id}
-              onClick={() => onOpen(a.id)}
-              className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06]"
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="grid h-10 w-10 place-items-center rounded-lg text-lg"
-                  style={{ background: `${a.accent}22`, color: a.accent }}
-                >
-                  {a.icon}
-                </span>
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold">{a.name}</div>
-                  <div className="truncate text-[11px] text-slate-500">{a.role}</div>
+          {AGENTS.map((a) => {
+            const working = (statuses[a.id] ?? 'idle') === 'working'
+            return (
+              <button
+                key={a.id}
+                onClick={() => onOpen(a.id)}
+                className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06]"
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="grid h-10 w-10 place-items-center rounded-lg text-lg"
+                    style={{ background: `${a.accent}22`, color: a.accent }}
+                  >
+                    {a.icon}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold">{a.name}</div>
+                    <div className="truncate text-[11px] text-slate-500">{a.role}</div>
+                  </div>
+                  <span
+                    className={`ml-auto h-2 w-2 rounded-full ${
+                      working ? 'animate-pulse bg-amber-400 shadow-[0_0_8px] shadow-amber-400/70' : 'bg-emerald-400'
+                    }`}
+                  />
                 </div>
-                <span className="ml-auto h-2 w-2 rounded-full bg-emerald-400" />
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-slate-400">{a.blurb}</p>
-              <div className="mt-3 text-[11px] font-medium" style={{ color: a.accent }}>
-                Open console →
-              </div>
-            </button>
-          ))}
+                <p className="mt-3 text-xs leading-relaxed text-slate-400">{a.blurb}</p>
+                <div
+                  className="mt-3 text-[11px] font-medium"
+                  style={{ color: working ? '#fbbf24' : a.accent }}
+                >
+                  {working ? 'Working…' : 'Open console →'}
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>

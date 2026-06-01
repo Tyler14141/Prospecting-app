@@ -11,6 +11,17 @@ A coordinated AI agent team — a "command center" for founder/seller-led growth
 | **Account Manager** (Riley Brooks) | Retention & expansion | `claude-sonnet-4-6` | — |
 | **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-sonnet-4-6` | — |
 
+## Pipelines, review & tools
+
+Agents don't just talk — they **act**. Specialists have real tools that write to a datastore:
+
+- **Researcher / AE → `save_lead`** — drops a real, qualified prospect onto the **Lead Pipeline** board.
+- **CMO / AE / AM → `create_content`** — sends a draft to the **Content Pipeline**, where it lands in **Needs Review**.
+
+The **Lead Pipeline** and **Content Pipeline** are Kanban boards (move cards across stages). **Needs Review** is the human-in-the-loop gate: approve or reject agent drafts before they're marked done. The Command Center shows live counts (leads, needs-review, agents working). Everything streams in live — when the CEO delegates research, you watch leads appear on the board.
+
+**Persistence:** leads and content are saved to `.data/db.json` (gitignored) via `lib/store.ts`, so they survive refreshes. On a read-only/serverless filesystem it falls back to in-memory; swap `lib/store.ts` for Postgres/KV for production.
+
 ## CEO delegation
 
 The **CEO is a real orchestrator**, not just a planner. It has a `delegate` tool: when a request needs production work, the CEO hands concrete tasks to the right specialists, the server runs each one (with its own persona + tools — e.g. the Researcher's web search), streams their work into the chat, feeds it back to the CEO, and the CEO synthesizes a final answer. You see the hand-offs happen live (`▼ Delegated to … ▲ … done`). The CEO can delegate to several specialists in one turn.

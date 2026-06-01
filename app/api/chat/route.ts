@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { anthropic, hasApiKey } from '@/lib/anthropic'
 import { AGENTS, getAgent, type AgentDef } from '@/lib/agents'
 import { KNOWLEDGE_VAULT } from '@/lib/knowledge'
+import { TOOL_DEFS, runTool } from '@/lib/tools'
 
 export const runtime = 'nodejs'
 export const maxDuration = 120
@@ -13,12 +14,20 @@ interface ChatBody {
 
 const WEB_SEARCH = { type: 'web_search_20260209', name: 'web_search' }
 
-// system = shared Knowledge Vault (cached across all agents) + this agent's persona.
+// system = shared Knowledge Vault (cached across all agents) + this agent's
+// persona + a nudge to actually use its tools.
 function systemFor(agent: AgentDef) {
-  return [
+  const blocks = [
     { type: 'text' as const, text: KNOWLEDGE_VAULT, cache_control: { type: 'ephemeral' as const } },
     { type: 'text' as const, text: agent.systemPersona },
   ]
+  if (agent.tools?.length) {
+    blocks.push({
+      type: 'text' as const,
+      text: `You can call these tools to record real work: ${agent.tools.join(', ')}. Prefer calling them to actually save leads or create content for review, rather than only describing the result.`,
+    })
+  }
+  return blocks
 }
 
 // The CEO's delegation tool. Targets are every non-delegating agent.
@@ -85,36 +94,63 @@ export async function POST(req: NextRequest) {
   })
 }
 
-// Stream a single agent turn — used both for specialists and non-delegating agents.
-// Returns the full text the agent produced (so the CEO can use it as a tool result).
+// Run a single agent as a tool loop: stream its text, execute any custom tool
+// calls (save_lead / create_content) against the store, feed results back, and
+// repeat until it's done. Returns the full text it produced.
 async function runAgent(
   agent: AgentDef,
   messages: unknown[],
   send: (s: string) => void,
   maxTokens = 4096,
 ): Promise<string> {
-  const params: Record<string, unknown> = {
-    model: agent.model,
-    max_tokens: maxTokens,
-    system: systemFor(agent),
-    messages,
-  }
-  if (agent.thinking) params.thinking = { type: 'adaptive' }
-  if (agent.webSearch) params.tools = [WEB_SEARCH]
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const run = anthropic.messages.stream(params as any)
-  let acc = ''
-  run.on('text', (delta: string) => {
-    acc += delta
-    send(delta)
-  })
-  await run.finalMessage()
-  return acc
+  const convo: any[] = [...messages]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tools: any[] = (agent.tools ?? []).map((n) => TOOL_DEFS[n]).filter(Boolean)
+  if (agent.webSearch) tools.push(WEB_SEARCH)
+
+  let text = ''
+  for (let round = 0; round < 5; round++) {
+    const params: Record<string, unknown> = {
+      model: agent.model,
+      max_tokens: maxTokens,
+      system: systemFor(agent),
+      messages: convo,
+    }
+    if (agent.thinking) params.thinking = { type: 'adaptive' }
+    if (tools.length) params.tools = tools
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const run = anthropic.messages.stream(params as any)
+    run.on('text', (delta: string) => {
+      text += delta
+      send(delta)
+    })
+    const final = await run.finalMessage()
+
+    if (final.stop_reason !== 'tool_use') break
+    convo.push({ role: 'assistant', content: final.content })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const results: any[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const block of final.content as any[]) {
+      // Only custom tools need handling; server tools (web_search) resolve on their own.
+      if (block.type !== 'tool_use' || !TOOL_DEFS[block.name]) continue
+      const note = await runTool(block.name, block.input ?? {})
+      const line = `\n\n✓ ${note}\n`
+      text += line
+      send(line)
+      results.push({ type: 'tool_result', tool_use_id: block.id, content: note })
+    }
+    if (results.length === 0) break
+    convo.push({ role: 'user', content: results })
+  }
+  return text
 }
 
-// The CEO loop: stream the CEO, run any delegated specialists, feed their work
-// back, and repeat until the CEO is done (or we hit the delegation limit).
+// The CEO loop: stream the CEO, run any delegated specialists (each with their
+// own tools), feed their work back, and repeat until done.
 async function runOrchestrator(ceo: AgentDef, history: unknown[], send: (s: string) => void) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const convo: any[] = [...history]
@@ -136,8 +172,6 @@ async function runOrchestrator(ceo: AgentDef, history: unknown[], send: (s: stri
     const final = await run.finalMessage()
 
     if (final.stop_reason !== 'tool_use') return
-
-    // Preserve the assistant turn verbatim (includes thinking + tool_use blocks).
     convo.push({ role: 'assistant', content: final.content })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

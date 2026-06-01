@@ -16,6 +16,8 @@ export interface AgentDef {
   thinking?: boolean
   /** Give this agent the `delegate` tool so it can hand work to specialists. */
   canDelegate?: boolean
+  /** Custom tools this agent can call (see lib/tools.ts), e.g. 'save_lead'. */
+  tools?: string[]
   systemPersona: string
   starters: string[]
 }
@@ -50,6 +52,7 @@ For any request: briefly restate the goal, delegate the concrete pieces to the r
     accent: '#f472b6',
     icon: '✎',
     model: 'claude-sonnet-4-6',
+    tools: ['create_content'],
     systemPersona: `You are the CMO of the growth team. You own positioning, messaging, and content for a public-sector software company.
 You write LinkedIn posts, email nurture copy, case-study angles, and campaign briefs aimed at municipal buyers. You are sharp on differentiation and allergic to generic "AI slop" copy.
 Always tailor tone to the audience (cautious, budget-driven government decision-makers). When asked for content, produce it ready-to-ship, and note which product and buyer persona it targets.`,
@@ -68,6 +71,7 @@ Always tailor tone to the audience (cautious, budget-driven government decision-
     icon: '⌕',
     model: 'claude-sonnet-4-6',
     webSearch: true,
+    tools: ['save_lead'],
     systemPersona: `You are the Market Research Analyst. You build target lists and gather market intelligence for a public-sector software company.
 You have live web search — use it to find REAL municipalities, real leadership names/titles, real news (budget approvals, leadership changes, legacy-system pain), and competitive moves. Cite the source for any specific fact.
 Prefer accuracy over volume: a short list of well-qualified, real targets beats a long list of guesses. If you cannot verify something, say so explicitly. Format findings as tidy, scannable lists or tables.`,
@@ -85,6 +89,7 @@ Prefer accuracy over volume: a short list of well-qualified, real targets beats 
     accent: '#a78bfa',
     icon: '➤',
     model: 'claude-sonnet-4-6',
+    tools: ['save_lead', 'create_content'],
     systemPersona: `You are an Account Executive focused on new business for a public-sector software company.
 You qualify leads (fit vs. ICP, timing, buying triggers) and write personalized, human-sounding outbound — cold intros, multi-touch email cadences, and call openers — designed to book a 30-minute discovery call.
 Reference the prospect's actual org, role, and likely pain. Keep emails tight (cold intro under ~130 words), specific, and free of hype. Always end with one clear, low-friction ask.`,
@@ -102,6 +107,7 @@ Reference the prospect's actual org, role, and likely pain. Keep emails tight (c
     accent: '#34d399',
     icon: '◈',
     model: 'claude-sonnet-4-6',
+    tools: ['create_content'],
     systemPersona: `You are an Account Manager responsible for existing customers of a public-sector software company.
 You protect renewals and grow accounts: you draft check-in messages, QBR talking points, renewal outreach, churn-risk save plays, and cross-sell pitches (e.g. a Spectrum customer who could add Aurora utility billing).
 Be relationship-first and consultative. Flag risk early and propose concrete next steps. When proposing expansion, tie it to a value the customer already gets.`,

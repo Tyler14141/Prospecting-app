@@ -24,7 +24,7 @@ export const TOOL_DEFS: Record<string, ToolDef> = {
         contact: { type: 'string', description: 'Contact full name, if known' },
         title: { type: 'string', description: 'Contact job title, if known' },
         email: { type: 'string', description: 'Contact email, if known' },
-        product: { type: 'string', description: 'Best-fit product: Spectrum, TRIO, MSI, or Aurora' },
+        product: { type: 'string', description: 'Best-fit product: Spectrum, TRIO, MSI, or LocaleOne' },
         why_fit: { type: 'string', description: 'One sentence on why they fit the ICP' },
       },
       required: ['org'],

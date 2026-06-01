@@ -104,7 +104,7 @@ export interface MemoryNote {
 
 export interface Material {
   id: string
-  product: string // product key, e.g. Spectrum / TRIO / MSI / Aurora
+  product: string // product key, e.g. Spectrum / TRIO / MSI / LocaleOne
   title: string
   body: string
   createdAt: string

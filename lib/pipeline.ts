@@ -52,3 +52,10 @@ export interface ActivityEvent {
   type: ActivityType
   message: string
 }
+
+export interface MemoryNote {
+  id: string
+  ts: string
+  agentId?: string
+  text: string
+}

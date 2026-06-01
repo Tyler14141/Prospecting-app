@@ -11,6 +11,28 @@ A coordinated AI agent team — a "command center" for founder/seller-led growth
 | **Account Manager** (Riley Brooks) | Retention & expansion | `claude-sonnet-4-6` | — |
 | **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-opus-4-8` | — |
 
+## Offload layer — run it without sitting in the dashboard
+
+This is what turns the dashboard into a tool you delegate to:
+
+- **Email the CEO** (`POST /api/inbound`) — point an email provider's inbound webhook (Postmark, SendGrid Inbound Parse, Mailgun routes, Cloudflare Email Workers) at this endpoint. It parses the message, runs the CEO orchestrator on it, and **emails you back** a summary (leads added, drafts awaiting review). Secure with `INBOUND_SECRET` (`?secret=` or `x-inbound-secret`) and optionally `INBOUND_ALLOWED_FROM` (sender allowlist).
+- **Scheduled runs** (`/api/cron`) — a true server-side schedule (not just the tab-open auto-pilot). `vercel.json` runs it weekday mornings; it executes `CRON_WORKFLOWS` and emails you a digest. Works with any scheduler that can hit the URL; on Vercel Cron, `CRON_SECRET` is sent automatically.
+- **Notifications back to you** — outbound replies + operator digests via `OPERATOR_EMAIL` (uses Resend; set `RESEND_API_KEY` + `MAIL_FROM`). No key = sending no-ops gracefully.
+- **Gated outbound** — approving a draft in Needs Review emails it to you (the operator). Wire a real recipient/integration in `app/api/content/route.ts` to send to prospects.
+- **Team memory** — agents have a `remember` tool; saved notes (preferences, decisions, account facts) are injected into every future run so you stop re-explaining context.
+- **Trust & safety** — sender allowlist on inbound, per-run token usage in summaries, the Needs-Review approval gate, and the activity log.
+- **Auth** — set `APP_PASSWORD` to put the dashboard + data APIs behind HTTP Basic auth (machine endpoints stay open for webhooks).
+
+Quick local test of the inbound endpoint (once `ANTHROPIC_API_KEY` is set):
+
+```bash
+curl -X POST "http://localhost:3000/api/inbound?secret=$INBOUND_SECRET" \
+  -H 'Content-Type: application/json' \
+  -d '{"from":"you@example.com","subject":"Build TRIO pipeline","text":"Find 3 target cities and draft a LinkedIn post."}'
+```
+
+See `.env.example` for every variable.
+
 ## Workflows, analytics, activity & editable vault
 
 - **Workflows** (Command Center) — one-click autonomous runs: *Scan for new leads*, *Draft this week's content*, *Draft outbound follow-up*, *Weekly scorecard*. Each fires an agent server-side; its tools populate the pipelines. **Auto-pilot** toggle re-runs lead scanning every 5 minutes while the tab is open.

@@ -1,22 +1,29 @@
 // Shared agent execution: a tool loop for specialists and a delegation loop for
-// the CEO. Used by both the chat route (streaming) and the workflow route
-// (no-op sink). Logs activity and reads the editable Knowledge Vault.
+// the CEO. Used by the chat route (streaming), the workflow route, the inbound
+// email route, and cron. Injects the editable Vault + team memory, logs
+// activity, and tallies token usage.
 import { anthropic } from './anthropic'
 import { AGENTS, getAgent, type AgentDef } from './agents'
 import { TOOL_DEFS, runTool } from './tools'
-import { getVaultText, addActivity } from './store'
+import { getVaultText, getMemoryText, addActivity } from './store'
 
 const WEB_SEARCH = { type: 'web_search_20260209', name: 'web_search' }
 
-function systemFor(agent: AgentDef, vaultText: string) {
+export interface Usage {
+  input: number
+  output: number
+}
+
+function systemFor(agent: AgentDef, vaultText: string, memoryText: string) {
   const blocks = [
     { type: 'text' as const, text: vaultText, cache_control: { type: 'ephemeral' as const } },
     { type: 'text' as const, text: agent.systemPersona },
   ]
+  if (memoryText) blocks.push({ type: 'text' as const, text: memoryText })
   if (agent.tools?.length) {
     blocks.push({
       type: 'text' as const,
-      text: `You can call these tools to record real work: ${agent.tools.join(', ')}. Prefer calling them to actually save leads or create content for review, rather than only describing the result.`,
+      text: `You can call these tools to record real work: ${agent.tools.join(', ')}. Prefer calling them to actually save leads, create content for review, or remember durable facts, rather than only describing the result.`,
     })
   }
   return blocks
@@ -44,11 +51,23 @@ const DELEGATE_TOOL = {
 
 type Send = (s: string) => void
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function tally(usage: Usage, msg: any) {
+  usage.input += msg?.usage?.input_tokens ?? 0
+  usage.output += msg?.usage?.output_tokens ?? 0
+}
+
 // Entry point: branches between the CEO orchestrator and a plain specialist.
-export async function runConversation(agent: AgentDef, messages: unknown[], send: Send) {
-  const vaultText = await getVaultText()
-  if (agent.canDelegate) await runOrchestrator(agent, messages, send, vaultText)
-  else await runAgentTurn(agent, messages, send, vaultText)
+export async function runConversation(
+  agent: AgentDef,
+  messages: unknown[],
+  send: Send,
+): Promise<{ usage: Usage }> {
+  const [vaultText, memoryText] = await Promise.all([getVaultText(), getMemoryText()])
+  const usage: Usage = { input: 0, output: 0 }
+  if (agent.canDelegate) await runOrchestrator(agent, messages, send, vaultText, memoryText, usage)
+  else await runAgentTurn(agent, messages, send, vaultText, memoryText, usage)
+  return { usage }
 }
 
 async function runAgentTurn(
@@ -56,6 +75,8 @@ async function runAgentTurn(
   messages: unknown[],
   send: Send,
   vaultText: string,
+  memoryText: string,
+  usage: Usage,
   maxTokens = 4096,
 ): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,7 +90,7 @@ async function runAgentTurn(
     const params: Record<string, unknown> = {
       model: agent.model,
       max_tokens: maxTokens,
-      system: systemFor(agent, vaultText),
+      system: systemFor(agent, vaultText, memoryText),
       messages: convo,
     }
     if (agent.thinking) params.thinking = { type: 'adaptive' }
@@ -82,6 +103,7 @@ async function runAgentTurn(
       send(delta)
     })
     const final = await run.finalMessage()
+    tally(usage, final)
 
     if (final.stop_reason !== 'tool_use') break
     convo.push({ role: 'assistant', content: final.content })
@@ -91,7 +113,7 @@ async function runAgentTurn(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const block of final.content as any[]) {
       if (block.type !== 'tool_use' || !TOOL_DEFS[block.name]) continue
-      const note = await runTool(block.name, block.input ?? {})
+      const note = await runTool(block.name, block.input ?? {}, agent.id)
       await addActivity({ agentId: agent.id, type: 'tool', message: note })
       const line = `\n\n✓ ${note}\n`
       text += line
@@ -104,7 +126,14 @@ async function runAgentTurn(
   return text
 }
 
-async function runOrchestrator(ceo: AgentDef, history: unknown[], send: Send, vaultText: string) {
+async function runOrchestrator(
+  ceo: AgentDef,
+  history: unknown[],
+  send: Send,
+  vaultText: string,
+  memoryText: string,
+  usage: Usage,
+) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const convo: any[] = [...history]
   const tools = [DELEGATE_TOOL]
@@ -113,7 +142,7 @@ async function runOrchestrator(ceo: AgentDef, history: unknown[], send: Send, va
     const params: Record<string, unknown> = {
       model: ceo.model,
       max_tokens: 4096,
-      system: systemFor(ceo, vaultText),
+      system: systemFor(ceo, vaultText, memoryText),
       messages: convo,
       tools,
     }
@@ -123,6 +152,7 @@ async function runOrchestrator(ceo: AgentDef, history: unknown[], send: Send, va
     const run = anthropic.messages.stream(params as any)
     run.on('text', (delta: string) => send(delta))
     const final = await run.finalMessage()
+    tally(usage, final)
 
     if (final.stop_reason !== 'tool_use') return
     convo.push({ role: 'assistant', content: final.content })
@@ -149,7 +179,15 @@ async function runOrchestrator(ceo: AgentDef, history: unknown[], send: Send, va
       await addActivity({ agentId: 'ceo', type: 'delegate', message: `→ ${target.name}: ${task}` })
       const roleShort = target.role.split('·')[1]?.trim() ?? target.role
       send(`\n\n──────────\n▼ Delegated to ${target.name} · ${roleShort}\n   “${task}”\n\n`)
-      const out = await runAgentTurn(target, [{ role: 'user', content: task }], send, vaultText, 1800)
+      const out = await runAgentTurn(
+        target,
+        [{ role: 'user', content: task }],
+        send,
+        vaultText,
+        memoryText,
+        usage,
+        1800,
+      )
       send(`\n\n▲ ${target.name} done — back to ${ceo.name}\n──────────\n\n`)
 
       results.push({

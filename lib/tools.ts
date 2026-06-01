@@ -1,7 +1,7 @@
 // Custom tools the agents can call to record real work. Server-only (writes to
-// the store). The chat route maps an agent's `tools` names to these defs and
+// the store). The agent runner maps an agent's `tools` names to these defs and
 // executes calls via runTool().
-import { addLead, addContent } from './store'
+import { addLead, addContent, addMemory } from './store'
 
 export interface ToolDef {
   name: string
@@ -45,10 +45,24 @@ export const TOOL_DEFS: Record<string, ToolDef> = {
       required: ['title', 'channel', 'body'],
     },
   },
+  remember: {
+    name: 'remember',
+    description:
+      'Save a durable note to the shared team memory — an operator preference, a decision, an ' +
+      'account detail, or a fact worth recalling in future runs. Use sparingly, for things that ' +
+      'should persist beyond this conversation.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        note: { type: 'string', description: 'The fact or preference to remember, in one sentence.' },
+      },
+      required: ['note'],
+    },
+  },
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function runTool(name: string, input: Record<string, any>): Promise<string> {
+export async function runTool(name: string, input: Record<string, any>, agentId?: string): Promise<string> {
   if (name === 'save_lead') {
     const lead = await addLead({
       org: String(input.org ?? 'Unknown org'),
@@ -69,6 +83,12 @@ export async function runTool(name: string, input: Record<string, any>): Promise
       product: input.product,
     })
     return `Created ${item.channel} draft “${item.title}” — sent to Needs Review.`
+  }
+  if (name === 'remember') {
+    const note = String(input.note ?? '').trim()
+    if (!note) return 'Nothing to remember.'
+    await addMemory({ agentId, text: note })
+    return `Saved to team memory: “${note.length > 80 ? note.slice(0, 80) + '…' : note}”`
   }
   return `Unknown tool: ${name}`
 }

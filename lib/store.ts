@@ -1,6 +1,6 @@
-// Tiny JSON-file datastore for leads, content, activity, and the editable
-// Knowledge Vault. Good enough for local dev and demos; swap for Postgres/KV
-// for production. Falls back to in-memory if the filesystem is read-only.
+// Tiny JSON-file datastore for leads, content, activity, team memory, and the
+// editable Knowledge Vault. Good enough for local dev and demos; swap for
+// Postgres/KV for production. Falls back to in-memory if the FS is read-only.
 import { promises as fs } from 'fs'
 import path from 'path'
 import { KNOWLEDGE_VAULT } from './knowledge'
@@ -8,6 +8,7 @@ import type {
   Lead,
   ContentItem,
   ActivityEvent,
+  MemoryNote,
   LeadStage,
   ContentStage,
 } from './pipeline'
@@ -16,6 +17,7 @@ interface DB {
   leads: Lead[]
   content: ContentItem[]
   activity: ActivityEvent[]
+  memory: MemoryNote[]
   vaultText?: string
 }
 
@@ -30,10 +32,11 @@ async function load(): Promise<DB> {
       leads: parsed.leads ?? [],
       content: parsed.content ?? [],
       activity: parsed.activity ?? [],
+      memory: parsed.memory ?? [],
       vaultText: parsed.vaultText,
     }
   } catch {
-    cache = { leads: [], content: [], activity: [] }
+    cache = { leads: [], content: [], activity: [], memory: [] }
   }
   return cache
 }
@@ -133,6 +136,27 @@ export async function addActivity(e: Omit<ActivityEvent, 'id' | 'ts'>): Promise<
   db.activity.unshift({ id: uid('act'), ts: new Date().toISOString(), ...e })
   if (db.activity.length > 200) db.activity.length = 200
   await persist(db)
+}
+
+/* ---------------- Team memory ---------------- */
+
+export async function listMemory(): Promise<MemoryNote[]> {
+  return (await load()).memory
+}
+
+export async function addMemory(e: Omit<MemoryNote, 'id' | 'ts'>): Promise<void> {
+  const db = await load()
+  db.memory.unshift({ id: uid('mem'), ts: new Date().toISOString(), ...e })
+  if (db.memory.length > 100) db.memory.length = 100
+  await persist(db)
+}
+
+// Recent notes formatted for injection into an agent's system prompt.
+export async function getMemoryText(): Promise<string> {
+  const m = (await load()).memory
+  if (!m.length) return ''
+  const recent = m.slice(0, 12).map((n) => `- ${n.text}`).join('\n')
+  return `# TEAM MEMORY (durable notes the team has saved — use when relevant)\n${recent}`
 }
 
 /* ---------------- Knowledge Vault ---------------- */

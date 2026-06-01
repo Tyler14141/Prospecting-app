@@ -70,6 +70,21 @@ export const TOOL_DEFS: Record<string, ToolDef> = {
       required: ['title', 'channel', 'body'],
     },
   },
+  score_lead: {
+    name: 'score_lead',
+    description:
+      'Score a lead 0–100 on fit + qualification (ICP fit, timing, buying signals) and attach the ' +
+      'score plus a one-line rationale to the lead so the team can prioritize and route it. Needs lead_id.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        lead_id: { type: 'string', description: 'The lead id to score' },
+        score: { type: 'integer', description: 'Qualification score, 0–100' },
+        reason: { type: 'string', description: 'One-line rationale for the score' },
+      },
+      required: ['lead_id', 'score'],
+    },
+  },
   remember: {
     name: 'remember',
     description:
@@ -145,6 +160,14 @@ export async function runTool(name: string, input: Record<string, any>, agentId?
       leadId: input.lead_id,
     })
     return `Created ${item.channel} draft “${item.title}”${item.to ? ` to ${item.to}` : ''} — sent to Needs Review.`
+  }
+
+  if (name === 'score_lead') {
+    const id = String(input.lead_id ?? '')
+    const score = Math.max(0, Math.min(100, Math.round(Number(input.score) || 0)))
+    const lead = await updateLead(id, { score, scoreReason: input.reason ? String(input.reason) : undefined })
+    if (!lead) return `No lead found with id ${id}.`
+    return `Scored “${lead.org}” at ${score}/100${input.reason ? ` — ${input.reason}` : ''}.`
   }
 
   if (name === 'remember') {

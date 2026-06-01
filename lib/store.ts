@@ -10,6 +10,7 @@ import type {
   ActivityEvent,
   MemoryNote,
   Material,
+  AgentOverride,
   LeadStage,
   ContentStage,
 } from './pipeline'
@@ -20,6 +21,7 @@ interface DB {
   activity: ActivityEvent[]
   memory: MemoryNote[]
   materials: Material[]
+  agentConfig: Record<string, AgentOverride>
   vaultText?: string
 }
 
@@ -36,10 +38,11 @@ async function load(): Promise<DB> {
       activity: parsed.activity ?? [],
       memory: parsed.memory ?? [],
       materials: parsed.materials ?? [],
+      agentConfig: parsed.agentConfig ?? {},
       vaultText: parsed.vaultText,
     }
   } catch {
-    cache = { leads: [], content: [], activity: [], memory: [], materials: [] }
+    cache = { leads: [], content: [], activity: [], memory: [], materials: [], agentConfig: {} }
   }
   return cache
 }
@@ -262,6 +265,28 @@ export async function getInsightsText(): Promise<string> {
   }
   if (!lines.length) return ''
   return `# WHAT'S WORKING (recent outcomes — use these to sharpen targeting and messaging)\n${lines.join('\n')}`
+}
+
+/* ---------------- Per-agent config overrides ---------------- */
+
+export async function listAgentConfigs(): Promise<Record<string, AgentOverride>> {
+  return (await load()).agentConfig
+}
+
+export async function getAgentConfig(id: string): Promise<AgentOverride> {
+  return (await load()).agentConfig[id] ?? {}
+}
+
+export async function setAgentConfig(id: string, patch: AgentOverride): Promise<AgentOverride> {
+  const db = await load()
+  const next = { ...(db.agentConfig[id] ?? {}), ...patch }
+  // Drop empty strings so they don't override the code defaults.
+  ;(Object.keys(next) as (keyof AgentOverride)[]).forEach((k) => {
+    if (next[k] === '' || next[k] == null) delete next[k]
+  })
+  db.agentConfig[id] = next
+  await persist(db)
+  return next
 }
 
 /* ---------------- Knowledge Vault ---------------- */

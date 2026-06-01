@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AGENTS, getAgent } from '@/lib/agents'
+import { AGENTS, getAgent, type AgentDef } from '@/lib/agents'
 import { COMPANY, PRODUCTS, ICP } from '@/lib/knowledge'
 import { WORKFLOWS, getWorkflow } from '@/lib/workflows'
 import {
@@ -165,6 +165,7 @@ export default function Page() {
   const [activity, setActivity] = useState<ActivityEvent[]>([])
   const [runningWf, setRunningWf] = useState<Record<string, boolean>>({})
   const [autopilot, setAutopilot] = useState(false)
+  const [consoleTab, setConsoleTab] = useState<'chat' | 'profile'>('chat')
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const active = getAgent(activeId)!
@@ -233,6 +234,7 @@ export default function Page() {
 
   function openConsole(id: string) {
     setActiveId(id)
+    setConsoleTab('chat')
     setView('console')
   }
 
@@ -450,73 +452,79 @@ export default function Page() {
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" /> working
                   </span>
                 )}
-                <span className="rounded-full border border-gray-200 px-2.5 py-1 text-[11px] text-gray-500">
-                  {active.model}
-                </span>
-                {active.webSearch && (
-                  <span className="rounded-full border border-cyan-300 px-2.5 py-1 text-[11px] text-cyan-600">
-                    web search
-                  </span>
-                )}
-                {active.canDelegate && (
-                  <span className="rounded-full border border-amber-300 px-2.5 py-1 text-[11px] text-amber-600">
-                    delegates
-                  </span>
-                )}
+                <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-[12px] font-medium">
+                  {(['chat', 'profile'] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setConsoleTab(t)}
+                      className={`rounded-md px-3 py-1 capitalize transition ${
+                        consoleTab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
+                      }`}
+                    >
+                      {t === 'profile' ? 'Profile & Settings' : 'Chat'}
+                    </button>
+                  ))}
+                </div>
               </div>
             </header>
 
-            <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
-              {messages.length === 0 ? (
-                <div className="mx-auto max-w-2xl">
-                  <p className="mb-1 text-sm text-gray-700">{active.blurb}</p>
-                  <p className="mb-4 text-xs text-gray-400">Try one of these to get started:</p>
-                  <div className="grid gap-2">
-                    {active.starters.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => send(s)}
-                        className="rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3 text-left text-sm text-gray-800 transition hover:border-gray-300 hover:bg-gray-50"
-                      >
-                        {s}
-                      </button>
-                    ))}
+            {consoleTab === 'profile' ? (
+              <AgentProfile agent={active} />
+            ) : (
+              <>
+                <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+                  {messages.length === 0 ? (
+                    <div className="mx-auto max-w-2xl">
+                      <p className="mb-1 text-sm text-gray-700">{active.blurb}</p>
+                      <p className="mb-4 text-xs text-gray-400">Try one of these to get started:</p>
+                      <div className="grid gap-2">
+                        {active.starters.map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => send(s)}
+                            className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-left text-sm text-gray-800 shadow-sm transition hover:border-gray-300 hover:bg-gray-50"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mx-auto max-w-2xl space-y-4">
+                      {messages.map((m, i) => (
+                        <Bubble key={i} msg={m} accent={active.accent} icon={active.icon} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-gray-200 px-6 py-4">
+                  <div className="mx-auto flex max-w-2xl items-end gap-2">
+                    <textarea
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          send(input)
+                        }
+                      }}
+                      rows={1}
+                      placeholder={`Message ${active.name}…`}
+                      className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none placeholder:text-gray-400 focus:border-gray-400"
+                    />
+                    <button
+                      onClick={() => send(input)}
+                      disabled={busy || !input.trim()}
+                      className="h-11 shrink-0 rounded-xl px-5 text-sm font-medium text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{ background: active.accent }}
+                    >
+                      {busy ? '…' : 'Send'}
+                    </button>
                   </div>
                 </div>
-              ) : (
-                <div className="mx-auto max-w-2xl space-y-4">
-                  {messages.map((m, i) => (
-                    <Bubble key={i} msg={m} accent={active.accent} icon={active.icon} />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-gray-200 px-6 py-4">
-              <div className="mx-auto flex max-w-2xl items-end gap-2">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      send(input)
-                    }
-                  }}
-                  rows={1}
-                  placeholder={`Message ${active.name}…`}
-                  className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3 text-sm outline-none placeholder:text-gray-400 focus:border-gray-400"
-                />
-                <button
-                  onClick={() => send(input)}
-                  disabled={busy || !input.trim()}
-                  className="h-11 shrink-0 rounded-xl px-5 text-sm font-medium text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-40"
-                  style={{ background: active.accent }}
-                >
-                  {busy ? '…' : 'Send'}
-                </button>
-              </div>
-            </div>
+              </>
+            )}
           </section>
         )}
 
@@ -527,6 +535,178 @@ export default function Page() {
         {view === 'analytics' && <Analytics leads={leads} content={content} activity={activity} />}
         {view === 'vault' && <VaultEditor />}
       </main>
+    </div>
+  )
+}
+
+const MODELS = ['claude-opus-4-8', 'claude-sonnet-4-6', 'claude-haiku-4-5']
+
+function CharterRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex gap-2 text-sm">
+      <span className="w-28 shrink-0 text-gray-400">{label}</span>
+      <span className="flex-1 text-gray-700">{value}</span>
+    </div>
+  )
+}
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint: string
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <div className="text-[13px] font-medium text-gray-800">{label}</div>
+      <div className="mb-1.5 text-[11px] text-gray-400">{hint}</div>
+      {children}
+    </div>
+  )
+}
+
+function AgentProfile({ agent }: { agent: AgentDef }) {
+  const [jd, setJd] = useState('')
+  const [context, setContext] = useState('')
+  const [instructions, setInstructions] = useState('')
+  const [model, setModel] = useState('')
+  const [loaded, setLoaded] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setLoaded(false)
+    fetch('/api/agents/config')
+      .then((r) => r.json())
+      .then((d) => {
+        const c = (d.configs || {})[agent.id] || {}
+        setJd(c.jobDescription || '')
+        setContext(c.context || '')
+        setInstructions(c.instructions || '')
+        setModel(c.model || '')
+        setLoaded(true)
+      })
+      .catch(() => setLoaded(true))
+  }, [agent.id])
+
+  async function save() {
+    setSaving(true)
+    setSaved(false)
+    try {
+      await fetch('/api/agents/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentId: agent.id,
+          patch: { jobDescription: jd, context, instructions, model },
+        }),
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch {
+      /* ignore */
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const ta =
+    'w-full resize-y rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400'
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+      <div className="mx-auto max-w-2xl space-y-6">
+        {/* Charter (from the role definition) */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            Charter
+          </div>
+          <div className="space-y-1.5">
+            <CharterRow label="Mission" value={agent.mission} />
+            <CharterRow label="Owns" value={agent.owns.join(' · ')} />
+            <CharterRow label="KPIs" value={agent.kpis.join(' · ')} />
+            {agent.handoffFrom?.length ? (
+              <CharterRow
+                label="Receives from"
+                value={agent.handoffFrom.map((id) => getAgent(id)?.name ?? id).join(', ')}
+              />
+            ) : null}
+            {agent.handoffTo?.length ? (
+              <CharterRow
+                label="Hands off to"
+                value={agent.handoffTo.map((id) => getAgent(id)?.name ?? id).join(', ')}
+              />
+            ) : null}
+            <CharterRow
+              label="Tools"
+              value={(agent.tools ?? []).join(', ') || (agent.canDelegate ? 'delegate' : '—')}
+            />
+          </div>
+        </div>
+
+        {/* Editable settings */}
+        <div className="space-y-4">
+          <Field label="Job description" hint="Overrides the built-in role definition — what this agent is here to do.">
+            <textarea
+              value={loaded ? jd : ''}
+              onChange={(e) => setJd(e.target.value)}
+              disabled={!loaded}
+              rows={4}
+              placeholder={agent.mission}
+              className={ta}
+            />
+          </Field>
+          <Field label="Context" hint="Background the agent should always know — accounts, constraints, brand voice, key facts.">
+            <textarea
+              value={loaded ? context : ''}
+              onChange={(e) => setContext(e.target.value)}
+              disabled={!loaded}
+              rows={4}
+              placeholder="e.g. We only sell to municipalities in TX, OK, NM. Avoid mentioning competitors by name."
+              className={ta}
+            />
+          </Field>
+          <Field label="Custom instructions" hint="Do's, don'ts, and the playbook this agent must follow every time.">
+            <textarea
+              value={loaded ? instructions : ''}
+              onChange={(e) => setInstructions(e.target.value)}
+              disabled={!loaded}
+              rows={4}
+              placeholder="e.g. Always include the booking link. Keep emails under 120 words. Never promise a discount."
+              className={ta}
+            />
+          </Field>
+          <Field label="Model" hint="Which Claude model powers this agent.">
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              disabled={!loaded}
+              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-400"
+            >
+              <option value="">Default ({agent.model})</option>
+              {MODELS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              onClick={save}
+              disabled={saving || !loaded}
+              className="rounded-xl bg-gray-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save settings'}
+            </button>
+            {saved && <span className="text-xs text-emerald-600">Saved ✓ — applies on the next run</span>}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -773,7 +953,7 @@ function MapNode({
         />
       )}
       <div
-        className="relative flex w-36 flex-col items-center rounded-2xl border bg-white px-3 py-2.5 text-center shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md"
+        className="relative flex w-[124px] flex-col items-center rounded-2xl border bg-white px-2.5 py-2 text-center shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md"
         style={{ borderColor: working ? agent.accent : '#e5e7eb' }}
       >
         <span
@@ -813,7 +993,7 @@ function AgentMap({
   const n = specialists.length
   const nodes = specialists.map((agent, i) => {
     const angle = (-90 + i * (360 / n)) * (Math.PI / 180)
-    return { agent, x: 50 + 37 * Math.cos(angle), y: 50 + 33 * Math.sin(angle) }
+    return { agent, x: 50 + 40 * Math.cos(angle), y: 50 + 38 * Math.sin(angle) }
   })
   const isWorking = (id: string) => (statuses[id] ?? 'idle') === 'working'
   const ceoWorking = isWorking(ceo.id)
@@ -821,7 +1001,7 @@ function AgentMap({
   const canvas = (
     <div
       className="relative w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
-      style={{ height: full ? 'min(72vh, 640px)' : 380 }}
+      style={{ height: full ? 'min(78vh, 760px)' : 460 }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -973,7 +1153,23 @@ function LeadBoard({
                 <div className="space-y-2">
                   {cards.map((l) => (
                     <div key={l.id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-3">
-                      <div className="text-sm font-semibold">{l.org}</div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-sm font-semibold">{l.org}</div>
+                        {typeof l.score === 'number' && (
+                          <span
+                            title={l.scoreReason || 'Qualification score'}
+                            className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                              l.score >= 70
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : l.score >= 40
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : 'bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            {l.score}
+                          </span>
+                        )}
+                      </div>
                       {(l.crmId || l.enriched) && (
                         <div className="mt-0.5 flex gap-1">
                           {l.crmId && (

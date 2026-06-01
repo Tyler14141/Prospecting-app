@@ -11,6 +11,16 @@ A coordinated AI agent team — a "command center" for founder/seller-led growth
 | **Account Manager** (Riley Brooks) | Retention & expansion | `claude-sonnet-4-6` | — |
 | **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-opus-4-8` | — |
 
+## The agentic workforce (charters, roles, settings)
+
+The team is a real org chart, not a chat panel. **10 agents**, each with a **charter** (mission, what it owns, KPIs, and who it hands work to/from) baked into its prompt:
+
+CEO/Orchestrator · CMO · Researcher · **SDR** · AE · **Sales Engineer** · **Proposal & Grants Manager** · Account Manager · **RevOps** · Business Analyst.
+
+- **Lifecycle & handoffs:** research → SDR → AE → SE/Proposal → AM, with RevOps and the Analyst supporting. The CEO sees the live roster and delegates by role.
+- **Qualification scoring:** SDR/AE/RevOps can `score_lead` (0–100 fit) — shown as a colored badge on Lead Pipeline cards for prioritization/routing.
+- **Per-agent settings (Agent Console → Profile & Settings):** edit each agent's **job description**, **context**, **custom instructions / playbook**, and **model** — persisted (`/api/agents/config`) and injected into that agent's runs. The charter (mission/owns/KPIs/handoffs) is shown for reference.
+
 ## CRM, enrichment, two-way email & the daily brief
 
 - **Salesforce sync** — saved leads auto-push to Salesforce when configured (`SALESFORCE_INSTANCE_URL` + `SALESFORCE_ACCESS_TOKEN`); a **Sync new → Salesforce** button on the Lead board pushes the backlog. Synced cards show a `✓ CRM` badge. Graceful no-op without creds.

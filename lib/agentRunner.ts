@@ -5,7 +5,15 @@
 import { anthropic } from './anthropic'
 import { AGENTS, getAgent, type AgentDef } from './agents'
 import { TOOL_DEFS, runTool } from './tools'
-import { getVaultText, getMemoryText, getInsightsText, getMaterialsText, addActivity } from './store'
+import {
+  getVaultText,
+  getMemoryText,
+  getInsightsText,
+  getMaterialsText,
+  listAgentConfigs,
+  addActivity,
+} from './store'
+import type { AgentOverride } from './pipeline'
 
 const WEB_SEARCH = { type: 'web_search_20260209', name: 'web_search' }
 
@@ -19,13 +27,54 @@ interface Context {
   memory: string
   insights: string
   materials: string
+  configs: Record<string, AgentOverride>
+}
+
+function charterText(a: AgentDef): string {
+  const names = (ids?: string[]) => (ids ?? []).map((id) => getAgent(id)?.name ?? id).join(', ')
+  const lines = [
+    '# YOUR CHARTER',
+    `Role: ${a.role}`,
+    `Mission: ${a.mission}`,
+    `You own: ${a.owns.join('; ')}`,
+    `You are measured on: ${a.kpis.join('; ')}`,
+  ]
+  if (a.handoffFrom?.length) lines.push(`You receive work from: ${names(a.handoffFrom)}`)
+  if (a.handoffTo?.length) lines.push(`You hand work off to: ${names(a.handoffTo)}`)
+  return lines.join('\n')
+}
+
+function rosterText(): string {
+  const specialists = AGENTS.filter((a) => !a.canDelegate)
+  return `# YOUR TEAM (delegate by id)\n${specialists
+    .map((a) => `- ${a.id}: ${a.name}, ${a.role} — ${a.mission}`)
+    .join('\n')}`
+}
+
+function modelFor(agent: AgentDef, ctx: Context): string {
+  return ctx.configs[agent.id]?.model || agent.model
 }
 
 function systemFor(agent: AgentDef, ctx: Context) {
+  const o = ctx.configs[agent.id] ?? {}
   const blocks = [
     { type: 'text' as const, text: ctx.vault, cache_control: { type: 'ephemeral' as const } },
+    { type: 'text' as const, text: charterText(agent) },
     { type: 'text' as const, text: agent.systemPersona },
   ]
+  if (agent.canDelegate) blocks.push({ type: 'text' as const, text: rosterText() })
+  if (o.jobDescription)
+    blocks.push({
+      type: 'text' as const,
+      text: `# JOB DESCRIPTION (operator-set — authoritative for your role)\n${o.jobDescription}`,
+    })
+  if (o.context)
+    blocks.push({ type: 'text' as const, text: `# ADDITIONAL CONTEXT (operator-provided)\n${o.context}` })
+  if (o.instructions)
+    blocks.push({
+      type: 'text' as const,
+      text: `# OPERATING INSTRUCTIONS (operator-set — follow these)\n${o.instructions}`,
+    })
   if (ctx.materials) blocks.push({ type: 'text' as const, text: ctx.materials })
   if (ctx.insights) blocks.push({ type: 'text' as const, text: ctx.insights })
   if (ctx.memory) blocks.push({ type: 'text' as const, text: ctx.memory })
@@ -39,7 +88,7 @@ function systemFor(agent: AgentDef, ctx: Context) {
   if (agent.tools?.length) {
     blocks.push({
       type: 'text' as const,
-      text: `You can call these tools to record real work: ${agent.tools.join(', ')}. Prefer calling them to actually save leads, create content for review, or remember durable facts, rather than only describing the result.`,
+      text: `You can call these tools to record real work: ${agent.tools.join(', ')}. Prefer calling them to actually save/score leads, create content for review, or remember durable facts, rather than only describing the result.`,
     })
   }
   return blocks
@@ -79,13 +128,14 @@ export async function runConversation(
   messages: unknown[],
   send: Send,
 ): Promise<{ usage: Usage }> {
-  const [vault, memory, insights, materials] = await Promise.all([
+  const [vault, memory, insights, materials, configs] = await Promise.all([
     getVaultText(),
     getMemoryText(),
     getInsightsText(),
     getMaterialsText(),
+    listAgentConfigs(),
   ])
-  const ctx: Context = { vault, memory, insights, materials }
+  const ctx: Context = { vault, memory, insights, materials, configs }
   const usage: Usage = { input: 0, output: 0 }
   if (agent.canDelegate) await runOrchestrator(agent, messages, send, ctx, usage)
   else await runAgentTurn(agent, messages, send, ctx, usage)
@@ -109,7 +159,7 @@ async function runAgentTurn(
   let text = ''
   for (let round = 0; round < 5; round++) {
     const params: Record<string, unknown> = {
-      model: agent.model,
+      model: modelFor(agent, ctx),
       max_tokens: maxTokens,
       system: systemFor(agent, ctx),
       messages: convo,
@@ -154,7 +204,7 @@ async function runOrchestrator(ceo: AgentDef, history: unknown[], send: Send, ct
 
   for (let round = 0; round < 5; round++) {
     const params: Record<string, unknown> = {
-      model: ceo.model,
+      model: modelFor(ceo, ctx),
       max_tokens: 4096,
       system: systemFor(ceo, ctx),
       messages: convo,

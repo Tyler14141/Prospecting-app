@@ -33,6 +33,16 @@ export interface Lead {
   createdAt: string
   crmId?: string // Salesforce record id once synced
   enriched?: boolean // contacts found via Matcha
+  score?: number // qualification/fit score 0–100
+  scoreReason?: string
+}
+
+// Operator-editable per-agent settings (overrides/augments the code defaults).
+export interface AgentOverride {
+  jobDescription?: string
+  context?: string
+  instructions?: string
+  model?: string
 }
 
 export interface ContentItem {

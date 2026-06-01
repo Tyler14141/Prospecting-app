@@ -5,11 +5,11 @@ A coordinated AI agent team — a "command center" for founder/seller-led growth
 | Agent | Role | Model | Tools |
 |-------|------|-------|-------|
 | **CEO** (Avery Chen) | Orchestrator — strategy & delegation | `claude-opus-4-8` | adaptive thinking |
-| **CMO** (Jordan Ellis) | Content & positioning | `claude-sonnet-4-6` | — |
+| **CMO** (Jordan Ellis) | Content & positioning | `claude-opus-4-8` | — |
 | **Researcher** (Sam Rivera) | Market intelligence & prospecting | `claude-sonnet-4-6` | live web search |
 | **Account Executive** (Morgan Diaz) | New-business outreach & qualification | `claude-sonnet-4-6` | — |
 | **Account Manager** (Riley Brooks) | Retention & expansion | `claude-sonnet-4-6` | — |
-| **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-sonnet-4-6` | — |
+| **Business Analyst** (Taylor Quinn) | Performance reporting & analytics | `claude-opus-4-8` | — |
 
 ## Workflows, analytics, activity & editable vault
 

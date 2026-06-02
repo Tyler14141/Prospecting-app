@@ -15,38 +15,38 @@ export const COMPANY = {
   name: 'Harris Computer',
   tagline: 'Mission-critical software for the public sector.',
   description:
-    'Harris Computer builds and operates vertical-market software for municipal and local government — ERP/finance, permitting & land management, tax & revenue, and utility billing. Trusted by tens of thousands of government organizations across North America.',
+    'Harris Computer builds and operates vertical-market software for municipal and local government — ERP and financial management, plus a municipal website & citizen-engagement platform. Trusted by tens of thousands of government organizations across North America.',
   motion: 'Founder/seller-led outbound + content. Long sales cycles, budget-driven, relationship-heavy.',
 }
 
 export const PRODUCTS: Product[] = [
   {
     key: 'Spectrum',
-    name: 'Spectrum (ERP / Finance)',
-    oneLiner: 'Government ERP for finance, budgeting, HR and payroll.',
+    name: 'Spectrum (ERP)',
+    oneLiner: 'Enterprise ERP — finance, budgeting, HR and payroll for local government.',
     buyers: ['Finance Director', 'Town Clerk', 'Town Manager', 'Utility Billing Manager'],
     pain: 'Legacy ERP causing reporting delays, manual reconciliation, and disconnected finance/HR modules.',
   },
   {
     key: 'TRIO',
-    name: 'TRIO (Permitting & Land)',
-    oneLiner: 'Permitting, inspections, code enforcement and land management.',
+    name: 'TRIO (ERP)',
+    oneLiner: 'All-in-one ERP for small and mid-sized local governments.',
     buyers: ['Finance Director', 'Town Clerk', 'Town Manager', 'Utility Billing Manager'],
-    pain: 'Paper-based permitting, no online applications, slow inspection scheduling, hard-to-track violations.',
+    pain: 'Aging, disconnected modules and manual processes that are hard to maintain and report from.',
   },
   {
     key: 'MSI',
-    name: 'MSI (Tax & Revenue)',
-    oneLiner: 'Tax billing, collections and revenue management.',
+    name: 'MSI (ERP)',
+    oneLiner: 'Financial management ERP — accounting, billing and revenue.',
     buyers: ['Finance Director', 'Town Clerk', 'Town Manager', 'Utility Billing Manager'],
-    pain: 'Disconnected tax billing/payment systems, manual batch processing, poor taxpayer self-service.',
+    pain: 'Disconnected finance/billing systems, manual batch processing, weak reporting and self-service.',
   },
   {
     key: 'LocaleOne',
-    name: 'LocaleOne (Utility Billing)',
-    oneLiner: 'Utility billing and customer information system.',
+    name: 'LocaleOne (Municipal Website Platform)',
+    oneLiner: 'Municipal website & citizen-engagement platform — CMS, online services and payments.',
     buyers: ['Finance Director', 'Town Manager', 'City Clerk', 'IT Director'],
-    pain: 'Aging billing platform, high call volume from errors, no self-service portal, hard AMI integration.',
+    pain: 'Outdated, hard-to-update website; poor accessibility (ADA / Section 508) and mobile; no online services or payments; siloed from back-office systems.',
   },
 ]
 

@@ -110,6 +110,18 @@ lib/
 - **Tune an agent:** edit its `systemPersona`, `model`, or tools in `lib/agents.ts`.
 - **Add an agent:** append to the `AGENTS` array — the sidebar, command center, and console pick it up automatically.
 
+## Security
+
+Hardening built in:
+- **Security headers** on every response: a Content-Security-Policy (locks framing, base-uri, form-action, restricts sources), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`; the `X-Powered-By` header is removed.
+- **Password gate** — set `APP_PASSWORD` to put the dashboard + data APIs behind HTTP Basic auth.
+- **Machine endpoints fail closed in production** — `/api/inbound`, `/api/cron`, `/api/brief` require their secret (`INBOUND_SECRET` / `CRON_SECRET`); if the secret is unset in production they **reject all requests** (they only run open in local dev). Inbound also supports a sender allowlist (`INBOUND_ALLOWED_FROM`).
+- **Rate limiting** — best-effort per-IP cap on `/api/*` to stop floods/runaway cost (back it with a durable store like Upstash for multi-instance deploys).
+- **Payload caps** — oversized chat payloads and uploaded materials are rejected.
+- **Secrets stay server-side** — API keys live in env, never shipped to the browser; `.env.local` and `.data/` are gitignored.
+
+**Before deploying publicly, set:** `APP_PASSWORD`, `INBOUND_SECRET`, `CRON_SECRET` (and serve over HTTPS — automatic on Vercel). For real/multi-user production, also move the JSON store to Postgres and add proper auth + a durable rate limiter.
+
 ## Deploy (Vercel)
 
 ```bash

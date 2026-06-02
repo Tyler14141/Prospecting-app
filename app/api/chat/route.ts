@@ -24,6 +24,14 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return Response.json({ error: 'No messages provided.' }, { status: 400 })
   }
+  // Guard against oversized payloads (abuse / runaway cost).
+  if (body.messages.length > 200) {
+    return Response.json({ error: 'Too many messages.' }, { status: 413 })
+  }
+  const totalChars = body.messages.reduce((n, m) => n + (m?.content?.length ?? 0), 0)
+  if (totalChars > 200_000) {
+    return Response.json({ error: 'Message payload too large.' }, { status: 413 })
+  }
   if (!hasApiKey()) {
     return Response.json(
       { error: 'ANTHROPIC_API_KEY is not set on the server. Add it to .env.local and restart.' },

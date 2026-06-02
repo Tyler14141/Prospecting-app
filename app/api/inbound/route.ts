@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic'
 //   3. Otherwise → the CEO runs it as a task.
 function authorized(req: NextRequest): boolean {
   const secret = process.env.INBOUND_SECRET
-  if (!secret) return true
+  if (!secret) return process.env.NODE_ENV !== 'production' // prod: fail closed if unset
   const provided =
     req.headers.get('x-inbound-secret') || new URL(req.url).searchParams.get('secret')
   return provided === secret

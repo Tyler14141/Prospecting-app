@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 // inbound route applies it. Protect with CRON_SECRET (auto-sent by Vercel Cron).
 function authorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
-  if (!secret) return true
+  if (!secret) return process.env.NODE_ENV !== 'production' // prod: fail closed if unset
   const provided =
     req.headers.get('x-cron-secret') ||
     new URL(req.url).searchParams.get('secret') ||

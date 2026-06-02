@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 // operator a digest. Protect with CRON_SECRET (?secret= or x-cron-secret).
 function authorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
-  if (!secret) return true // unset = open (dev only)
+  if (!secret) return process.env.NODE_ENV !== 'production' // prod: fail closed if unset // unset = open (dev only)
   const provided =
     req.headers.get('x-cron-secret') ||
     new URL(req.url).searchParams.get('secret') ||

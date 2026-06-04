@@ -187,6 +187,12 @@ export default function Page() {
   const [runningWf, setRunningWf] = useState<Record<string, boolean>>({})
   const [autopilot, setAutopilot] = useState(false)
   const [consoleTab, setConsoleTab] = useState<'chat' | 'profile'>('chat')
+  const [listening, setListening] = useState(false)
+  const [voiceOn, setVoiceOn] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
+  const voiceRef = useRef<SpeechSynthesisVoice | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const active = getAgent(activeId)!
@@ -219,6 +225,88 @@ export default function Page() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, view])
+
+  // Voice setup: detect speech recognition + pick a JARVIS-ish (British) voice.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any
+    setSpeechSupported(Boolean(w.SpeechRecognition || w.webkitSpeechRecognition))
+    const pickVoice = () => {
+      const voices = window.speechSynthesis?.getVoices?.() ?? []
+      voiceRef.current =
+        voices.find((v) => /en-GB/i.test(v.lang) && /male|daniel|arthur|george|oliver/i.test(v.name)) ||
+        voices.find((v) => /en-GB/i.test(v.lang)) ||
+        voices.find((v) => /^en/i.test(v.lang)) ||
+        voices[0] ||
+        null
+    }
+    pickVoice()
+    window.speechSynthesis?.addEventListener?.('voiceschanged', pickVoice)
+    return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', pickVoice)
+  }, [])
+
+  function speak(text: string) {
+    if (!voiceOn || typeof window === 'undefined' || !window.speechSynthesis) return
+    const clean = text
+      .replace(/─+/g, ' ')
+      .replace(/^[▼▲✓].*$/gm, '') // drop delegation / tool markers
+      .replace(/[#*_`>|]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (!clean) return
+    window.speechSynthesis.cancel()
+    const u = new SpeechSynthesisUtterance(clean.slice(0, 900))
+    if (voiceRef.current) u.voice = voiceRef.current
+    u.rate = 1.0
+    u.pitch = 0.9
+    window.speechSynthesis.speak(u)
+  }
+
+  function startListening() {
+    if (typeof window === 'undefined') return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SR) return
+    window.speechSynthesis?.cancel() // don't let it hear itself
+    const rec = new SR()
+    rec.lang = 'en-US'
+    rec.interimResults = true
+    rec.continuous = false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
+      let interim = ''
+      let final = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript
+        if (e.results[i].isFinal) final += t
+        else interim += t
+      }
+      setInput(final || interim)
+      if (final.trim()) {
+        setListening(false)
+        send(final.trim())
+      }
+    }
+    rec.onerror = () => setListening(false)
+    rec.onend = () => setListening(false)
+    recognitionRef.current = rec
+    setListening(true)
+    try {
+      rec.start()
+    } catch {
+      setListening(false)
+    }
+  }
+
+  function stopListening() {
+    try {
+      recognitionRef.current?.stop()
+    } catch {
+      /* ignore */
+    }
+    setListening(false)
+  }
 
   const runWorkflow = useCallback(
     async (id: string) => {
@@ -360,6 +448,7 @@ export default function Page() {
         setStatuses(next)
       }
       if (!acc.trim()) patchLast('(no response)')
+      else if (voiceOn) speak(acc)
     } catch (err) {
       patchLast(`⚠️ ${err instanceof Error ? err.message : 'Something went wrong.'}`)
     } finally {
@@ -504,6 +593,23 @@ export default function Page() {
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" /> working
                   </span>
                 )}
+                <button
+                  onClick={() => {
+                    if (voiceOn) window.speechSynthesis?.cancel()
+                    setVoiceOn((v) => !v)
+                  }}
+                  title={voiceOn ? 'Voice on — JARVIS speaks replies' : 'Voice off'}
+                  className={`grid h-8 w-8 place-items-center rounded-lg border transition ${
+                    voiceOn
+                      ? 'border-cyan-400/50 bg-cyan-400/15 text-cyan-200 shadow-[0_0_16px_-4px_rgba(56,189,248,0.8)]'
+                      : 'border-cyan-400/15 text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+                    {voiceOn ? <path d="M16 9a3 3 0 0 1 0 6M19 6.5a7 7 0 0 1 0 11" /> : <path d="m17 9 4 6M21 9l-4 6" />}
+                  </svg>
+                </button>
                 <div className="flex rounded-lg border border-cyan-400/15 bg-white/[0.05] p-0.5 text-[12px] font-medium">
                   {(['chat', 'profile'] as const).map((t) => (
                     <button
@@ -552,6 +658,27 @@ export default function Page() {
 
                 <div className="border-t border-cyan-400/15 px-6 py-4">
                   <div className="mx-auto flex max-w-2xl items-end gap-2">
+                    <button
+                      onClick={listening ? stopListening : startListening}
+                      disabled={!speechSupported || busy}
+                      title={
+                        speechSupported
+                          ? listening
+                            ? 'Listening… click to stop'
+                            : 'Talk to JARVIS'
+                          : 'Voice input needs Chrome or Edge'
+                      }
+                      className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border transition disabled:opacity-40 ${
+                        listening
+                          ? 'animate-pulse border-cyan-400/60 bg-cyan-400/20 text-cyan-100 shadow-[0_0_22px_-4px_rgba(56,189,248,0.95)]'
+                          : 'border-cyan-400/20 text-slate-400 hover:border-cyan-400/40 hover:text-cyan-200'
+                      }`}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="3" width="6" height="11" rx="3" />
+                        <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+                      </svg>
+                    </button>
                     <textarea
                       value={input}
                       onChange={(e) => setInput(e.target.value)}

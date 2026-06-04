@@ -372,14 +372,14 @@ export default function Page() {
   return (
     <div className="flex h-screen w-full overflow-hidden">
       {/* Sidebar */}
-      <aside className="flex w-[260px] shrink-0 flex-col border-r border-gray-200 bg-white px-3 py-5">
+      <aside className="flex w-[260px] shrink-0 flex-col border-r border-cyan-400/15 bg-white/[0.04] px-3 py-5">
         <div className="mb-6 flex items-center gap-2.5 px-2">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-bold text-white shadow-sm">
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-cyan-300 to-blue-600 text-[11px] font-bold text-white shadow-[0_0_20px_-2px_rgba(56,189,248,0.95)] ring-1 ring-cyan-300/50">
             OS
           </div>
           <div>
             <div className="text-[15px] font-semibold leading-tight tracking-tight">Agentic OS</div>
-            <div className="text-[11px] text-gray-400">Agentic growth ops</div>
+            <div className="text-[11px] text-slate-500">Agentic growth ops</div>
           </div>
         </div>
 
@@ -392,18 +392,18 @@ export default function Page() {
                 onClick={() => setView(v)}
                 className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition ${
                   activeNav
-                    ? 'bg-gray-900 text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-cyan-500/90 text-white shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]'
+                    : 'text-slate-400 hover:bg-white/[0.07] hover:text-cyan-50'
                 }`}
               >
-                <span className={activeNav ? 'text-white' : 'text-gray-400'}>
+                <span className={activeNav ? 'text-white' : 'text-slate-500'}>
                   <NavIcon view={v} />
                 </span>
                 <span className="flex-1">{label}</span>
                 {v === 'review' && reviewCount > 0 && (
                   <span
                     className={`rounded-full px-1.5 text-[11px] font-semibold ${
-                      activeNav ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'
+                      activeNav ? 'bg-white/[0.04]/20 text-white' : 'bg-amber-400/15 text-amber-300'
                     }`}
                   >
                     {reviewCount}
@@ -414,7 +414,7 @@ export default function Page() {
           })}
         </nav>
 
-        <div className="mb-2 mt-7 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+        <div className="mb-2 mt-7 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
           Agents
         </div>
         <div className="space-y-1 overflow-y-auto">
@@ -425,7 +425,7 @@ export default function Page() {
                 key={a.id}
                 onClick={() => openConsole(a.id)}
                 className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition ${
-                  view === 'console' && activeId === a.id ? 'bg-gray-100' : 'hover:bg-gray-100'
+                  view === 'console' && activeId === a.id ? 'bg-white/[0.07]' : 'hover:bg-white/[0.07]'
                 }`}
               >
                 <span
@@ -435,9 +435,9 @@ export default function Page() {
                   {a.icon}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] text-gray-800">{a.name}</span>
+                  <span className="block truncate text-[13px] text-slate-100">{a.name}</span>
                   <span
-                    className={`block truncate text-[11px] ${working ? 'text-amber-600' : 'text-gray-400'}`}
+                    className={`block truncate text-[11px] ${working ? 'text-amber-300' : 'text-slate-500'}`}
                   >
                     {working ? 'working…' : a.role.split('·')[0].trim()}
                   </span>
@@ -455,7 +455,7 @@ export default function Page() {
         </div>
 
         <div className="mt-auto px-1 pt-4">
-          <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-3 py-2.5 text-[11px] font-medium text-gray-500">
+          <div className="flex items-center gap-2 rounded-xl bg-white/[0.05] px-3 py-2.5 text-[11px] font-medium text-slate-400">
             <span
               className={`h-2 w-2 rounded-full ${workingCount ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`}
             />
@@ -485,7 +485,7 @@ export default function Page() {
         {view === 'console' && (
           <section className="flex min-h-0 flex-1 flex-col">
             <header
-              className="flex items-center gap-3 border-b border-gray-200 px-6 py-4"
+              className="flex items-center gap-3 border-b border-cyan-400/15 px-6 py-4"
               style={{ background: `linear-gradient(90deg, ${active.accent}14, transparent)` }}
             >
               <span
@@ -496,21 +496,21 @@ export default function Page() {
               </span>
               <div className="min-w-0">
                 <h2 className="truncate text-base font-semibold">{active.name}</h2>
-                <p className="truncate text-xs text-gray-500">{active.role}</p>
+                <p className="truncate text-xs text-slate-400">{active.role}</p>
               </div>
               <div className="ml-auto flex items-center gap-2">
                 {statuses[activeId] === 'working' && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 px-2.5 py-1 text-[11px] text-amber-600">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 px-2.5 py-1 text-[11px] text-amber-300">
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" /> working
                   </span>
                 )}
-                <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-[12px] font-medium">
+                <div className="flex rounded-lg border border-cyan-400/15 bg-white/[0.05] p-0.5 text-[12px] font-medium">
                   {(['chat', 'profile'] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => setConsoleTab(t)}
                       className={`rounded-md px-3 py-1 capitalize transition ${
-                        consoleTab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'
+                        consoleTab === t ? 'bg-white/[0.04] text-cyan-50 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]' : 'text-slate-400 hover:text-cyan-100'
                       }`}
                     >
                       {t === 'profile' ? 'Profile & Settings' : 'Chat'}
@@ -527,14 +527,14 @@ export default function Page() {
                 <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
                   {messages.length === 0 ? (
                     <div className="mx-auto max-w-2xl">
-                      <p className="mb-1 text-sm text-gray-700">{active.blurb}</p>
-                      <p className="mb-4 text-xs text-gray-400">Try one of these to get started:</p>
+                      <p className="mb-1 text-sm text-slate-300">{active.blurb}</p>
+                      <p className="mb-4 text-xs text-slate-500">Try one of these to get started:</p>
                       <div className="grid gap-2">
                         {active.starters.map((s) => (
                           <button
                             key={s}
                             onClick={() => send(s)}
-                            className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-left text-sm text-gray-800 shadow-sm transition hover:border-gray-300 hover:bg-gray-50"
+                            className="rounded-xl border border-cyan-400/15 bg-white/[0.04] px-4 py-3 text-left text-sm text-slate-100 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] transition hover:border-cyan-400/40 hover:bg-white/[0.06]"
                           >
                             {s}
                           </button>
@@ -550,7 +550,7 @@ export default function Page() {
                   )}
                 </div>
 
-                <div className="border-t border-gray-200 px-6 py-4">
+                <div className="border-t border-cyan-400/15 px-6 py-4">
                   <div className="mx-auto flex max-w-2xl items-end gap-2">
                     <textarea
                       value={input}
@@ -563,7 +563,7 @@ export default function Page() {
                       }}
                       rows={1}
                       placeholder={`Message ${active.name}…`}
-                      className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none placeholder:text-gray-400 focus:border-gray-400"
+                      className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-cyan-400/15 bg-white/[0.04] px-4 py-3 text-sm shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] outline-none placeholder:text-slate-500 focus:border-cyan-400/60"
                     />
                     <button
                       onClick={() => send(input)}
@@ -599,8 +599,8 @@ const MODELS = ['claude-opus-4-8', 'claude-sonnet-4-6', 'claude-haiku-4-5']
 function CharterRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-2 text-sm">
-      <span className="w-28 shrink-0 text-gray-400">{label}</span>
-      <span className="flex-1 text-gray-700">{value}</span>
+      <span className="w-28 shrink-0 text-slate-500">{label}</span>
+      <span className="flex-1 text-slate-300">{value}</span>
     </div>
   )
 }
@@ -616,8 +616,8 @@ function Field({
 }) {
   return (
     <div>
-      <div className="text-[13px] font-medium text-gray-800">{label}</div>
-      <div className="mb-1.5 text-[11px] text-gray-400">{hint}</div>
+      <div className="text-[13px] font-medium text-slate-100">{label}</div>
+      <div className="mb-1.5 text-[11px] text-slate-500">{hint}</div>
       {children}
     </div>
   )
@@ -669,14 +669,14 @@ function AgentProfile({ agent }: { agent: AgentDef }) {
   }
 
   const ta =
-    'w-full resize-y rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400'
+    'w-full resize-y rounded-xl border border-cyan-400/25 px-3 py-2 text-sm outline-none focus:border-cyan-400/60'
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
       <div className="mx-auto max-w-2xl space-y-6">
         {/* Charter (from the role definition) */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+        <div className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] p-5 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]">
+          <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             Charter
           </div>
           <div className="space-y-1.5">
@@ -739,7 +739,7 @@ function AgentProfile({ agent }: { agent: AgentDef }) {
               value={model}
               onChange={(e) => setModel(e.target.value)}
               disabled={!loaded}
-              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-400"
+              className="w-full rounded-xl border border-cyan-400/25 bg-white/[0.04] px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
             >
               <option value="">Default ({agent.model})</option>
               {MODELS.map((m) => (
@@ -754,11 +754,11 @@ function AgentProfile({ agent }: { agent: AgentDef }) {
             <button
               onClick={save}
               disabled={saving || !loaded}
-              className="rounded-xl bg-gray-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-50"
+              className="rounded-xl bg-cyan-500/90 px-5 py-2 text-sm font-medium text-white transition hover:bg-cyan-400 disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save settings'}
             </button>
-            {saved && <span className="text-xs text-emerald-600">Saved ✓ — applies on the next run</span>}
+            {saved && <span className="text-xs text-emerald-300">Saved ✓ — applies on the next run</span>}
           </div>
         </div>
       </div>
@@ -774,7 +774,7 @@ function Bubble({ msg, accent, icon }: { msg: Msg; accent: string; icon: string 
         className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm"
         style={
           isUser
-            ? { background: '#eef2f7', color: '#475569' }
+            ? { background: 'rgba(56,189,248,0.14)', color: '#bae6fd' }
             : { background: `${accent}22`, color: accent }
         }
       >
@@ -782,11 +782,11 @@ function Bubble({ msg, accent, icon }: { msg: Msg; accent: string; icon: string 
       </span>
       <div
         className={`whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-          isUser ? 'bg-gray-100 text-gray-900' : 'border border-gray-200 bg-white shadow-sm text-gray-800'
+          isUser ? 'bg-white/[0.07] text-cyan-50' : 'border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] text-slate-100'
         }`}
         style={{ maxWidth: '85%' }}
       >
-        {msg.content || <span className="text-gray-400">▍</span>}
+        {msg.content || <span className="text-slate-500">▍</span>}
       </div>
     </div>
   )
@@ -794,7 +794,7 @@ function Bubble({ msg, accent, icon }: { msg: Msg; accent: string; icon: string 
 
 function ActivityFeed({ activity }: { activity: ActivityEvent[] }) {
   if (activity.length === 0) {
-    return <p className="text-xs text-gray-400">No activity yet. Put an agent to work.</p>
+    return <p className="text-xs text-slate-500">No activity yet. Put an agent to work.</p>
   }
   return (
     <div className="space-y-2">
@@ -809,10 +809,10 @@ function ActivityFeed({ activity }: { activity: ActivityEvent[] }) {
               {m.icon}
             </span>
             <div className="min-w-0 flex-1">
-              <span className="text-gray-700">{e.message}</span>
-              <span className="ml-1.5 text-gray-400">· {m.name}</span>
+              <span className="text-slate-300">{e.message}</span>
+              <span className="ml-1.5 text-slate-500">· {m.name}</span>
             </div>
-            <span className="shrink-0 text-[11px] text-gray-400">{fmtTime(e.ts)}</span>
+            <span className="shrink-0 text-[11px] text-slate-500">{fmtTime(e.ts)}</span>
           </div>
         )
       })}
@@ -855,11 +855,11 @@ function CommandCenter({
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-cyan-600">
+        <div className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-cyan-300">
           Agentic Growth System
         </div>
         <h1 className="text-2xl font-semibold">Command Center</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-slate-400">
           A coordinated AI agent team for {COMPANY.name}. Chat with an agent or run a workflow —
           their leads and content land in the pipelines.
         </p>
@@ -870,11 +870,11 @@ function CommandCenter({
           {metrics.map((m) => (
             <div
               key={m.label}
-              className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-gray-300 hover:shadow"
+              className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] p-4 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] transition hover:border-cyan-400/40 hover:shadow"
             >
-              <div className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{m.label}</div>
+              <div className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{m.label}</div>
               <div className="mt-1 text-[26px] font-semibold tracking-tight">{m.value}</div>
-              <div className="text-[11px] text-gray-400">{m.sub}</div>
+              <div className="text-[11px] text-slate-500">{m.sub}</div>
             </div>
           ))}
         </div>
@@ -883,24 +883,24 @@ function CommandCenter({
         {goals.length > 0 && (
           <div className="mt-8">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-gray-700">Goals &amp; attainment</h2>
-              <span className="text-[11px] text-gray-400">Manage in the Goals tab</span>
+              <h2 className="text-sm font-semibold text-slate-300">Goals &amp; attainment</h2>
+              <span className="text-[11px] text-slate-500">Manage in the Goals tab</span>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {goals.slice(0, 6).map((g) => {
                 const color = g.pct >= 100 ? '#10b981' : g.pct >= 50 ? '#0ea5e9' : '#f59e0b'
                 return (
-                  <div key={g.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <div key={g.id} className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] p-4 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]">
                     <div className="flex items-center justify-between gap-2">
                       <div className="truncate text-[13px] font-medium">{g.title}</div>
                       <span className="shrink-0 text-xs font-semibold" style={{ color }}>
                         {g.pct}%
                       </span>
                     </div>
-                    <div className="mt-2 h-2 rounded bg-gray-100">
+                    <div className="mt-2 h-2 rounded bg-white/[0.07]">
                       <div className="h-2 rounded" style={{ width: `${g.pct}%`, background: color }} />
                     </div>
-                    <div className="mt-1.5 text-[11px] text-gray-400">
+                    <div className="mt-1.5 text-[11px] text-slate-500">
                       {g.current}/{g.target}
                       {g.unit} · {g.label}
                     </div>
@@ -913,17 +913,17 @@ function CommandCenter({
 
         {/* Workflows */}
         <div className="mb-3 mt-8 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-700">Workflows</h2>
+          <h2 className="text-sm font-semibold text-slate-300">Workflows</h2>
           <button
             onClick={onToggleAutopilot}
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] transition ${
               autopilot
-                ? 'border-amber-400 bg-amber-100 text-amber-600'
-                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                ? 'border-amber-400 bg-amber-400/15 text-amber-300'
+                : 'border-cyan-400/15 text-slate-400 hover:bg-white/[0.06]'
             }`}
           >
             <span
-              className={`h-1.5 w-1.5 rounded-full ${autopilot ? 'animate-pulse bg-amber-500' : 'bg-gray-400'}`}
+              className={`h-1.5 w-1.5 rounded-full ${autopilot ? 'animate-pulse bg-amber-500' : 'bg-slate-600'}`}
             />
             {autopilot ? 'Auto-pilot on · scans every 5 min' : 'Auto-pilot off'}
           </button>
@@ -933,7 +933,7 @@ function CommandCenter({
             const a = getAgent(w.agentId)
             const running = !!runningWf[w.id]
             return (
-              <div key={w.id} className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
+              <div key={w.id} className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-4">
                 <div className="flex items-center gap-2">
                   {a && (
                     <span
@@ -947,12 +947,12 @@ function CommandCenter({
                   <button
                     onClick={() => onRun(w.id)}
                     disabled={running}
-                    className="ml-auto rounded-lg border border-gray-300 px-3 py-1 text-[11px] text-gray-800 transition hover:bg-gray-50 disabled:opacity-50"
+                    className="ml-auto rounded-lg border border-cyan-400/25 px-3 py-1 text-[11px] text-slate-100 transition hover:bg-white/[0.06] disabled:opacity-50"
                   >
                     {running ? 'Running…' : 'Run ▷'}
                   </button>
                 </div>
-                <p className="mt-2 text-xs text-gray-500">{w.description}</p>
+                <p className="mt-2 text-xs text-slate-400">{w.description}</p>
               </div>
             )
           })}
@@ -961,7 +961,7 @@ function CommandCenter({
         {/* Team + Activity */}
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
           <div>
-            <h2 className="mb-3 text-sm font-semibold text-gray-700">Your team</h2>
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">Your team</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {AGENTS.map((a) => {
                 const working = (statuses[a.id] ?? 'idle') === 'working'
@@ -969,7 +969,7 @@ function CommandCenter({
                   <button
                     key={a.id}
                     onClick={() => onOpen(a.id)}
-                    className="group rounded-2xl border border-gray-200 bg-white shadow-sm p-4 text-left transition hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50"
+                    className="group rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-4 text-left transition hover:-translate-y-0.5 hover:border-cyan-400/40 hover:bg-white/[0.06]"
                   >
                     <div className="flex items-center gap-3">
                       <span
@@ -980,7 +980,7 @@ function CommandCenter({
                       </span>
                       <div className="min-w-0">
                         <div className="truncate text-sm font-semibold">{a.name}</div>
-                        <div className="truncate text-[11px] text-gray-400">{a.role}</div>
+                        <div className="truncate text-[11px] text-slate-500">{a.role}</div>
                       </div>
                       <span
                         className={`ml-auto h-2 w-2 rounded-full ${
@@ -990,7 +990,7 @@ function CommandCenter({
                         }`}
                       />
                     </div>
-                    <p className="mt-3 text-xs leading-relaxed text-gray-500">{a.blurb}</p>
+                    <p className="mt-3 text-xs leading-relaxed text-slate-400">{a.blurb}</p>
                     <div
                       className="mt-3 text-[11px] font-medium"
                       style={{ color: working ? '#fbbf24' : a.accent }}
@@ -1004,8 +1004,8 @@ function CommandCenter({
           </div>
 
           <div>
-            <h2 className="mb-3 text-sm font-semibold text-gray-700">Recent activity</h2>
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">Recent activity</h2>
+            <div className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-4">
               <ActivityFeed activity={activity.slice(0, 8)} />
             </div>
           </div>
@@ -1042,8 +1042,8 @@ function MapNode({
         />
       )}
       <div
-        className="relative flex w-[124px] flex-col items-center rounded-2xl border bg-white px-2.5 py-2 text-center shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md"
-        style={{ borderColor: working ? agent.accent : '#e5e7eb' }}
+        className="relative flex w-[124px] flex-col items-center rounded-2xl border bg-white/[0.04] px-2.5 py-2 text-center shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] transition group-hover:-translate-y-0.5 group-hover:shadow-[0_0_36px_-12px_rgba(56,189,248,0.7)]"
+        style={{ borderColor: working ? agent.accent : 'rgba(56,189,248,0.28)' }}
       >
         <span
           className="grid h-9 w-9 place-items-center rounded-xl text-lg"
@@ -1052,11 +1052,11 @@ function MapNode({
           {agent.icon}
         </span>
         <div className="mt-1 truncate text-[13px] font-semibold leading-tight">{agent.name}</div>
-        <div className="truncate text-[10px] text-gray-400">
+        <div className="truncate text-[10px] text-slate-500">
           {agent.role.split('·')[1]?.trim() ?? agent.role}
         </div>
         <span
-          className={`mt-1 inline-flex items-center gap-1 text-[10px] ${working ? 'text-amber-600' : 'text-gray-400'}`}
+          className={`mt-1 inline-flex items-center gap-1 text-[10px] ${working ? 'text-amber-300' : 'text-slate-500'}`}
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${working ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`}
@@ -1089,7 +1089,7 @@ function AgentMap({
 
   const canvas = (
     <div
-      className="relative w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+      className="relative w-full overflow-hidden rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]"
       style={{ height: full ? 'min(78vh, 760px)' : 460 }}
     >
       <div
@@ -1109,7 +1109,7 @@ function AgentMap({
               y1="50%"
               x2={`${x}%`}
               y2={`${y}%`}
-              stroke={active ? agent.accent : '#d1d5db'}
+              stroke={active ? agent.accent : 'rgba(56,189,248,0.4)'}
               strokeWidth={active ? 2 : 1.5}
               strokeLinecap="round"
               className={active ? 'agent-edge-active' : ''}
@@ -1133,8 +1133,8 @@ function AgentMap({
           <span className="absolute inset-0 animate-ping rounded-3xl" style={{ background: `${ceo.accent}40` }} />
         )}
         <div
-          className="relative flex flex-col items-center rounded-3xl border-2 bg-white px-5 py-4 shadow-md transition group-hover:-translate-y-0.5"
-          style={{ borderColor: ceoWorking ? ceo.accent : '#e5e7eb' }}
+          className="relative flex flex-col items-center rounded-3xl border-2 bg-white/[0.04] px-5 py-4 shadow-[0_0_36px_-12px_rgba(56,189,248,0.7)] transition group-hover:-translate-y-0.5"
+          style={{ borderColor: ceoWorking ? ceo.accent : 'rgba(56,189,248,0.28)' }}
         >
           <span
             className="grid h-12 w-12 place-items-center rounded-2xl text-2xl"
@@ -1143,11 +1143,11 @@ function AgentMap({
             {ceo.icon}
           </span>
           <div className="mt-1.5 text-sm font-semibold">{ceo.name}</div>
-          <div className="text-[10px] font-medium uppercase tracking-wide text-gray-400">Orchestrator</div>
+          <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Orchestrator</div>
         </div>
       </button>
 
-      <div className="pointer-events-none absolute bottom-3 left-4 text-[11px] text-gray-400">
+      <div className="pointer-events-none absolute bottom-3 left-4 text-[11px] text-slate-500">
         Hub-and-spoke: the CEO delegates to every specialist · click a node to open it
       </div>
     </div>
@@ -1157,9 +1157,9 @@ function AgentMap({
 
   return (
     <section className="flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-gray-200 px-6 py-4">
+      <div className="border-b border-cyan-400/15 px-6 py-4">
         <h1 className="text-lg font-semibold">Agent Map</h1>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-slate-400">
           How the team is wired — the CEO orchestrates and delegates to each specialist. Lines light
           up and pulse when an agent is working.
         </p>
@@ -1171,9 +1171,9 @@ function AgentMap({
 
 function BoardHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="border-b border-gray-200 px-6 py-4">
+    <div className="border-b border-cyan-400/15 px-6 py-4">
       <h1 className="text-lg font-semibold">{title}</h1>
-      <p className="text-xs text-gray-500">{subtitle}</p>
+      <p className="text-xs text-slate-400">{subtitle}</p>
     </div>
   )
 }
@@ -1181,7 +1181,7 @@ function BoardHeader({ title, subtitle }: { title: string; subtitle: string }) {
 function EmptyHint({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid flex-1 place-items-center px-6 text-center">
-      <p className="max-w-sm text-sm text-gray-400">{children}</p>
+      <p className="max-w-sm text-sm text-slate-500">{children}</p>
     </div>
   )
 }
@@ -1206,19 +1206,19 @@ function LeadBoard({
   }
   return (
     <section className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <div className="flex items-center justify-between border-b border-cyan-400/15 px-6 py-4">
         <div>
           <h1 className="text-lg font-semibold">Lead Pipeline</h1>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-400">
             Prospects saved by the Researcher and AE. Move cards as deals progress.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {msg && <span className="text-[11px] text-gray-500">{msg}</span>}
+          {msg && <span className="text-[11px] text-slate-400">{msg}</span>}
           <button
             onClick={sync}
             disabled={syncing}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-[11px] text-gray-800 transition hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-lg border border-cyan-400/25 px-3 py-1.5 text-[11px] text-slate-100 transition hover:bg-white/[0.06] disabled:opacity-50"
           >
             {syncing ? 'Syncing…' : 'Sync new → Salesforce'}
           </button>
@@ -1226,7 +1226,7 @@ function LeadBoard({
       </div>
       {leads.length === 0 ? (
         <EmptyHint>
-          No leads yet. Ask the <strong className="text-gray-700">Researcher</strong> to find
+          No leads yet. Ask the <strong className="text-slate-300">Researcher</strong> to find
           prospects, or run the “Scan for new leads” workflow.
         </EmptyHint>
       ) : (
@@ -1235,13 +1235,13 @@ function LeadBoard({
             const cards = leads.filter((l) => l.stage === stage.key)
             return (
               <div key={stage.key} className="flex w-72 shrink-0 flex-col">
-                <div className="mb-2 flex items-center justify-between px-1 text-xs font-semibold text-gray-700">
+                <div className="mb-2 flex items-center justify-between px-1 text-xs font-semibold text-slate-300">
                   <span>{stage.label}</span>
-                  <span className="text-gray-400">{cards.length}</span>
+                  <span className="text-slate-500">{cards.length}</span>
                 </div>
                 <div className="space-y-2">
                   {cards.map((l) => (
-                    <div key={l.id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-3">
+                    <div key={l.id} className="rounded-xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="text-sm font-semibold">{l.org}</div>
                         {typeof l.score === 'number' && (
@@ -1249,10 +1249,10 @@ function LeadBoard({
                             title={l.scoreReason || 'Qualification score'}
                             className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
                               l.score >= 70
-                                ? 'bg-emerald-100 text-emerald-700'
+                                ? 'bg-emerald-400/15 text-emerald-300'
                                 : l.score >= 40
-                                  ? 'bg-amber-100 text-amber-700'
-                                  : 'bg-gray-100 text-gray-500'
+                                  ? 'bg-amber-400/15 text-amber-300'
+                                  : 'bg-white/[0.07] text-slate-400'
                             }`}
                           >
                             {l.score}
@@ -1262,43 +1262,43 @@ function LeadBoard({
                       {(l.crmId || l.enriched) && (
                         <div className="mt-0.5 flex gap-1">
                           {l.crmId && (
-                            <span className="rounded bg-sky-100 px-1.5 text-[10px] text-sky-700">✓ CRM</span>
+                            <span className="rounded bg-sky-400/15 px-1.5 text-[10px] text-sky-300">✓ CRM</span>
                           )}
                           {l.enriched && (
-                            <span className="rounded bg-emerald-100 px-1.5 text-[10px] text-emerald-700">
+                            <span className="rounded bg-emerald-400/15 px-1.5 text-[10px] text-emerald-300">
                               enriched
                             </span>
                           )}
                         </div>
                       )}
-                      {l.location && <div className="text-[11px] text-gray-400">{l.location}</div>}
+                      {l.location && <div className="text-[11px] text-slate-500">{l.location}</div>}
                       {(l.contact || l.title) && (
-                        <div className="mt-1 text-xs text-gray-700">
+                        <div className="mt-1 text-xs text-slate-300">
                           {l.contact}
                           {l.contact && l.title ? ' · ' : ''}
-                          <span className="text-gray-500">{l.title}</span>
+                          <span className="text-slate-400">{l.title}</span>
                         </div>
                       )}
                       {l.product && (
-                        <span className="mt-2 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-700">
+                        <span className="mt-2 inline-block rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] text-slate-300">
                           {l.product}
                         </span>
                       )}
                       {l.whyFit && (
-                        <p className="mt-2 text-[11px] leading-snug text-gray-400">{l.whyFit}</p>
+                        <p className="mt-2 text-[11px] leading-snug text-slate-500">{l.whyFit}</p>
                       )}
                       <div className="mt-3 flex justify-between text-[11px]">
                         <button
                           disabled={si === 0}
                           onClick={() => onMove(l.id, LEAD_STAGES[si - 1].key)}
-                          className="text-gray-500 hover:text-gray-800 disabled:opacity-30"
+                          className="text-slate-400 hover:text-cyan-100 disabled:opacity-30"
                         >
                           ◀ back
                         </button>
                         <button
                           disabled={si === LEAD_STAGES.length - 1}
                           onClick={() => onMove(l.id, LEAD_STAGES[si + 1].key)}
-                          className="text-cyan-600 hover:text-cyan-700 disabled:opacity-30"
+                          className="text-cyan-300 hover:text-cyan-200 disabled:opacity-30"
                         >
                           advance ▶
                         </button>
@@ -1331,7 +1331,7 @@ function ContentBoard({
       />
       {visible.length === 0 ? (
         <EmptyHint>
-          No content yet. Ask the <strong className="text-gray-700">CMO</strong> to write posts or
+          No content yet. Ask the <strong className="text-slate-300">CMO</strong> to write posts or
           run the “Draft this week’s content” workflow.
         </EmptyHint>
       ) : (
@@ -1340,35 +1340,35 @@ function ContentBoard({
             const cards = visible.filter((c) => c.stage === stage.key)
             return (
               <div key={stage.key} className="flex w-72 shrink-0 flex-col">
-                <div className="mb-2 flex items-center justify-between px-1 text-xs font-semibold text-gray-700">
+                <div className="mb-2 flex items-center justify-between px-1 text-xs font-semibold text-slate-300">
                   <span>{stage.label}</span>
-                  <span className="text-gray-400">{cards.length}</span>
+                  <span className="text-slate-500">{cards.length}</span>
                 </div>
                 <div className="space-y-2">
                   {cards.map((c) => (
-                    <div key={c.id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-3">
+                    <div key={c.id} className="rounded-xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-3">
                       <div className="flex items-center gap-2">
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-700">
+                        <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] text-slate-300">
                           {c.channel}
                         </span>
-                        {c.product && <span className="text-[10px] text-gray-400">{c.product}</span>}
+                        {c.product && <span className="text-[10px] text-slate-500">{c.product}</span>}
                       </div>
                       <div className="mt-1.5 text-sm font-semibold">{c.title}</div>
-                      <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-[11px] leading-snug text-gray-500">
+                      <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-[11px] leading-snug text-slate-400">
                         {c.body}
                       </p>
                       <div className="mt-3 flex justify-between text-[11px]">
                         <button
                           disabled={si === 0}
                           onClick={() => onMove(c.id, CONTENT_STAGES[si - 1].key)}
-                          className="text-gray-500 hover:text-gray-800 disabled:opacity-30"
+                          className="text-slate-400 hover:text-cyan-100 disabled:opacity-30"
                         >
                           ◀ back
                         </button>
                         <button
                           disabled={si === CONTENT_STAGES.length - 1}
                           onClick={() => onMove(c.id, CONTENT_STAGES[si + 1].key)}
-                          className="text-cyan-600 hover:text-cyan-700 disabled:opacity-30"
+                          className="text-cyan-300 hover:text-cyan-200 disabled:opacity-30"
                         >
                           advance ▶
                         </button>
@@ -1405,28 +1405,28 @@ function ReviewQueue({
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <div className="mx-auto max-w-2xl space-y-3">
             {pending.map((c) => (
-              <div key={c.id} className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
+              <div key={c.id} className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-4">
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-700">
+                  <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] text-slate-300">
                     {c.channel}
                   </span>
                   <span className="text-sm font-semibold">{c.title}</span>
-                  {c.product && <span className="text-[10px] text-gray-400">{c.product}</span>}
-                  {c.to && <span className="text-[10px] text-gray-400">→ {c.to}</span>}
+                  {c.product && <span className="text-[10px] text-slate-500">{c.product}</span>}
+                  {c.to && <span className="text-[10px] text-slate-500">→ {c.to}</span>}
                 </div>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-100">
                   {c.body}
                 </p>
                 <div className="mt-3 flex gap-2">
                   <button
                     onClick={() => onMove(c.id, 'approved')}
-                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-gray-900 hover:bg-emerald-700"
+                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-cyan-50 hover:bg-emerald-700"
                   >
                     ✓ Approve
                   </button>
                   <button
                     onClick={() => onMove(c.id, 'rejected')}
-                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                    className="rounded-lg border border-cyan-400/25 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/[0.06]"
                   >
                     ✕ Reject
                   </button>
@@ -1444,11 +1444,11 @@ function Bar({ label, value, max, color }: { label: string; value: number; max: 
   const pct = max > 0 ? Math.round((value / max) * 100) : 0
   return (
     <div>
-      <div className="flex justify-between text-[11px] text-gray-500">
+      <div className="flex justify-between text-[11px] text-slate-400">
         <span>{label}</span>
-        <span className="text-gray-700">{value}</span>
+        <span className="text-slate-300">{value}</span>
       </div>
-      <div className="mt-1 h-2 rounded bg-gray-100">
+      <div className="mt-1 h-2 rounded bg-white/[0.07]">
         <div className="h-2 rounded" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
@@ -1476,7 +1476,7 @@ function Analytics({
     <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
       <div className="mx-auto max-w-4xl">
         <h1 className="text-2xl font-semibold">Analytics</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-slate-400">
           Performance across the pipeline — the Business Analyst’s view of the system.
         </p>
 
@@ -1487,16 +1487,16 @@ function Analytics({
             { label: 'Win rate', value: `${conv}%` },
             { label: 'Content pieces', value: String(content.length) },
           ].map((m) => (
-            <div key={m.label} className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
-              <div className="text-[11px] uppercase tracking-wide text-gray-400">{m.label}</div>
+            <div key={m.label} className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-4">
+              <div className="text-[11px] uppercase tracking-wide text-slate-500">{m.label}</div>
               <div className="mt-1 text-2xl font-semibold">{m.value}</div>
             </div>
           ))}
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
-            <h2 className="mb-3 text-sm font-semibold text-gray-700">Lead funnel</h2>
+          <div className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-5">
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">Lead funnel</h2>
             <div className="space-y-3">
               {LEAD_STAGES.map((s, i) => (
                 <Bar key={s.key} label={s.label} value={leadCounts[i]} max={leadMax} color="#38bdf8" />
@@ -1504,8 +1504,8 @@ function Analytics({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
-            <h2 className="mb-3 text-sm font-semibold text-gray-700">Content by stage</h2>
+          <div className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-5">
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">Content by stage</h2>
             <div className="space-y-3">
               {CONTENT_STAGES.map((s, i) => (
                 <Bar key={s.key} label={s.label} value={contentCounts[i]} max={contentMax} color="#a78bfa" />
@@ -1516,7 +1516,7 @@ function Analytics({
                 {channels.map((ch) => (
                   <span
                     key={ch}
-                    className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-700"
+                    className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] text-slate-300"
                   >
                     {ch}: {content.filter((c) => c.channel === ch).length}
                   </span>
@@ -1526,8 +1526,8 @@ function Analytics({
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">Activity log</h2>
+        <div className="mt-6 rounded-2xl border border-cyan-400/15 bg-white/[0.04] shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] p-5">
+          <h2 className="mb-3 text-sm font-semibold text-slate-300">Activity log</h2>
           <ActivityFeed activity={activity.slice(0, 30)} />
         </div>
       </div>
@@ -1548,11 +1548,11 @@ function GoalRow({
   const owner = g.owner ? getAgent(g.owner) : undefined
   const color = g.pct >= 100 ? '#10b981' : g.pct >= 50 ? '#0ea5e9' : '#f59e0b'
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] p-4 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]">
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold">{g.title}</div>
-          <div className="text-[11px] text-gray-400">
+          <div className="text-[11px] text-slate-500">
             {g.label}
             {owner ? ` · owner: ${owner.name}` : ''}
             {g.pct >= 100 ? ' · ✓ hit' : ''}
@@ -1560,7 +1560,7 @@ function GoalRow({
         </div>
         <span className="shrink-0 text-sm font-semibold tabular-nums">
           {g.current}
-          <span className="text-gray-400">
+          <span className="text-slate-500">
             /{g.target}
             {g.unit}
           </span>
@@ -1570,22 +1570,22 @@ function GoalRow({
         </span>
         <button
           onClick={() => onDelete(g.id)}
-          className="shrink-0 text-gray-300 transition hover:text-red-500"
+          className="shrink-0 text-slate-500 transition hover:text-red-500"
           title="Remove"
         >
           ✕
         </button>
       </div>
-      <div className="mt-2 h-2 rounded bg-gray-100">
+      <div className="mt-2 h-2 rounded bg-white/[0.07]">
         <div className="h-2 rounded" style={{ width: `${g.pct}%`, background: color }} />
       </div>
-      <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-400">
+      <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500">
         Target:
         <input
           type="number"
           defaultValue={g.target}
           onBlur={(e) => onPatch(g.id, { target: Number(e.target.value) })}
-          className="w-20 rounded border border-gray-300 px-2 py-0.5 text-xs outline-none focus:border-gray-400"
+          className="w-20 rounded border border-cyan-400/25 px-2 py-0.5 text-xs outline-none focus:border-cyan-400/60"
         />
         {g.metric === 'custom' && (
           <>
@@ -1594,7 +1594,7 @@ function GoalRow({
               type="number"
               defaultValue={g.current}
               onBlur={(e) => onPatch(g.id, { current: Number(e.target.value) })}
-              className="w-20 rounded border border-gray-300 px-2 py-0.5 text-xs outline-none focus:border-gray-400"
+              className="w-20 rounded border border-cyan-400/25 px-2 py-0.5 text-xs outline-none focus:border-cyan-400/60"
             />
           </>
         )}
@@ -1633,24 +1633,24 @@ function Goals({
     <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-2xl font-semibold tracking-tight">Goals &amp; OKRs</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-slate-400">
           Targets the CEO sets and the team works toward. Most metrics track automatically from the
           pipeline; the Analyst reports against them and every agent sees them. (You can also ask the
           CEO to “set our Q3 OKRs”.)
         </p>
 
-        <div className="mt-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="mt-5 rounded-2xl border border-cyan-400/15 bg-white/[0.04] p-4 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]">
           <div className="grid gap-2 sm:grid-cols-[1fr_150px_100px_150px_auto]">
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Objective (e.g. Q3: 30 discovery calls)"
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
+              className="rounded-lg border border-cyan-400/25 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
             />
             <select
               value={metric}
               onChange={(e) => setMetric(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-400"
+              className="rounded-lg border border-cyan-400/25 bg-white/[0.04] px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
             >
               {GOAL_METRICS.map((m) => (
                 <option key={m.key} value={m.key}>
@@ -1663,12 +1663,12 @@ function Goals({
               value={target}
               onChange={(e) => setTarget(e.target.value)}
               placeholder="Target"
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
+              className="rounded-lg border border-cyan-400/25 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
             />
             <select
               value={owner}
               onChange={(e) => setOwner(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-400"
+              className="rounded-lg border border-cyan-400/25 bg-white/[0.04] px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
             >
               <option value="">Owner (optional)</option>
               {AGENTS.map((a) => (
@@ -1680,7 +1680,7 @@ function Goals({
             <button
               onClick={add}
               disabled={!title.trim() || !target}
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-50"
+              className="rounded-lg bg-cyan-500/90 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-400 disabled:opacity-50"
             >
               Add
             </button>
@@ -1689,7 +1689,7 @@ function Goals({
 
         <div className="mt-4 space-y-3">
           {goals.length === 0 ? (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-slate-500">
               No goals yet. Add one above, or ask the CEO to set the team’s OKRs.
             </p>
           ) : (
@@ -1746,18 +1746,18 @@ function ProductMaterials({
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-cyan-400/15 bg-white/[0.04] p-4 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="text-sm font-semibold">{name}</div>
-          <p className="text-[11px] text-gray-400">{oneLiner}</p>
-          <p className="mt-1 text-[11px] text-gray-400">
-            <span className="text-gray-500">Buyers:</span> {buyers.join(', ')}
+          <p className="text-[11px] text-slate-500">{oneLiner}</p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            <span className="text-slate-400">Buyers:</span> {buyers.join(', ')}
           </p>
         </div>
         <button
           onClick={() => setOpen((o) => !o)}
-          className="shrink-0 rounded-lg border border-gray-300 px-2.5 py-1 text-[11px] text-gray-700 transition hover:bg-gray-50"
+          className="shrink-0 rounded-lg border border-cyan-400/25 px-2.5 py-1 text-[11px] text-slate-300 transition hover:bg-white/[0.06]"
         >
           {open ? 'Cancel' : '+ Add material'}
         </button>
@@ -1768,16 +1768,16 @@ function ProductMaterials({
           {materials.map((m) => (
             <li
               key={m.id}
-              className="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+              className="flex items-start gap-2 rounded-lg border border-cyan-400/15 bg-white/[0.05] px-3 py-2"
             >
               <span className="mt-0.5 text-xs">📄</span>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-medium text-gray-800">{m.title}</div>
-                <div className="line-clamp-2 text-[11px] text-gray-500">{m.body}</div>
+                <div className="truncate text-[13px] font-medium text-slate-100">{m.title}</div>
+                <div className="line-clamp-2 text-[11px] text-slate-400">{m.body}</div>
               </div>
               <button
                 onClick={() => onDelete(m.id)}
-                className="shrink-0 text-gray-400 transition hover:text-red-500"
+                className="shrink-0 text-slate-500 transition hover:text-red-500"
                 title="Remove"
               >
                 ✕
@@ -1787,7 +1787,7 @@ function ProductMaterials({
         </ul>
       ) : (
         !open && (
-          <p className="mt-3 text-[11px] text-gray-400">
+          <p className="mt-3 text-[11px] text-slate-500">
             No materials yet. Add a one-pager, battlecard, spec sheet, or case study and the agents
             will use it for messaging.
           </p>
@@ -1800,19 +1800,19 @@ function ProductMaterials({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={`Title (e.g. ${productKey} one-pager)`}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
+            className="w-full rounded-lg border border-cyan-400/25 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
           />
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={5}
             placeholder="Paste the document text here…"
-            className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
+            className="w-full resize-y rounded-lg border border-cyan-400/25 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
           />
           <div className="flex items-center gap-2">
             <button
               onClick={() => fileRef.current?.click()}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-[11px] text-gray-700 transition hover:bg-gray-50"
+              className="rounded-lg border border-cyan-400/25 px-3 py-1.5 text-[11px] text-slate-300 transition hover:bg-white/[0.06]"
             >
               Upload .txt / .md…
             </button>
@@ -1826,7 +1826,7 @@ function ProductMaterials({
             <button
               onClick={add}
               disabled={busy || !title.trim() || !body.trim()}
-              className="ml-auto rounded-lg bg-cyan-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-cyan-500 disabled:opacity-50"
+              className="ml-auto rounded-lg bg-cyan-500 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-cyan-400 disabled:opacity-50"
             >
               {busy ? 'Adding…' : 'Add material'}
             </button>
@@ -1907,17 +1907,17 @@ function VaultEditor() {
     <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
       <div className="mx-auto max-w-4xl">
         <h1 className="text-2xl font-semibold">Knowledge Vault</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-slate-400">
           Everything your agents reason from. Edit the company context, and add documents per product
           so the team grounds its messaging in your real materials.
         </p>
 
         {/* Product knowledge */}
         <div className="mt-6 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-700">Product knowledge</h2>
-          <span className="text-[11px] text-gray-400">{materials.length} document(s)</span>
+          <h2 className="text-sm font-semibold text-slate-300">Product knowledge</h2>
+          <span className="text-[11px] text-slate-500">{materials.length} document(s)</span>
         </div>
-        <p className="mb-3 mt-1 text-xs text-gray-500">
+        <p className="mb-3 mt-1 text-xs text-slate-400">
           Upload or paste one-pagers, battlecards, spec sheets, or case studies. Agents pull the right
           product&rsquo;s materials into their messaging automatically.
         </p>
@@ -1938,12 +1938,12 @@ function VaultEditor() {
 
         {/* Company & ICP context */}
         <div className="mt-8 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-700">Company &amp; ICP context</h2>
-          <span className="text-[11px] text-gray-400">
+          <h2 className="text-sm font-semibold text-slate-300">Company &amp; ICP context</h2>
+          <span className="text-[11px] text-slate-500">
             {isDefault ? 'built-in default' : 'custom saved'}
           </span>
         </div>
-        <p className="mb-3 mt-1 text-xs text-gray-500">
+        <p className="mb-3 mt-1 text-xs text-slate-400">
           The shared brief every agent reads. Changes take effect on the next agent run.
         </p>
         <textarea
@@ -1951,21 +1951,21 @@ function VaultEditor() {
           onChange={(e) => setText(e.target.value)}
           disabled={!loaded}
           rows={16}
-          className="w-full resize-y rounded-2xl border border-gray-200 bg-white p-4 font-mono text-xs leading-relaxed text-gray-800 shadow-sm outline-none focus:border-gray-400"
+          className="w-full resize-y rounded-2xl border border-cyan-400/15 bg-white/[0.04] p-4 font-mono text-xs leading-relaxed text-slate-100 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)] outline-none focus:border-cyan-400/60"
         />
         <div className="mt-3 flex items-center gap-3">
           <button
             onClick={save}
             disabled={saving || !loaded}
-            className="rounded-xl bg-cyan-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-cyan-500 disabled:opacity-50"
+            className="rounded-xl bg-cyan-500 px-5 py-2 text-sm font-medium text-white transition hover:bg-cyan-400 disabled:opacity-50"
           >
             {saving ? 'Saving…' : 'Save context'}
           </button>
-          {saved && <span className="text-xs text-emerald-600">Saved ✓</span>}
+          {saved && <span className="text-xs text-emerald-300">Saved ✓</span>}
         </div>
 
-        <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 text-xs text-gray-500 shadow-sm">
-          <span className="text-gray-700">ICP:</span> {ICP.segment} — {ICP.size}
+        <div className="mt-4 rounded-2xl border border-cyan-400/15 bg-white/[0.04] p-4 text-xs text-slate-400 shadow-[0_0_30px_-16px_rgba(56,189,248,0.85)]">
+          <span className="text-slate-300">ICP:</span> {ICP.segment} — {ICP.size}
         </div>
       </div>
     </div>

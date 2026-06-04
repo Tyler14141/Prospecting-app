@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html,
@@ -11,13 +11,22 @@ body {
   height: 100%;
 }
 
+/* JARVIS — deep HUD backdrop: radial energy glows + faint blueprint grid */
 body {
   margin: 0;
-  background:
-    radial-gradient(900px 600px at 85% -10%, rgba(56, 189, 248, 0.07), transparent 60%),
-    radial-gradient(700px 520px at -10% 110%, rgba(167, 139, 250, 0.07), transparent 60%),
-    #f5f7fb;
-  color: #0f172a;
+  background-color: #050a14;
+  background-image:
+    radial-gradient(1100px 720px at 82% -12%, rgba(56, 189, 248, 0.12), transparent 60%),
+    radial-gradient(900px 620px at -12% 112%, rgba(79, 110, 247, 0.12), transparent 60%),
+    linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+  background-size:
+    auto,
+    auto,
+    46px 46px,
+    46px 46px;
+  background-attachment: fixed;
+  color: #cfe8ff;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -26,7 +35,34 @@ body {
   box-sizing: border-box;
 }
 
-/* Agent Map — animated "flow" along an active delegation edge */
+/* Faint scanlines overlay for the holographic feel (never blocks clicks) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  background: repeating-linear-gradient(0deg, rgba(56, 189, 248, 0.05) 0 1px, transparent 1px 3px);
+  opacity: 0.35;
+}
+
+/* Cyan scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.28);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.45);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Agent Map — energized delegation edge */
 @keyframes agentEdgeFlow {
   to {
     stroke-dashoffset: -20;
@@ -35,20 +71,16 @@ body {
 .agent-edge-active {
   stroke-dasharray: 5 6;
   animation: agentEdgeFlow 0.7s linear infinite;
+  filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.7));
 }
 
-/* Subtle scrollbars for the light UI */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.18);
-  border-radius: 8px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 23, 42, 0.28);
-}
-::-webkit-scrollbar-track {
-  background: transparent;
+/* Soft HUD pulse used on live elements */
+@keyframes hudPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
 }
